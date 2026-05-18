@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Paper Stealth</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div id="paper">
+        <div id="landing-page">
+            <h1>Herrenhaus</h1>
+            <p>Vorsicht, Wachen patrouillieren...</p>
+            <p style="font-size: 1rem; color: #555; margin-bottom: 15px;">Steuerung: W S A D oder Klick/Touch</p>
+            <button class="sketch-button" id="startBtn">Betreten</button>
+        </div>
+
+        <button class="sketch-button hud-button" id="charBtn">Profil</button>
+
+        <div id="char-sheet">
+            <header class="header-section">
+                <div class="header-text">
+                    <div class="char-title">Charakterbogen</div>
+                    <div class="char-name">John<br>Gramatikus</div>
+                    <div class="char-subtitle">Char-Header &rarr;</div>
+                </div>
+                <div id="porträt-container">
+                    <img src="img/profil.png" alt="Profile" class="pencil-art">
+                </div>
+            </header>
+
+            <h3 class="section-titel">Hauptwerte</h3>
+            <table class="hauptwerte-tabelle">
+                <tr>
+                    <th>
+                        <div class="tooltip-trigger" onclick="toggleTooltip(event, this)">KG
+                            <span class="tooltip-info"><strong>Kampfgeschick:</strong><br>Bestimmt deine Trefferchance im Nahkampf.</span>
+                        </div><br>65%
+                    </th>
+                    <th>
+                        <div class="tooltip-trigger" onclick="toggleTooltip(event, this)">KK
+                            <span class="tooltip-info"><strong>Körperkraft:</strong><br>Bestimmt deinen Nahkampfschaden.</span>
+                        </div><br>55
+                    </th>
+                    <th>
+                        <div class="tooltip-trigger" onclick="toggleTooltip(event, this)">GS
+                            <span class="tooltip-info"><strong>Geschwindigkeit:</strong><br>Bestimmt dein Bewegungstempo und Ausweichen.</span>
+                        </div><br>70
+                    </th>
+                    <th>
+                        <div class="tooltip-trigger" onclick="toggleTooltip(event, this)">WA
+                            <span class="tooltip-info"><strong>Wahrnehmung:</strong><br>Bestimmt, wie gut du Feinde oder Fallen erkennst.</span>
+                        </div><br>70
+                    </th>
+                    <th>
+                        <div class="tooltip-trigger" onclick="toggleTooltip(event, this)">LP
+                            <span class="tooltip-info"><strong>Lebenspunkte:</strong><br>Deine Gesundheit. Fällt sie auf Null, bist du erledigt.</span>
+                        </div><br>12/12
+                    </th>
+                </tr>
+                <tr>
+                    <td>K: 65</td>
+                    <td>1W6+2</td>
+                    <td>1W10+2</td>
+                    <td>-</td>
+                    <td>15/15</td>
+                </tr>
+            </table>
+
+            <h3 class="section-titel">Ausrüstung & Inventar</h3>
+            <section class="ausrüstung-inventar-section">
+                <div id="human-schema-bereich">
+                    <img src="img/schema.png" alt="Schema" id="human-schema-image" class="pencil-art">
+
+                    <div class="slot drop-zone" id="slot-kopf"><span class="slot-label">Kopf</span></div>
+                    <div class="slot drop-zone" id="slot-torso"><span class="slot-label">Torso</span></div>
+                    <div class="slot drop-zone" id="slot-linkeHand"><span class="slot-label">Rechte<br>Hand</span></div>
+                    <div class="slot drop-zone" id="slot-rechteHand"><span class="slot-label">Linke<br>Hand</span></div>
+                </div>
+
+                <div id="rucksack-inventar-bereich">
+                    <div class="waffen-details">
+                        <h4>Survival Messer</h4>
+                        <p>KG: 65%</p>
+                        <p>Nahkampf</p>
+                        <p>1W6+2</p>
+                    </div>
+                    <div class="waffen-details">
+                        <h4>Beretta M92F</h4>
+                        <p>Skill: Pistole 60%</p>
+                        <p>15/15 / 1W10+2</p>
+                    </div>
+                    <div id="rucksack-container">
+                        <h3>Rucksack</h3>
+                        <div id="rucksack-details">
+                            <span>Ausgerüstet</span>
+                            <span>6 Plätze</span>
+                        </div>
+                        <div id="rucksack-grid">
+                            <div class="rucksack-slot drop-zone">
+                                <img src="img/messer.png" alt="Messer" id="messer-skizze" class="pencil-art draggable-item" draggable="true">
+                            </div>
+                            <div class="rucksack-slot drop-zone">
+                                <img src="img/pistole.png" alt="Pistole" id="pistole-skizze" class="pencil-art draggable-item" draggable="true">
+                            </div>
+                            <div class="rucksack-slot drop-zone"></div>
+                            <div class="rucksack-slot drop-zone"></div>
+                            <div class="rucksack-slot drop-zone"></div>
+                            <div class="rucksack-slot drop-zone"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <button class="sketch-button" onclick="closeCharSheet()" style="margin-top: 10px; margin-bottom: 20px;">Zurück zum Spiel</button>
+        </div>
+
+        <div id="enemy-spotted-menu" class="menu-box">
+            <h2>Entdeckt!</h2>
+            <p style="font-size: 1.4rem; margin-bottom: 15px;">Die Wache hat dich zuerst bemerkt.</p>
+            <button class="sketch-button" onclick="resumeFromSpotted()">Weiter</button>
+        </div>
+        <div id="combat-menu" class="menu-box">
+            <h2>Feind gesichtet!</h2>
+            <button class="sketch-button" onclick="showAttackMenu()">Angriff</button>
+            <button class="sketch-button" onclick="resumeGame()">Verstecken</button>
+            <button class="sketch-button" onclick="resumeGame()">Rückzug</button>
+        </div>
+        <div id="attack-menu" class="menu-box">
+            <h2>Waffe wählen</h2>
+            <button class="sketch-button" onclick="executeAttack('Messer')">Messer</button>
+            <button class="sketch-button" onclick="executeAttack('Pistole')">Beretta M92F</button>
+            <button class="sketch-button" onclick="cancelAttack()" style="border-color: #555; color: #555; margin-top: 15px;">Zurück</button>
+        </div>
+        <div id="combat-result" class="menu-box">
+            <h2>Würfelwurf...</h2>
+            <div id="dice-log"></div>
+            <button id="btn-weiter" class="sketch-button" onclick="finishCombat()">Weiter</button>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+        <canvas id="wallCanvas"></canvas>
+        <canvas id="exploredCanvas"></canvas>
+    </div>
+
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+</body>
+</html>
