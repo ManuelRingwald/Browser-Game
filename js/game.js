@@ -382,7 +382,7 @@ function drawGame() {
     ctx.moveTo(player.x, player.y); ctx.lineTo(player.x + Math.cos(player.angle - player.fov/2) * player.viewDistance, player.y + Math.sin(player.angle - player.fov/2) * player.viewDistance);
     ctx.moveTo(player.x, player.y); ctx.lineTo(player.x + Math.cos(player.angle + player.fov/2) * player.viewDistance, player.y + Math.sin(player.angle + player.fov/2) * player.viewDistance); ctx.stroke();
 
-    if (!enemy.isDead) {
+    if (!enemy.isDead && GameState.enemySeen) {
         ctx.save(); ctx.beginPath(); ctx.moveTo(player.x, player.y);
         ctx.arc(player.x, player.y, player.viewDistance, player.angle - player.fov / 2, player.angle + player.fov / 2);
         ctx.closePath(); ctx.clip();
