@@ -40,7 +40,7 @@ startBtn.addEventListener('click', () => {
 charBtn.addEventListener('click', () => {
     if (combatMenu.style.display === 'flex' || attackMenu.style.display === 'flex' || resultMenu.style.display === 'flex' || enemySpottedMenu.style.display === 'flex') return;
     GameState.paused = true; GameState.isTouching = false;
-    setCharPage(1);
+    resetCharPage();
     charSheet.style.display = 'flex';
 });
 
@@ -61,29 +61,39 @@ let swipeActive = false;
         const dx = e.changedTouches[0].clientX - swipeStartX;
         const dy = e.changedTouches[0].clientY - swipeStartY;
         if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-            if (dx < 0) window.charPageNext(); else window.charPagePrev();
+            if (dx < 0) changePage(1); else changePage(-1);
         }
     }, { passive: true });
 }());
 
 window.closeCharSheet = function() { charSheet.style.display = 'none'; GameState.paused = false; };
 
-// ── CHARAKTERBOGEN PAGINATION ─────────────────────────────
-let charCurrentPage = 1;
-const CHAR_TOTAL_PAGES = 2;
+// --- SEITENNAVIGATION ---
+let currentCharPage = 1;
+const TOTAL_CHAR_PAGES = 2;
 
-function setCharPage(n) {
-    charCurrentPage = n;
-    document.querySelectorAll('.char-page').forEach((p, i) => {
-        p.classList.toggle('active', i + 1 === n);
-    });
-    document.getElementById('char-page-indicator').textContent = `${n} / ${CHAR_TOTAL_PAGES}`;
-    document.getElementById('btn-char-prev').disabled = n === 1;
-    document.getElementById('btn-char-next').disabled = n === CHAR_TOTAL_PAGES;
+function resetCharPage() {
+    if (currentCharPage !== 1) {
+        document.getElementById('char-page-' + currentCharPage).classList.remove('active');
+        currentCharPage = 1;
+        document.getElementById('char-page-1').classList.add('active');
+        document.getElementById('page-indicator').textContent = '1 / ' + TOTAL_CHAR_PAGES;
+        document.getElementById('prev-page').disabled = true;
+        document.getElementById('next-page').disabled = false;
+    }
 }
 
-window.charPagePrev = function() { if (charCurrentPage > 1) setCharPage(charCurrentPage - 1); };
-window.charPageNext = function() { if (charCurrentPage < CHAR_TOTAL_PAGES) setCharPage(charCurrentPage + 1); };
+window.changePage = function(dir) {
+    const newPage = currentCharPage + dir;
+    if (newPage < 1 || newPage > TOTAL_CHAR_PAGES) return;
+    document.getElementById('char-page-' + currentCharPage).classList.remove('active');
+    currentCharPage = newPage;
+    document.getElementById('char-page-' + currentCharPage).classList.add('active');
+    document.getElementById('page-indicator').textContent = currentCharPage + ' / ' + TOTAL_CHAR_PAGES;
+    document.getElementById('prev-page').disabled = currentCharPage === 1;
+    document.getElementById('next-page').disabled = currentCharPage === TOTAL_CHAR_PAGES;
+};
+
 window.showAttackMenu = function() { combatMenu.style.display = 'none'; attackMenu.style.display = 'flex'; }
 window.cancelAttack = function() { attackMenu.style.display = 'none'; combatMenu.style.display = 'flex'; }
 window.resumeGame = function() { combatMenu.style.display = 'none'; GameState.paused = false; };
@@ -149,23 +159,37 @@ window.finishCombat = function() {
 // =========================================
 document.addEventListener('DOMContentLoaded', () => {
 
+    let draggedItem = null;
+
     // ── MOUSE drag & drop (Desktop) ───────────────────────
     document.querySelectorAll('.draggable-item').forEach(item => {
         item.addEventListener('dragstart', e => {
+            draggedItem = item;
             e.dataTransfer.setData('text/plain', item.id);
             setTimeout(() => { item.style.opacity = '0.4'; }, 0);
         });
-        item.addEventListener('dragend', () => { item.style.opacity = '1'; });
+        item.addEventListener('dragend', () => { item.style.opacity = '1'; draggedItem = null; });
     });
 
+    function categoryMatch(zone) {
+        const accepts = zone.dataset.accepts;
+        if (!accepts || !draggedItem) return true;
+        return draggedItem.dataset.category === accepts;
+    }
+
     document.querySelectorAll('.drop-zone').forEach(zone => {
-        zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
-        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.toggle('drag-over', categoryMatch(zone));
+            zone.classList.toggle('drag-invalid', !categoryMatch(zone));
+        });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over', 'drag-invalid'));
         zone.addEventListener('drop', e => {
             e.preventDefault();
-            zone.classList.remove('drag-over');
+            zone.classList.remove('drag-over', 'drag-invalid');
             const el = document.getElementById(e.dataTransfer.getData('text/plain'));
-            if (el && !zone.querySelector('.draggable-item')) zone.appendChild(el);
+            if (!el || zone.querySelector('.draggable-item') || !categoryMatch(zone)) return;
+            zone.appendChild(el);
         });
     });
 
@@ -182,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         swipeActive = false;          // disable swipe while dragging
         dragging = item;
+        draggedItem = item;
         originZone = item.parentElement;
         ghost.src = item.src;
         ghost.style.display = 'block';
@@ -193,12 +218,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!dragging) return;
         e.preventDefault();
         movGhost(e.touches[0]);
-        document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over'));
+        document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over', 'drag-invalid'));
         // Temporarily hide ghost to hit-test the element below
         ghost.style.display = 'none';
         const zone = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY)?.closest('.drop-zone');
         ghost.style.display = 'block';
-        if (zone && zone !== originZone) zone.classList.add('drag-over');
+        if (zone && zone !== originZone) {
+            zone.classList.toggle('drag-over', categoryMatch(zone));
+            zone.classList.toggle('drag-invalid', !categoryMatch(zone));
+        }
     }
 
     function touchEnd(e) {
@@ -206,17 +234,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide ghost permanently — do NOT re-show it
         ghost.style.display = 'none';
         dragging.style.opacity = '1';
-        document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over'));
+        document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over', 'drag-invalid'));
 
         // Find drop target with ghost hidden
         const zone = document.elementFromPoint(
             e.changedTouches[0].clientX, e.changedTouches[0].clientY
         )?.closest('.drop-zone');
 
-        if (zone && zone !== originZone && !zone.querySelector('.draggable-item')) {
+        if (zone && zone !== originZone && !zone.querySelector('.draggable-item') && categoryMatch(zone)) {
             zone.appendChild(dragging);
         }
-        dragging = null; originZone = null;
+        dragging = null; originZone = null; draggedItem = null;
     }
 
     function movGhost(touch) {

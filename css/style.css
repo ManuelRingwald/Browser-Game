@@ -50,30 +50,85 @@ html, body {
 #wallCanvas, #exploredCanvas { position: absolute; display: none; }
 
 #char-sheet {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: #f0ebd8;
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSdub2lzZSc+PGZlVHVyYnVsZW5jZSB0eXBlPSdmcmFjdGFsTm9pc2UnIGJhc2VGcmVxdWVuY3k9JzAuOCcgbnVtT2N0YXZlcz0nNCcgc3RpdGNoVGlsZXM9J3N0aXRjaCcvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPScxMDAlJyBoZWlnaHQ9JzEwMCUnIGZpbHRlcj0ndXJsKCNub2lzZScpJyBvcGFjaXR5PScwLjA1Jy8+PC9zdmc+');
+    position: absolute; top: 2%; left: 2%; width: min(550px, 96%); height: 94%;
+    background-color: #e8dfc0;
+    background-image:
+        radial-gradient(ellipse 90% 80% at 60% 50%, rgba(150, 110, 50, 0.05) 0%, transparent 70%),
+        url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSdub2lzZSc+PGZlVHVyYnVsZW5jZSB0eXBlPSdmcmFjdGFsTm9pc2UnIGJhc2VGcmVxdWVuY3k9JzAuOCcgbnVtT2N0YXZlcz0nNCcgc3RpdGNoVGlsZXM9J3N0aXRjaCcvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPScxMDAlJyBoZWlnaHQ9JzEwMCUnIGZpbHRlcj0ndXJsKCNub2lzZScpJyBvcGFjaXR5PScwLjA4Jy8+PC9zdmc+');
     z-index: 40; display: none; flex-direction: column; align-items: center;
-    padding: 12px 20px 10px 20px; overflow: hidden; color: #2a2a2a;
+    padding: 20px 20px 0 50px; overflow: hidden; color: #2a2a2a;
+    transform: rotate(-0.8deg);
+    transform-origin: center;
+    box-shadow: 5px 5px 0 rgba(0,0,0,0.06), 12px 18px 40px rgba(0,0,0,0.55), 0 5px 15px rgba(0,0,0,0.2);
+    border-radius: 2px 3px 3px 2px;
 }
 
-/* ── CHARAKTERBOGEN PAGINATION ───────────────────────────── */
-#char-page-nav {
-    display: flex; align-items: center; justify-content: center;
-    gap: 18px; width: 100%; max-width: 500px;
-    margin-bottom: 6px; flex-shrink: 0;
+.coffee-stain {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
 }
-#char-page-indicator { font-size: 1.2rem; color: #555; min-width: 44px; text-align: center; }
-.page-btn { font-size: 1rem; padding: 6px 16px; min-width: 44px; min-height: 44px; line-height: 1; }
-.page-btn:disabled { opacity: 0.35; cursor: default; }
+
+.stain-1 {
+    width: 105px; height: 88px;
+    top: 4%; right: 6%;
+    background: radial-gradient(ellipse at 42% 48%,
+        rgba(101, 67, 33, 0.38) 0%,
+        rgba(101, 67, 33, 0.22) 30%,
+        rgba(101, 67, 33, 0.1) 55%,
+        transparent 78%);
+    border-radius: 61% 39% 56% 44% / 52% 61% 39% 48%;
+    filter: blur(3px);
+    transform: rotate(12deg);
+}
+
+.stain-2 {
+    width: 82px; height: 68px;
+    bottom: 14%; left: 8%;
+    background: radial-gradient(ellipse at 55% 40%,
+        rgba(101, 67, 33, 0.3) 0%,
+        rgba(101, 67, 33, 0.18) 35%,
+        rgba(101, 67, 33, 0.07) 62%,
+        transparent 82%);
+    border-radius: 44% 56% 63% 37% / 62% 44% 56% 38%;
+    filter: blur(2.5px);
+    transform: rotate(-18deg);
+}
 
 .char-page {
-    display: none; flex-direction: column; align-items: center;
-    width: 100%; flex: 1; min-height: 0; overflow: hidden;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+    padding-bottom: 8px;
 }
+
 .char-page.active { display: flex; }
 
-.back-btn { flex-shrink: 0; margin-top: 8px; margin-bottom: 10px; min-height: 44px; }
+#page-nav {
+    flex-shrink: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0 14px 0;
+    border-top: 1px solid rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 2;
+}
+
+#page-controls { display: flex; align-items: center; gap: 8px; }
+
+#page-indicator { font-size: 1.3rem; color: #555; min-width: 38px; text-align: center; }
+
+.page-btn { font-size: 1rem !important; padding: 4px 12px !important; margin: 0 !important; }
+.page-btn:disabled { opacity: 0.3; cursor: default; }
+#char-sheet::before { content: ''; position: absolute; top: 0; bottom: 0; left: 25px; width: 2px; background-color: #b34d4d; opacity: 0.6; }
+#char-sheet::after { content: ''; position: absolute; top: 0; bottom: 0; left: 33px; width: 2px; background-color: #4d6eb3; opacity: 0.6; }
 
 .pencil-art { filter: grayscale(100%) contrast(130%) brightness(0.9); mix-blend-mode: multiply; }
 
@@ -112,37 +167,31 @@ html, body {
     width: 100%; max-width: 500px; gap: 20px; margin-bottom: 30px;
 }
 
-#human-schema-bereich {
-    position: relative;
+#char-body-svg {
     width: 100%;
-    max-width: 250px;
-    aspect-ratio: 2 / 3; /* Hält die Proportion für das Schema aufrecht! */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    max-width: 220px;
+    height: auto;
+    display: block;
+    flex-shrink: 0;
+    align-self: flex-start;
     margin: 0 auto;
-}
-
-#human-schema-image {
-    position: absolute; /* Löst das Bild vom Textfluss */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain; /* Passt das Bild sauber in die Box ein */
-    opacity: 0.85;
-    pointer-events: none; /* Verhindert, dass man aus Versehen das Männchen per Drag&Drop zieht */
+    overflow: visible;
 }
 
 .slot {
-    position: absolute; width: 45px; height: 45px; border: 2px dotted #333;
-    background-color: rgba(255,255,255,0.7); display: flex; justify-content: center; align-items: center;
+    border: 2px dotted #333;
+    background-color: rgba(255,255,255,0.7);
+    display: flex; justify-content: center; align-items: center;
     font-size: 0.9rem; font-weight: bold; text-align: center; line-height: 1;
 }
-#slot-kopf { top: 18%; left: 41%; }
-#slot-torso { top: 45%; left: 41%; }
-#slot-linkeHand { top: 75%; left: 10%; }
-#slot-rechteHand { top: 75%; left: 72%; }
+
+/* Slots in SVG-foreignObject füllen ihren Container vollständig */
+#char-body-svg .slot {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
 
 #rucksack-inventar-bereich { flex: 1; min-width: 180px; display: flex; flex-direction: column; }
 
@@ -205,37 +254,23 @@ html, body {
     .hauptwerte-tabelle { font-size: 1.1rem; margin-bottom: 0; }
     .hauptwerte-tabelle th { font-size: 1.15rem; }
 
-    /* ── Page 2: Ausrüstung – Column: Schema oben, Rucksack unten ── */
+    /* ── Page 2: Ausrüstung – SVG oben, Rucksack unten ── */
     .ausrüstung-inventar-section {
         flex-direction: column; align-items: center;
         flex-wrap: nowrap; gap: 8px; margin-bottom: 0;
         width: 100%;
     }
-
-    /* OBEN: Schema — etwas größer als zuvor */
-    #human-schema-bereich {
-        flex: 0 0 auto;
-        height: min(52%, 270px);
-        width: auto;
-        max-width: 90%;
-    }
-
-    /* UNTEN: Rucksack — Inhalt bestimmt Höhe, nicht flex-stretch */
     #rucksack-inventar-bereich {
         flex: 0 0 auto;
         width: 100%;
     }
     #rucksack-container { display: flex; flex-direction: column; }
     #rucksack-details { flex-shrink: 0; }
-    /* 3 Spalten, Zellen haben feste Höhe passend zu den Slots */
     #rucksack-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 5px;
     }
-    /* Zellen: gleiche Größe wie Equipment-Slots — kein aspect-ratio */
     .rucksack-slot { aspect-ratio: auto; height: 40px; }
-
-    /* Equipment-Slots etwas größer für bessere Lesbarkeit */
     .slot { width: 34px; height: 34px; font-size: 0.65rem; }
     .slot-label { font-size: 0.65rem; line-height: 1.1; }
 
@@ -244,4 +279,16 @@ html, body {
     .menu-box h2 { font-size: 1.6rem; }
     .sketch-button { font-size: 1.3rem; }
     #landing-page h1 { font-size: 2.2rem; }
+}
+
+/* Drag-Feedback: grün = gültiger Slot, rot = ungültig */
+.drop-zone.drag-over {
+    background-color: rgba(77, 140, 77, 0.2);
+    border: 2px dashed #4d8c4d;
+}
+
+.drop-zone.drag-invalid {
+    background-color: rgba(180, 30, 30, 0.2);
+    border: 2px dashed #b01e1e;
+    cursor: not-allowed;
 }

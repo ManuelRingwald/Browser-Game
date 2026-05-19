@@ -22,14 +22,9 @@
         <button class="sketch-button hud-button" id="charBtn">Profil</button>
 
         <div id="char-sheet">
+            <div class="coffee-stain stain-1"></div>
+            <div class="coffee-stain stain-2"></div>
 
-            <nav id="char-page-nav">
-                <button class="sketch-button page-btn" id="btn-char-prev" onclick="charPagePrev()">&#9664;</button>
-                <span id="char-page-indicator">1 / 2</span>
-                <button class="sketch-button page-btn" id="btn-char-next" onclick="charPageNext()">&#9654;</button>
-            </nav>
-
-            <!-- Seite 1: Charakterwerte -->
             <div class="char-page active" id="char-page-1">
                 <header class="header-section">
                     <div class="header-text">
@@ -81,18 +76,148 @@
                 </table>
             </div>
 
-            <!-- Seite 2: Ausrüstung & Inventar -->
             <div class="char-page" id="char-page-2">
                 <h3 class="section-titel">Ausrüstung & Inventar</h3>
                 <section class="ausrüstung-inventar-section">
-                    <div id="human-schema-bereich">
-                        <img src="img/schema.png" alt="Schema" id="human-schema-image" class="pencil-art">
+                    <svg id="char-body-svg" viewBox="0 0 220 248" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <filter id="pencil-wobble" x="-6%" y="-6%" width="112%" height="112%">
+                                <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" seed="12"/>
+                                <feDisplacementMap in="SourceGraphic" scale="1.0" xChannelSelector="R" yChannelSelector="G"/>
+                            </filter>
+                        </defs>
 
-                        <div class="slot drop-zone" id="slot-kopf"><span class="slot-label">Kopf</span></div>
-                        <div class="slot drop-zone" id="slot-torso"><span class="slot-label">Torso</span></div>
-                        <div class="slot drop-zone" id="slot-linkeHand"><span class="slot-label">Rechte<br>Hand</span></div>
-                        <div class="slot drop-zone" id="slot-rechteHand"><span class="slot-label">Linke<br>Hand</span></div>
-                    </div>
+                        <g filter="url(#pencil-wobble)" stroke="#2a2a2a" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+
+                            <!-- ── KOPF ── -->
+                            <path fill="rgba(240,232,212,0.55)" stroke-width="1.7"
+                                  d="M 110 5 C 132 5 134 17 133 29 C 132 44 122 52 110 53
+                                     C 98 52 88 44 87 29 C 86 17 88 5 110 5 Z"/>
+                            <!-- Haare -->
+                            <path fill="rgba(70,50,30,0.75)" stroke-width="1.2"
+                                  d="M 88 17 C 89 7 99 3 110 3 C 121 3 131 7 132 17
+                                     C 129 9 121 6 110 6 C 99 6 91 9 88 17 Z"/>
+                            <!-- Ohr links -->
+                            <path fill="rgba(240,232,212,0.6)" stroke-width="1.3"
+                                  d="M 87 24 C 82 24 80 30 82 37 C 84 41 87 41 87 37 Z"/>
+                            <path fill="none" stroke-width="0.9" d="M 84 27 C 83 31 83 35 85 37"/>
+                            <!-- Ohr rechts -->
+                            <path fill="rgba(240,232,212,0.6)" stroke-width="1.3"
+                                  d="M 133 24 C 138 24 140 30 138 37 C 136 41 133 41 133 37 Z"/>
+                            <path fill="none" stroke-width="0.9" d="M 136 27 C 137 31 137 35 135 37"/>
+                            <!-- Augenbrauen -->
+                            <path fill="none" stroke-width="1.7" d="M 95 21 C 99 18 105 18 108 21"/>
+                            <path fill="none" stroke-width="1.7" d="M 112 21 C 115 18 121 18 125 21"/>
+                            <!-- Augen -->
+                            <path fill="white" stroke-width="1.2"
+                                  d="M 95 27 C 98 23 107 23 109 27 C 107 31 98 31 95 27 Z"/>
+                            <circle cx="102" cy="27" r="2.8" fill="#2a2a2a" stroke="none"/>
+                            <path fill="white" stroke-width="1.2"
+                                  d="M 111 27 C 113 23 122 23 125 27 C 122 31 113 31 111 27 Z"/>
+                            <circle cx="118" cy="27" r="2.8" fill="#2a2a2a" stroke="none"/>
+                            <!-- Nase -->
+                            <path fill="none" stroke-width="1.2"
+                                  d="M 107 31 C 106 36 107 40 110 41 C 113 40 114 36 113 31"/>
+                            <path fill="none" stroke-width="1.0" d="M 106 40 C 108 43 112 43 114 40"/>
+                            <!-- Mund -->
+                            <path fill="rgba(195,140,120,0.6)" stroke-width="1.5"
+                                  d="M 102 46 C 106 50 114 50 118 46 C 115 44 113 44 110 44
+                                     C 107 44 105 44 102 46 Z"/>
+
+                            <!-- ── HALS ── -->
+                            <path fill="rgba(240,232,212,0.55)" stroke-width="1.5"
+                                  d="M 103 53 C 101 59 101 65 102 70 L 118 70
+                                     C 119 65 119 59 117 53 Z"/>
+                            <path fill="none" stroke-width="0.9" d="M 106 55 C 105 61 105 66 106 70"/>
+                            <path fill="none" stroke-width="0.9" d="M 114 55 C 115 61 115 66 114 70"/>
+
+                            <!-- ── TORSO ── -->
+                            <path fill="rgba(240,232,212,0.45)" stroke-width="1.7"
+                                  d="M 102 70 C 88 70 72 74 58 84 C 50 108 48 133 50 160
+                                     C 58 167 74 170 92 172 C 98 173 104 173 110 173
+                                     C 116 173 122 173 128 172 C 146 170 162 167 170 160
+                                     C 172 133 170 108 162 84 C 148 74 132 70 118 70 Z"/>
+                            <!-- V-Ausschnitt -->
+                            <path fill="none" stroke-width="1.5"
+                                  d="M 102 70 C 107 79 110 83 110 83 C 110 83 113 79 118 70"/>
+                            <!-- Brustlinie -->
+                            <path fill="none" stroke-width="1.2"
+                                  d="M 57 104 C 76 112 94 114 110 114 C 126 114 144 112 163 104"/>
+                            <!-- Bauchlinie -->
+                            <path fill="none" stroke-width="1.0"
+                                  d="M 53 134 C 72 140 92 142 110 142 C 128 142 148 140 167 134"/>
+                            <!-- Nabel -->
+                            <path fill="none" stroke-width="1.2"
+                                  d="M 108 155 C 109 152 111 152 112 155 C 112 158 110 160 108 158 C 107 157 108 155 110 155"/>
+
+                            <!-- ── LINKER ARM (Bild-links = Char-rechts) ── -->
+                            <path fill="none" stroke-width="1.6"
+                                  d="M 58 84 C 46 100 30 124 18 155 C 12 172 8 186 8 198"/>
+                            <path fill="none" stroke-width="1.4"
+                                  d="M 70 88 C 60 106 48 132 38 162 C 32 178 30 190 30 200"/>
+                            <!-- Ellenbogen -->
+                            <path fill="none" stroke-width="1.0"
+                                  d="M 38 136 C 32 142 31 149 36 153"/>
+
+                            <!-- ── RECHTER ARM ── -->
+                            <path fill="none" stroke-width="1.6"
+                                  d="M 162 84 C 174 100 190 124 202 155 C 208 172 212 186 212 198"/>
+                            <path fill="none" stroke-width="1.4"
+                                  d="M 150 88 C 160 106 172 132 182 162 C 188 178 190 190 190 200"/>
+                            <!-- Ellenbogen -->
+                            <path fill="none" stroke-width="1.0"
+                                  d="M 182 136 C 188 142 189 149 184 153"/>
+
+                            <!-- ── LINKE HAND ── -->
+                            <path fill="rgba(240,232,212,0.65)" stroke-width="1.5"
+                                  d="M 8 198 C 3 198 1 204 2 211 C 4 219 11 222 17 220
+                                     C 22 217 26 212 30 200 C 24 195 16 194 8 198 Z"/>
+                            <path fill="none" stroke-width="1.0"
+                                  d="M 3 211 C 8 209 15 209 21 211 C 24 209 27 206 28 203"/>
+                            <path fill="none" stroke-width="1.3" d="M 3 218 C 1 225 1 233 3 239"/>
+                            <path fill="none" stroke-width="1.3" d="M 8 221 C 7 228 7 236 8 242"/>
+                            <path fill="none" stroke-width="1.3" d="M 13 222 C 13 229 14 237 15 243"/>
+                            <path fill="none" stroke-width="1.3" d="M 18 220 C 19 227 20 235 21 241"/>
+                            <path fill="none" stroke-width="1.3" d="M 23 215 C 25 222 26 230 25 236"/>
+
+                            <!-- ── RECHTE HAND ── -->
+                            <path fill="rgba(240,232,212,0.65)" stroke-width="1.5"
+                                  d="M 212 198 C 217 198 219 204 218 211 C 216 219 209 222 203 220
+                                     C 198 217 194 212 190 200 C 196 195 204 194 212 198 Z"/>
+                            <path fill="none" stroke-width="1.0"
+                                  d="M 217 211 C 212 209 205 209 199 211 C 196 209 193 206 192 203"/>
+                            <path fill="none" stroke-width="1.3" d="M 217 218 C 219 225 219 233 217 239"/>
+                            <path fill="none" stroke-width="1.3" d="M 212 221 C 213 228 213 236 212 242"/>
+                            <path fill="none" stroke-width="1.3" d="M 207 222 C 207 229 206 237 205 243"/>
+                            <path fill="none" stroke-width="1.3" d="M 202 220 C 201 227 200 235 199 241"/>
+                            <path fill="none" stroke-width="1.3" d="M 197 215 C 195 222 194 230 195 236"/>
+                        </g>
+
+                        <!-- Slots direkt in SVG-Koordinaten – kein CSS-% nötig -->
+                        <foreignObject x="87" y="3" width="46" height="46">
+                            <div xmlns="http://www.w3.org/1999/xhtml" class="slot drop-zone" id="slot-kopf" data-accepts="kopf-gadget">
+                                <span class="slot-label">Kopf</span>
+                            </div>
+                        </foreignObject>
+
+                        <foreignObject x="72" y="90" width="76" height="54">
+                            <div xmlns="http://www.w3.org/1999/xhtml" class="slot drop-zone" id="slot-torso" data-accepts="rüstung">
+                                <span class="slot-label">Torso</span>
+                            </div>
+                        </foreignObject>
+
+                        <foreignObject x="0" y="178" width="44" height="44">
+                            <div xmlns="http://www.w3.org/1999/xhtml" class="slot drop-zone" id="slot-rechteHand" data-accepts="waffe">
+                                <span class="slot-label">Rechte<br/>Hand</span>
+                            </div>
+                        </foreignObject>
+
+                        <foreignObject x="176" y="178" width="44" height="44">
+                            <div xmlns="http://www.w3.org/1999/xhtml" class="slot drop-zone" id="slot-linkeHand" data-accepts="waffe">
+                                <span class="slot-label">Linke<br/>Hand</span>
+                            </div>
+                        </foreignObject>
+                    </svg>
 
                     <div id="rucksack-inventar-bereich">
                         <div id="rucksack-container">
@@ -103,10 +228,10 @@
                             </div>
                             <div id="rucksack-grid">
                                 <div class="rucksack-slot drop-zone">
-                                    <img src="img/messer.png" alt="Messer" id="messer-skizze" class="pencil-art draggable-item" draggable="true">
+                                    <img src="img/messer.png" alt="Messer" id="messer-skizze" class="pencil-art draggable-item" draggable="true" data-category="waffe">
                                 </div>
                                 <div class="rucksack-slot drop-zone">
-                                    <img src="img/pistole.png" alt="Pistole" id="pistole-skizze" class="pencil-art draggable-item" draggable="true">
+                                    <img src="img/pistole.png" alt="Pistole" id="pistole-skizze" class="pencil-art draggable-item" draggable="true" data-category="waffe">
                                 </div>
                                 <div class="rucksack-slot drop-zone"></div>
                                 <div class="rucksack-slot drop-zone"></div>
@@ -118,7 +243,14 @@
                 </section>
             </div>
 
-            <button class="sketch-button back-btn" onclick="closeCharSheet()">&#8592; Zurück zum Spiel</button>
+            <div id="page-nav">
+                <div id="page-controls">
+                    <button class="sketch-button page-btn" id="prev-page" onclick="changePage(-1)" disabled>◀</button>
+                    <span id="page-indicator">1 / 2</span>
+                    <button class="sketch-button page-btn" id="next-page" onclick="changePage(1)">▶</button>
+                </div>
+                <button class="sketch-button" onclick="closeCharSheet()">Zurück zum Spiel</button>
+            </div>
         </div>
 
         <div id="enemy-spotted-menu" class="menu-box">
