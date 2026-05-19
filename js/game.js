@@ -158,6 +158,13 @@ function buildMansion() {
     // west wall (connects outer north to east hall north wall)
     addWall(W*.70,  H*.04,  T,  H*.24);                // y .04→.28
 
+    // ── VIEW DISTANCE: scale with canvas so game dynamics stay constant ──
+    // Reference design was 800×600; use the shorter dimension to compare.
+    const refSize = 600;
+    const scale   = Math.min(W, H) / refSize;
+    Entities.player.viewDistance = Math.round(160 * scale);
+    Entities.enemy.viewDistance  = Math.round(140 * scale);
+
     // ── PLAYER & ENEMY ───────────────────────────────────────────────────
     Entities.player.x = W * 0.50;
     Entities.player.y = H * 0.91;
