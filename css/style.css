@@ -4,6 +4,8 @@ html, body {
     width: 100%; height: 100%; background-color: #2b2b2b;
     display: flex; justify-content: center; align-items: center;
     overflow: hidden; touch-action: none; font-family: 'Kalam', cursive;
+    /* iOS safe area support */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 #paper {
@@ -52,8 +54,27 @@ html, body {
     background-color: #f0ebd8;
     background-image: url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSdub2lzZSc+PGZlVHVyYnVsZW5jZSB0eXBlPSdmcmFjdGFsTm9pc2UnIGJhc2VGcmVxdWVuY3k9JzAuOCcgbnVtT2N0YXZlcz0nNCcgc3RpdGNoVGlsZXM9J3N0aXRjaCcvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPScxMDAlJyBoZWlnaHQ9JzEwMCUnIGZpbHRlcj0ndXJsKCNub2lzZScpJyBvcGFjaXR5PScwLjA1Jy8+PC9zdmc+');
     z-index: 40; display: none; flex-direction: column; align-items: center;
-    padding: 30px 20px 40px 50px; overflow-y: auto; overflow-x: hidden; color: #2a2a2a;
+    padding: 12px 20px 10px 50px; overflow: hidden; color: #2a2a2a;
 }
+
+/* ── CHARAKTERBOGEN PAGINATION ───────────────────────────── */
+#char-page-nav {
+    display: flex; align-items: center; justify-content: center;
+    gap: 18px; width: 100%; max-width: 500px;
+    margin-bottom: 6px; flex-shrink: 0;
+}
+#char-page-indicator { font-size: 1.2rem; color: #555; min-width: 44px; text-align: center; }
+.page-btn { font-size: 1rem; padding: 6px 16px; min-width: 44px; min-height: 44px; line-height: 1; }
+.page-btn:disabled { opacity: 0.35; cursor: default; }
+
+.char-page {
+    display: none; flex-direction: column; align-items: center;
+    width: 100%; flex: 1; min-height: 0;
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.char-page.active { display: flex; }
+
+.back-btn { flex-shrink: 0; margin-top: 8px; margin-bottom: 10px; min-height: 44px; }
 #char-sheet::before { content: ''; position: absolute; top: 0; bottom: 0; left: 25px; width: 2px; background-color: #b34d4d; opacity: 0.6; }
 #char-sheet::after { content: ''; position: absolute; top: 0; bottom: 0; left: 33px; width: 2px; background-color: #4d6eb3; opacity: 0.6; }
 
@@ -138,45 +159,53 @@ html, body {
 .rucksack-slot { width: 100%; aspect-ratio: 1/1; border: 1px solid #333; background-color: rgba(0,0,0,0.05); }
 
 /* =========================================
-   DRAG & DROP STYLING (VERBESSERT)
+   DRAG & DROP STYLING
    ========================================= */
-
-/* Macht JEDEN Slot (egal ob Körper oder Rucksack) zu einem flexiblen Container,
-   der seinen Inhalt (die Waffe) automatisch zentriert. */
 .drop-zone {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden; /* Verhindert, dass große Bilder über den Rand ragen */
-    position: relative;
+    display: flex; justify-content: center; align-items: center;
+    overflow: hidden; position: relative;
 }
+.slot-label { pointer-events: none; text-align: center; font-size: 1rem; }
+.drop-zone:has(.draggable-item) .slot-label { display: none; }
 
-/* Der Text ("Kopf", "Torso") darf die Maus beim Ziehen nicht blockieren */
-.slot-label {
-    pointer-events: none;
-    text-align: center;
-}
-
-/* Blendet den Text aus, wenn eine Waffe drin liegt */
-.drop-zone:has(.draggable-item) .slot-label {
-    display: none;
-}
-
-/* Die ziehbaren Waffen passen sich IMMER zu 85% an die Größe ihres Slots an */
 .draggable-item {
-    cursor: grab;
-    z-index: 50;
-    width: 85%;
-    height: 85%;
-    object-fit: contain; /* Behält die Proportionen bei, verzerrt das Bild nicht */
+    cursor: grab; z-index: 50;
+    width: 85%; height: 85%; object-fit: contain;
+    touch-action: none; /* required for touch drag */
+    -webkit-user-drag: element;
+}
+.draggable-item:active { cursor: grabbing; }
+.drop-zone.drag-over { background-color: rgba(179, 77, 77, 0.2); border: 2px dashed #b34d4d; }
+
+/* Touch drag ghost */
+#touch-drag-ghost {
+    position: fixed; pointer-events: none; z-index: 9999;
+    opacity: 0.75; border-radius: 4px;
+    background: rgba(240, 235, 216, 0.85);
+    width: 64px; height: 64px; object-fit: contain;
+    transform: translate(-50%, -50%);
 }
 
-.draggable-item:active {
-    cursor: grabbing;
-}
+/* =========================================
+   MOBILE / RESPONSIVE
+   ========================================= */
+.sketch-button { min-height: 44px; }
 
-/* Visuelles Feedback, wenn man mit einem Item über einen Slot fährt */
-.drop-zone.drag-over {
-    background-color: rgba(179, 77, 77, 0.2);
-    border: 2px dashed #b34d4d;
+@media (max-width: 480px) {
+    #char-sheet { padding: 8px 10px 8px 38px; }
+    #char-sheet::before { left: 18px; }
+    #char-sheet::after  { left: 26px; }
+    .char-title  { font-size: 1.5rem; }
+    .char-name   { font-size: 1.7rem; }
+    #porträt-container { width: 72px; height: 72px; }
+    .section-titel { font-size: 1.4rem; margin-top: 6px; margin-bottom: 6px; }
+    .hauptwerte-tabelle { font-size: 1.1rem; }
+    .hauptwerte-tabelle th { font-size: 1.15rem; }
+    .ausrüstung-inventar-section { flex-direction: column; align-items: center; }
+    #human-schema-bereich { max-width: 180px; }
+    .menu-box { padding: 20px 15px; min-width: min(280px, 90vw); }
+    .menu-box h2 { font-size: 1.6rem; }
+    .sketch-button { font-size: 1.3rem; }
+    #landing-page h1 { font-size: 2.2rem; }
+    .slot-label { font-size: 0.85rem; }
 }

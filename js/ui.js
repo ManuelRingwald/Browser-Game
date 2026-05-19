@@ -39,10 +39,45 @@ startBtn.addEventListener('click', () => {
 
 charBtn.addEventListener('click', () => {
     if (combatMenu.style.display === 'flex' || attackMenu.style.display === 'flex' || resultMenu.style.display === 'flex' || enemySpottedMenu.style.display === 'flex') return;
-    GameState.paused = true; GameState.isTouching = false; charSheet.style.display = 'flex';
+    GameState.paused = true; GameState.isTouching = false;
+    setCharPage(1);
+    charSheet.style.display = 'flex';
 });
 
+// Swipe left/right on char-sheet to switch pages
+(function() {
+    let swipeStartX = 0, swipeStartY = 0;
+    charSheet.addEventListener('touchstart', e => {
+        swipeStartX = e.touches[0].clientX;
+        swipeStartY = e.touches[0].clientY;
+    }, { passive: true });
+    charSheet.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - swipeStartX;
+        const dy = e.changedTouches[0].clientY - swipeStartY;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+            if (dx < 0) window.charPageNext(); else window.charPagePrev();
+        }
+    }, { passive: true });
+}());
+
 window.closeCharSheet = function() { charSheet.style.display = 'none'; GameState.paused = false; };
+
+// ── CHARAKTERBOGEN PAGINATION ─────────────────────────────
+let charCurrentPage = 1;
+const CHAR_TOTAL_PAGES = 2;
+
+function setCharPage(n) {
+    charCurrentPage = n;
+    document.querySelectorAll('.char-page').forEach((p, i) => {
+        p.classList.toggle('active', i + 1 === n);
+    });
+    document.getElementById('char-page-indicator').textContent = `${n} / ${CHAR_TOTAL_PAGES}`;
+    document.getElementById('btn-char-prev').disabled = n === 1;
+    document.getElementById('btn-char-next').disabled = n === CHAR_TOTAL_PAGES;
+}
+
+window.charPagePrev = function() { if (charCurrentPage > 1) setCharPage(charCurrentPage - 1); };
+window.charPageNext = function() { if (charCurrentPage < CHAR_TOTAL_PAGES) setCharPage(charCurrentPage + 1); };
 window.showAttackMenu = function() { combatMenu.style.display = 'none'; attackMenu.style.display = 'flex'; }
 window.cancelAttack = function() { attackMenu.style.display = 'none'; combatMenu.style.display = 'flex'; }
 window.resumeGame = function() { combatMenu.style.display = 'none'; GameState.paused = false; };
@@ -104,60 +139,87 @@ window.finishCombat = function() {
 }
 
 // =========================================
-// DRAG & DROP LOGIK
+// DRAG & DROP  (Mouse + Touch, iOS-kompatibel)
 // =========================================
-
 document.addEventListener('DOMContentLoaded', () => {
-    const draggables = document.querySelectorAll('.draggable-item');
-    const dropZones = document.querySelectorAll('.drop-zone');
 
-    // 1. Wenn wir anfangen, ein Item zu ziehen
-    draggables.forEach(draggable => {
-        draggable.addEventListener('dragstart', (e) => {
-            // Wir merken uns die ID des gezogenen Elements
-            e.dataTransfer.setData('text/plain', draggable.id);
-            // Macht das Original beim Ziehen leicht transparent
-            setTimeout(() => { draggable.style.opacity = '0.4'; }, 0);
+    // ── MOUSE drag & drop (Desktop) ───────────────────────
+    document.querySelectorAll('.draggable-item').forEach(item => {
+        item.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('text/plain', item.id);
+            setTimeout(() => { item.style.opacity = '0.4'; }, 0);
         });
+        item.addEventListener('dragend', () => { item.style.opacity = '1'; });
+    });
 
-        draggable.addEventListener('dragend', () => {
-            draggable.style.opacity = '1';
+    document.querySelectorAll('.drop-zone').forEach(zone => {
+        zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            const el = document.getElementById(e.dataTransfer.getData('text/plain'));
+            if (el && !zone.querySelector('.draggable-item')) zone.appendChild(el);
         });
     });
 
-    // 2. Was passiert bei den Ablage-Slots (Drop Zones)?
-    dropZones.forEach(zone => {
+    // ── TOUCH drag & drop (iOS / Android) ────────────────
+    let dragging = null, originZone = null;
+    const ghost = document.createElement('img');
+    ghost.id = 'touch-drag-ghost';
+    ghost.style.display = 'none';
+    document.body.appendChild(ghost);
 
-        // Erlaubt das Ablegen (standardmäßig blockiert der Browser das)
-        zone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            zone.classList.add('drag-over');
-        });
+    function touchStart(e) {
+        const item = e.target.closest('.draggable-item');
+        if (!item) return;
+        e.preventDefault();
+        dragging = item;
+        originZone = item.parentElement;
+        ghost.src = item.src;
+        ghost.style.display = 'block';
+        movGhost(e.touches[0]);
+        item.style.opacity = '0.3';
+    }
 
-        // Visuelles Feedback entfernen, wenn man den Slot verlässt
-        zone.addEventListener('dragleave', () => {
-            zone.classList.remove('drag-over');
-        });
+    function touchMove(e) {
+        if (!dragging) return;
+        e.preventDefault();
+        movGhost(e.touches[0]);
+        // Highlight the zone under finger
+        document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over'));
+        const el = elementUnderGhost(e.touches[0]);
+        const zone = el?.closest('.drop-zone');
+        if (zone && zone !== originZone) zone.classList.add('drag-over');
+    }
 
-        // 3. Das Item wird fallengelassen
-        zone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            zone.classList.remove('drag-over');
+    function touchEnd(e) {
+        if (!dragging) return;
+        ghost.style.display = 'none';
+        dragging.style.opacity = '1';
+        document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over'));
 
-            // Holt sich die ID des Elements, das wir in 'dragstart' gespeichert haben
-            const id = e.dataTransfer.getData('text/plain');
-            const draggableElement = document.getElementById(id);
+        const el = elementUnderGhost(e.changedTouches[0]);
+        const zone = el?.closest('.drop-zone');
+        if (zone && zone !== originZone && !zone.querySelector('.draggable-item')) {
+            zone.appendChild(dragging);
+        }
+        dragging = null; originZone = null;
+    }
 
-            if (draggableElement) {
-                // Prüfen, ob der Slot schon voll ist (optional)
-                if (zone.querySelector('.draggable-item')) {
-                    console.log("Slot ist bereits belegt!");
-                    return; // Bricht ab, wenn schon eine Waffe im Slot liegt
-                }
+    function movGhost(touch) {
+        ghost.style.left = touch.clientX + 'px';
+        ghost.style.top  = touch.clientY + 'px';
+    }
 
-                // Hängt das HTML-Element physisch um, wodurch das CSS greift
-                zone.appendChild(draggableElement);
-            }
-        });
-    });
+    function elementUnderGhost(touch) {
+        ghost.style.display = 'none';
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        ghost.style.display = 'block';
+        return el;
+    }
+
+    document.addEventListener('touchstart', touchStart, { passive: false, capture: true });
+    document.addEventListener('touchmove',  touchMove,  { passive: false, capture: true });
+    document.addEventListener('touchend',   touchEnd,   { passive: false, capture: true });
 });
