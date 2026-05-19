@@ -45,13 +45,19 @@ charBtn.addEventListener('click', () => {
 });
 
 // Swipe left/right on char-sheet to switch pages
+// NOTE: swipeActive is set to false during touch-drag so swipe doesn't fire
+let swipeActive = false;
 (function() {
     let swipeStartX = 0, swipeStartY = 0;
     charSheet.addEventListener('touchstart', e => {
+        if (e.target.closest('.draggable-item')) { swipeActive = false; return; }
+        swipeActive = true;
         swipeStartX = e.touches[0].clientX;
         swipeStartY = e.touches[0].clientY;
     }, { passive: true });
     charSheet.addEventListener('touchend', e => {
+        if (!swipeActive) return;
+        swipeActive = false;
         const dx = e.changedTouches[0].clientX - swipeStartX;
         const dy = e.changedTouches[0].clientY - swipeStartY;
         if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
@@ -174,6 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = e.target.closest('.draggable-item');
         if (!item) return;
         e.preventDefault();
+        swipeActive = false;          // disable swipe while dragging
         dragging = item;
         originZone = item.parentElement;
         ghost.src = item.src;
@@ -186,21 +193,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!dragging) return;
         e.preventDefault();
         movGhost(e.touches[0]);
-        // Highlight the zone under finger
         document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over'));
-        const el = elementUnderGhost(e.touches[0]);
-        const zone = el?.closest('.drop-zone');
+        // Temporarily hide ghost to hit-test the element below
+        ghost.style.display = 'none';
+        const zone = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY)?.closest('.drop-zone');
+        ghost.style.display = 'block';
         if (zone && zone !== originZone) zone.classList.add('drag-over');
     }
 
     function touchEnd(e) {
         if (!dragging) return;
+        // Hide ghost permanently — do NOT re-show it
         ghost.style.display = 'none';
         dragging.style.opacity = '1';
         document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over'));
 
-        const el = elementUnderGhost(e.changedTouches[0]);
-        const zone = el?.closest('.drop-zone');
+        // Find drop target with ghost hidden
+        const zone = document.elementFromPoint(
+            e.changedTouches[0].clientX, e.changedTouches[0].clientY
+        )?.closest('.drop-zone');
+
         if (zone && zone !== originZone && !zone.querySelector('.draggable-item')) {
             zone.appendChild(dragging);
         }
@@ -210,13 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function movGhost(touch) {
         ghost.style.left = touch.clientX + 'px';
         ghost.style.top  = touch.clientY + 'px';
-    }
-
-    function elementUnderGhost(touch) {
-        ghost.style.display = 'none';
-        const el = document.elementFromPoint(touch.clientX, touch.clientY);
-        ghost.style.display = 'block';
-        return el;
     }
 
     document.addEventListener('touchstart', touchStart, { passive: false, capture: true });

@@ -205,18 +205,36 @@ html, body {
     .hauptwerte-tabelle { font-size: 1.1rem; margin-bottom: 0; }
     .hauptwerte-tabelle th { font-size: 1.15rem; }
 
-    /* ── Page 2: Ausrüstung – Row layout (Schema links, Rucksack rechts) ── */
+    /* ── Page 2: Ausrüstung – Column: Schema oben, Rucksack unten ── */
     .ausrüstung-inventar-section {
-        flex-direction: row; align-items: flex-start;
+        flex: 1; min-height: 0;
+        flex-direction: column; align-items: center;
         flex-wrap: nowrap; gap: 8px; margin-bottom: 0;
+        width: 100%;
     }
-    /* Schema on left: fixed 34% of section width */
-    #human-schema-bereich { flex: 0 0 34%; max-width: 34%; width: 34%; }
-    /* Rucksack on right: fills remaining space */
-    #rucksack-inventar-bereich { flex: 1 1 auto; min-width: 0; }
-    /* 3-column grid so only 2 rows needed */
-    #rucksack-grid { grid-template-columns: repeat(3, 1fr); }
-    /* Smaller equipment slots to fit inside the scaled schema */
+
+    /* OBEN: Schema nimmt obere Hälfte — feste Höhe, Breite via aspect-ratio */
+    #human-schema-bereich {
+        flex: 0 0 auto;
+        height: min(46%, 230px);
+        width: auto;
+        max-width: 90%;
+    }
+
+    /* UNTEN: Rucksack füllt den Rest */
+    #rucksack-inventar-bereich {
+        flex: 1; min-height: 0;
+        width: 100%;
+    }
+    #rucksack-container { height: 100%; display: flex; flex-direction: column; }
+    #rucksack-details { flex-shrink: 0; }
+    /* Grid fills available height — 3 cols so nur 2 Zeilen nötig */
+    #rucksack-grid {
+        grid-template-columns: repeat(3, 1fr);
+        flex: 1; align-content: start;
+    }
+
+    /* Kleinere Equipment-Slots damit sie ins Schema passen */
     .slot { width: 26px; height: 26px; font-size: 0.55rem; }
     .slot-label { font-size: 0.55rem; line-height: 1.1; }
 
