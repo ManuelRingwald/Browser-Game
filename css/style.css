@@ -207,36 +207,37 @@ html, body {
 
     /* ── Page 2: Ausrüstung – Column: Schema oben, Rucksack unten ── */
     .ausrüstung-inventar-section {
-        flex: 1; min-height: 0;
         flex-direction: column; align-items: center;
         flex-wrap: nowrap; gap: 8px; margin-bottom: 0;
         width: 100%;
     }
 
-    /* OBEN: Schema nimmt obere Hälfte — feste Höhe, Breite via aspect-ratio */
+    /* OBEN: Schema — etwas größer als zuvor */
     #human-schema-bereich {
         flex: 0 0 auto;
-        height: min(46%, 230px);
+        height: min(52%, 270px);
         width: auto;
         max-width: 90%;
     }
 
-    /* UNTEN: Rucksack füllt den Rest */
+    /* UNTEN: Rucksack — Inhalt bestimmt Höhe, nicht flex-stretch */
     #rucksack-inventar-bereich {
-        flex: 1; min-height: 0;
+        flex: 0 0 auto;
         width: 100%;
     }
-    #rucksack-container { height: 100%; display: flex; flex-direction: column; }
+    #rucksack-container { display: flex; flex-direction: column; }
     #rucksack-details { flex-shrink: 0; }
-    /* Grid fills available height — 3 cols so nur 2 Zeilen nötig */
+    /* 3 Spalten, Zellen haben feste Höhe passend zu den Slots */
     #rucksack-grid {
         grid-template-columns: repeat(3, 1fr);
-        flex: 1; align-content: start;
+        gap: 5px;
     }
+    /* Zellen: gleiche Größe wie Equipment-Slots — kein aspect-ratio */
+    .rucksack-slot { aspect-ratio: auto; height: 40px; }
 
-    /* Kleinere Equipment-Slots damit sie ins Schema passen */
-    .slot { width: 26px; height: 26px; font-size: 0.55rem; }
-    .slot-label { font-size: 0.55rem; line-height: 1.1; }
+    /* Equipment-Slots etwas größer für bessere Lesbarkeit */
+    .slot { width: 34px; height: 34px; font-size: 0.65rem; }
+    .slot-label { font-size: 0.65rem; line-height: 1.1; }
 
     /* ── Menus / Buttons ── */
     .menu-box { padding: 20px 15px; min-width: min(280px, 90vw); }
