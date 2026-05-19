@@ -150,7 +150,14 @@ html, body {
 #rucksack-container h3 { text-align: center; font-size: 1.4rem; margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 2px; }
 #rucksack-details { display: flex; justify-content: space-between; font-size: 1rem; margin-bottom: 10px; color: #444; }
 #rucksack-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-.rucksack-slot { width: 100%; aspect-ratio: 1/1; border: 1px solid #333; background-color: rgba(0,0,0,0.05); }
+/* Fixed-size cells — content must NOT expand them */
+.rucksack-slot { width: 100%; aspect-ratio: 1/1; border: 1px solid #333; background-color: rgba(0,0,0,0.05); overflow: hidden; }
+/* Items are absolutely centred so they fit INTO the slot without influencing its size */
+.rucksack-slot .draggable-item {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 85%; height: 85%; object-fit: contain;
+}
 
 /* =========================================
    DRAG & DROP STYLING
@@ -186,20 +193,36 @@ html, body {
 .sketch-button { min-height: 44px; }
 
 @media (max-width: 480px) {
+    /* ── Char sheet container ── */
     #char-sheet { padding: 8px 12px 8px 12px; }
+
+    /* ── Page 1: Stats ── */
     .char-title  { font-size: 1.5rem; }
     .char-name   { font-size: 1.7rem; }
-    .header-section { margin-bottom: 10px; }
+    .header-section { margin-bottom: 8px; }
     #porträt-container { width: 68px; height: 68px; }
     .section-titel { font-size: 1.4rem; margin-top: 6px; margin-bottom: 6px; }
     .hauptwerte-tabelle { font-size: 1.1rem; margin-bottom: 0; }
     .hauptwerte-tabelle th { font-size: 1.15rem; }
-    .ausrüstung-inventar-section { flex-direction: column; align-items: center; gap: 10px; margin-bottom: 0; }
-    #human-schema-bereich { max-width: 150px; }
+
+    /* ── Page 2: Ausrüstung – Row layout (Schema links, Rucksack rechts) ── */
+    .ausrüstung-inventar-section {
+        flex-direction: row; align-items: flex-start;
+        flex-wrap: nowrap; gap: 8px; margin-bottom: 0;
+    }
+    /* Schema on left: fixed 34% of section width */
+    #human-schema-bereich { flex: 0 0 34%; max-width: 34%; width: 34%; }
+    /* Rucksack on right: fills remaining space */
+    #rucksack-inventar-bereich { flex: 1 1 auto; min-width: 0; }
+    /* 3-column grid so only 2 rows needed */
     #rucksack-grid { grid-template-columns: repeat(3, 1fr); }
+    /* Smaller equipment slots to fit inside the scaled schema */
+    .slot { width: 26px; height: 26px; font-size: 0.55rem; }
+    .slot-label { font-size: 0.55rem; line-height: 1.1; }
+
+    /* ── Menus / Buttons ── */
     .menu-box { padding: 20px 15px; min-width: min(280px, 90vw); }
     .menu-box h2 { font-size: 1.6rem; }
     .sketch-button { font-size: 1.3rem; }
     #landing-page h1 { font-size: 2.2rem; }
-    .slot-label { font-size: 0.85rem; }
 }
