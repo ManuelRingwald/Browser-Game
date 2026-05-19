@@ -62,43 +62,190 @@ function resizeCanvas() {
 
 function addWall(x, y, w, h) { GameState.walls.push({ x, y, width: w, height: h }); }
 
+// RE1 Spencer Mansion – Ground Floor
+// Rooms (in canvas fractions):
+//   Entrance Corridor : x[.44,.56]  y[.80,.96]
+//   Main Hall         : x[.30,.70]  y[.46,.80]  (grand staircase centre)
+//   North Landing     : x[.30,.70]  y[.23,.46]
+//   Study             : x[.42,.58]  y[.04,.23]
+//   West Wing         : x[.05,.30]  y[.04,.80]  (dining upper / corridor lower)
+//   East Hall         : x[.70,.95]  y[.28,.80]
+//   NE Store          : x[.70,.95]  y[.04,.28]
 function buildMansion() {
     GameState.walls = [];
-    const cw = canvas.width; const ch = canvas.height; const pad = 20;
+    const W = canvas.width, H = canvas.height;
+    const T = 8; // wall thickness
 
-    addWall(pad, pad, cw - pad*2, 6);
-    addWall(pad, pad, 6, ch - pad*2);
-    addWall(cw - pad - 6, pad, 6, ch - pad*2);
-    addWall(pad, ch - pad - 6, cw - pad*2, 6);
+    // ── OUTER PERIMETER ──────────────────────────────────────────────────
+    addWall(W*.05,     H*.04,      W*.90, T);          // N outer
+    addWall(W*.05,     H*.96-T,    W*.38, T);          // S outer west  (entrance gap .44→.56)
+    addWall(W*.57,     H*.96-T,    W*.38, T);          // S outer east
+    addWall(W*.05,     H*.04,      T, H*.92);          // W outer
+    addWall(W*.95-T,   H*.04,      T, H*.92);          // E outer
 
-    const mhLeft = cw * 0.35; const mhRight = cw * 0.65; const hallTop = ch * 0.45;
-    addWall(mhLeft, hallTop, 6, ch * 0.2);
-    addWall(mhLeft, hallTop + ch * 0.3, 6, ch * 0.25 - pad);
-    addWall(mhRight, hallTop, 6, ch * 0.2);
-    addWall(mhRight, hallTop + ch * 0.3, 6, ch * 0.25 - pad);
-    addWall(mhLeft, hallTop, cw * 0.1, 6);
-    addWall(mhRight - cw * 0.1, hallTop, cw * 0.1 + 6, 6);
-    addWall(pad, hallTop, mhLeft - pad, 6);
-    addWall(pad + (mhLeft - pad) * 0.25, hallTop + ch * 0.1, (mhLeft - pad) * 0.4, ch * 0.25);
-    addWall(mhRight, hallTop, cw - pad - mhRight, 6);
-    addWall(mhRight + (cw - pad - mhRight) * 0.4, hallTop + ch * 0.2, 15, 60);
+    // ── ENTRANCE CORRIDOR  x[.44,.56]  y[.80,.96] ───────────────────────
+    addWall(W*.44,  H*.80,  T,      H*.16);            // left wall
+    addWall(W*.56,  H*.80,  T,      H*.16);            // right wall
 
-    Entities.player.x = cw / 2; Entities.player.y = ch - pad - 40;
-    Entities.enemy.waypoints = [ { x: pad + 30, y: hallTop + 40 }, { x: pad + 30, y: ch - pad - 40 } ];
-    Entities.enemy.x = Entities.enemy.waypoints[0].x; Entities.enemy.y = Entities.enemy.waypoints[0].y;
+    // ── MAIN HALL  x[.30,.70]  y[.46,.80] ───────────────────────────────
+    // south wall (side pieces beside entrance opening)
+    addWall(W*.30,  H*.80,  W*.14,  T);                // SW piece
+    addWall(W*.56,  H*.80,  W*.14,  T);                // SE piece
+    // west wall  (door gap y[.61,.69])
+    addWall(W*.30,  H*.46,  T,  H*.15);                // upper  .46→.61
+    addWall(W*.30,  H*.69,  T,  H*.11);                // lower  .69→.80
+    // east wall  (door gap y[.57,.65])
+    addWall(W*.70,  H*.46,  T,  H*.11);                // upper  .46→.57
+    addWall(W*.70,  H*.65,  T,  H*.15);                // lower  .65→.80
+    // north wall  (staircase opening x[.44,.56])
+    addWall(W*.30,  H*.46,  W*.14,  T);                // west piece
+    addWall(W*.56,  H*.46,  W*.14,  T);                // east piece
+
+    // GRAND STAIRCASE FEATURE – two stone blocks + top railing
+    addWall(W*.415, H*.53,  W*.055, H*.15);            // left stair block
+    addWall(W*.53,  H*.53,  W*.055, H*.15);            // right stair block
+    addWall(W*.415, H*.53,  W*.17,  T/2);              // connecting top railing
+
+    // ── NORTH LANDING  x[.30,.70]  y[.23,.46] ───────────────────────────
+    // north wall  (door to study x[.44,.56])
+    addWall(W*.30,  H*.23,  W*.14,  T);                // west piece
+    addWall(W*.56,  H*.23,  W*.14,  T);                // east piece
+    // west wall  (door gap y[.33,.41])
+    addWall(W*.30,  H*.23,  T,  H*.10);                // upper  .23→.33
+    addWall(W*.30,  H*.41,  T,  H*.05);                // lower  .41→.46
+    // east wall  (door gap y[.33,.41])
+    addWall(W*.70,  H*.23,  T,  H*.10);                // upper  .23→.33
+    addWall(W*.70,  H*.41,  T,  H*.05);                // lower  .41→.46
+
+    // ── STUDY  x[.42,.58]  y[.04,.23] ───────────────────────────────────
+    addWall(W*.42,  H*.04,  T,  H*.19);                // west wall
+    addWall(W*.58,  H*.04,  T,  H*.19);                // east wall
+    // south wall stubs (door gap x[.44,.56] provided by landing north wall)
+    addWall(W*.42,  H*.23,  W*.02,  T);
+    addWall(W*.56,  H*.23,  W*.02,  T);
+
+    // ── WEST WING  x[.05,.30]  y[.04,.80] ───────────────────────────────
+    // east wall top section (above north landing)
+    addWall(W*.30,  H*.04,  T,  H*.19);                // y .04→.23
+
+    // horizontal divider at y=.38 — splits DINING (upper) from W.CORRIDOR (lower)
+    // door gap x[.14,.22]
+    addWall(W*.05,  H*.38,  W*.09,  T);                // west piece
+    addWall(W*.22,  H*.38,  W*.08,  T);                // east piece
+
+    // NW interior wall at x=.17 — creates Trophy Room vs Dining Room
+    // door gap y[.12,.20]
+    addWall(W*.17,  H*.04,  T,  H*.08);                // upper  .04→.12
+    addWall(W*.17,  H*.20,  T,  H*.18);                // lower  .20→.38
+
+    // ── EAST HALL  x[.70,.95]  y[.28,.80] ───────────────────────────────
+    // west wall top (above main-hall east door)
+    addWall(W*.70,  H*.28,  T,  H*.18);                // y .28→.46
+    // north wall  (door gap x[.77,.87])
+    addWall(W*.70,  H*.28,  W*.07, T);                 // west piece
+    addWall(W*.87,  H*.28,  W*.08, T);                 // east piece
+    // south wall
+    addWall(W*.70,  H*.80,  W*.25, T);
+
+    // interior horizontal divider at y=.52 — closes off upper east room
+    // (top room x[.70,.83] y[.28,.52]; corridor x[.70,.95] y[.52,.80])
+    addWall(W*.70,  H*.52,  W*.13, T);                 // x .70→.83
+    // interior vertical divider at x=.83 in upper east room (door gap y[.36,.44])
+    addWall(W*.83,  H*.28,  T,  H*.08);                // upper  .28→.36
+    addWall(W*.83,  H*.44,  T,  H*.08);                // lower  .44→.52
+
+    // ── NE STORE  x[.70,.95]  y[.04,.28] ────────────────────────────────
+    // west wall (connects outer north to east hall north wall)
+    addWall(W*.70,  H*.04,  T,  H*.24);                // y .04→.28
+
+    // ── PLAYER & ENEMY ───────────────────────────────────────────────────
+    Entities.player.x = W * 0.50;
+    Entities.player.y = H * 0.91;
+    Entities.player.angle = -Math.PI / 2;              // facing north (into mansion)
+
+    Entities.enemy.isDead = false;
+    Entities.enemy.currentWaypoint = 0;
+    // Patrol rectangle in east corridor (below the horizontal divider at y=.52)
+    Entities.enemy.waypoints = [
+        { x: W * 0.79, y: H * 0.58 },
+        { x: W * 0.88, y: H * 0.58 },
+        { x: W * 0.88, y: H * 0.72 },
+        { x: W * 0.79, y: H * 0.72 },
+    ];
+    Entities.enemy.x = Entities.enemy.waypoints[0].x;
+    Entities.enemy.y = Entities.enemy.waypoints[0].y;
 
     renderBlueprint();
 }
 
 function renderBlueprint() {
-    wallCtx.clearRect(0, 0, wallCanvas.width, wallCanvas.height);
+    const W = wallCanvas.width, H = wallCanvas.height;
+    wallCtx.clearRect(0, 0, W, H);
+
+    // Staircase hatch marks (drawn before walls so walls render on top)
+    drawStairsHatch(W*.415, H*.53, W*.17, H*.15);
+
+    // Walls
     GameState.walls.forEach(wall => {
-        wallCtx.strokeStyle = 'rgba(60, 60, 60, 0.85)'; wallCtx.lineWidth = 1.2;
-        wallCtx.strokeRect(wall.x + (Math.random() - 0.5), wall.y + (Math.random() - 0.5), wall.width, wall.height);
-        wallCtx.strokeStyle = 'rgba(80, 80, 80, 0.5)';
-        wallCtx.strokeRect(wall.x + (Math.random() * 0.5), wall.y + (Math.random() * 0.5), wall.width, wall.height);
-        wallCtx.fillStyle = 'rgba(100, 100, 100, 0.1)'; wallCtx.fillRect(wall.x, wall.y, wall.width, wall.height);
+        wallCtx.fillStyle = 'rgba(80, 80, 80, 0.18)';
+        wallCtx.fillRect(wall.x, wall.y, wall.width, wall.height);
+        wallCtx.strokeStyle = 'rgba(55, 55, 55, 0.90)';
+        wallCtx.lineWidth = 1.3;
+        wallCtx.strokeRect(wall.x + (Math.random()-0.5)*0.6, wall.y + (Math.random()-0.5)*0.6, wall.width, wall.height);
+        wallCtx.strokeStyle = 'rgba(80,80,80,0.4)';
+        wallCtx.lineWidth = 0.6;
+        wallCtx.strokeRect(wall.x, wall.y, wall.width, wall.height);
     });
+
+    // Room labels
+    wallCtx.font = `bold ${Math.max(9, W*0.013)}px 'Kalam', cursive`;
+    wallCtx.fillStyle = 'rgba(80, 60, 40, 0.55)';
+    wallCtx.textAlign = 'center';
+    wallCtx.textBaseline = 'middle';
+    const lbl = (txt, fx, fy) => wallCtx.fillText(txt, W*fx, H*fy);
+    lbl('Eingang',        0.50, 0.885);
+    lbl('Eingangshalle',  0.50, 0.735);
+    lbl('Treppenhaus',    0.50, 0.595);
+    lbl('Treppenabsatz',  0.50, 0.343);
+    lbl('Arbeitszimmer',  0.50, 0.135);
+    lbl('Speisezimmer',   0.17, 0.210);
+    lbl('Trophäenraum',   0.11, 0.082);
+    lbl('Westkorridor',   0.17, 0.590);
+    lbl('Ostflügel',      0.83, 0.660);
+    lbl('Lagerraum',      0.83, 0.160);
+
+    // Compass rose (top-right of mansion interior)
+    drawCompassRose(W*0.88, H*0.08);
+}
+
+function drawStairsHatch(x, y, w, h) {
+    wallCtx.save();
+    wallCtx.strokeStyle = 'rgba(100, 80, 50, 0.30)';
+    wallCtx.lineWidth = 1;
+    const step = Math.max(5, w / 8);
+    for (let i = 0; i < w + h; i += step) {
+        wallCtx.beginPath();
+        wallCtx.moveTo(x + Math.min(i, w), y + Math.max(0, i - w));
+        wallCtx.lineTo(x + Math.max(0, i - h), y + Math.min(i, h));
+        wallCtx.stroke();
+    }
+    wallCtx.restore();
+}
+
+function drawCompassRose(cx, cy) {
+    const r = Math.max(10, wallCanvas.width * 0.018);
+    wallCtx.save();
+    wallCtx.strokeStyle = 'rgba(80, 60, 40, 0.50)';
+    wallCtx.fillStyle   = 'rgba(80, 60, 40, 0.50)';
+    wallCtx.lineWidth = 1;
+    // N arrow
+    wallCtx.beginPath(); wallCtx.moveTo(cx, cy - r); wallCtx.lineTo(cx - r*0.35, cy); wallCtx.lineTo(cx + r*0.35, cy); wallCtx.closePath(); wallCtx.fill();
+    // S/E/W stubs
+    [[0,r],[r,0],[-r,0]].forEach(([dx,dy]) => { wallCtx.beginPath(); wallCtx.moveTo(cx,cy); wallCtx.lineTo(cx+dx*0.7,cy+dy*0.7); wallCtx.stroke(); });
+    wallCtx.font = `bold ${Math.max(8, r*0.8)}px 'Kalam', cursive`;
+    wallCtx.textAlign = 'center'; wallCtx.textBaseline = 'middle';
+    wallCtx.fillText('N', cx, cy - r*1.5);
+    wallCtx.restore();
 }
 
 // --- PHYSIK & LOGIK ---
