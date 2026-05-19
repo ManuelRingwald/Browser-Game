@@ -54,7 +54,7 @@ html, body {
     background-color: #f0ebd8;
     background-image: url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSdub2lzZSc+PGZlVHVyYnVsZW5jZSB0eXBlPSdmcmFjdGFsTm9pc2UnIGJhc2VGcmVxdWVuY3k9JzAuOCcgbnVtT2N0YXZlcz0nNCcgc3RpdGNoVGlsZXM9J3N0aXRjaCcvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPScxMDAlJyBoZWlnaHQ9JzEwMCUnIGZpbHRlcj0ndXJsKCNub2lzZScpJyBvcGFjaXR5PScwLjA1Jy8+PC9zdmc+');
     z-index: 40; display: none; flex-direction: column; align-items: center;
-    padding: 12px 20px 10px 50px; overflow: hidden; color: #2a2a2a;
+    padding: 12px 20px 10px 20px; overflow: hidden; color: #2a2a2a;
 }
 
 /* ── CHARAKTERBOGEN PAGINATION ───────────────────────────── */
@@ -69,14 +69,11 @@ html, body {
 
 .char-page {
     display: none; flex-direction: column; align-items: center;
-    width: 100%; flex: 1; min-height: 0;
-    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    width: 100%; flex: 1; min-height: 0; overflow: hidden;
 }
 .char-page.active { display: flex; }
 
 .back-btn { flex-shrink: 0; margin-top: 8px; margin-bottom: 10px; min-height: 44px; }
-#char-sheet::before { content: ''; position: absolute; top: 0; bottom: 0; left: 25px; width: 2px; background-color: #b34d4d; opacity: 0.6; }
-#char-sheet::after { content: ''; position: absolute; top: 0; bottom: 0; left: 33px; width: 2px; background-color: #4d6eb3; opacity: 0.6; }
 
 .pencil-art { filter: grayscale(100%) contrast(130%) brightness(0.9); mix-blend-mode: multiply; }
 
@@ -147,10 +144,7 @@ html, body {
 #slot-linkeHand { top: 75%; left: 10%; }
 #slot-rechteHand { top: 75%; left: 72%; }
 
-#rucksack-inventar-bereich { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 15px; }
-
-.waffen-details { border: 1px dotted #333; padding: 10px; font-size: 1.1rem; background: rgba(255,255,255,0.2); }
-.waffen-details h4 { font-size: 1.3rem; margin-bottom: 5px; border-bottom: 1px solid #333; display: inline-block; }
+#rucksack-inventar-bereich { flex: 1; min-width: 180px; display: flex; flex-direction: column; }
 
 #rucksack-container { border: 2px solid #333; padding: 10px; background-color: rgba(255,255,255,0.3); }
 #rucksack-container h3 { text-align: center; font-size: 1.4rem; margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 2px; }
@@ -192,17 +186,17 @@ html, body {
 .sketch-button { min-height: 44px; }
 
 @media (max-width: 480px) {
-    #char-sheet { padding: 8px 10px 8px 38px; }
-    #char-sheet::before { left: 18px; }
-    #char-sheet::after  { left: 26px; }
+    #char-sheet { padding: 8px 12px 8px 12px; }
     .char-title  { font-size: 1.5rem; }
     .char-name   { font-size: 1.7rem; }
-    #porträt-container { width: 72px; height: 72px; }
+    .header-section { margin-bottom: 10px; }
+    #porträt-container { width: 68px; height: 68px; }
     .section-titel { font-size: 1.4rem; margin-top: 6px; margin-bottom: 6px; }
-    .hauptwerte-tabelle { font-size: 1.1rem; }
+    .hauptwerte-tabelle { font-size: 1.1rem; margin-bottom: 0; }
     .hauptwerte-tabelle th { font-size: 1.15rem; }
-    .ausrüstung-inventar-section { flex-direction: column; align-items: center; }
-    #human-schema-bereich { max-width: 180px; }
+    .ausrüstung-inventar-section { flex-direction: column; align-items: center; gap: 10px; margin-bottom: 0; }
+    #human-schema-bereich { max-width: 150px; }
+    #rucksack-grid { grid-template-columns: repeat(3, 1fr); }
     .menu-box { padding: 20px 15px; min-width: min(280px, 90vw); }
     .menu-box h2 { font-size: 1.6rem; }
     .sketch-button { font-size: 1.3rem; }
