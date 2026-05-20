@@ -94,6 +94,23 @@ window.changePage = function(dir) {
     document.getElementById('next-page').disabled = currentCharPage === TOTAL_CHAR_PAGES;
 };
 
+window.doorOpen = function() {
+    if (GameState.activeDoor) {
+        GameState.activeDoor.open = true;
+        GameState.activeDoor.triggered = true;
+        GameState.activeDoor = null;
+    }
+    document.getElementById('door-menu').style.display = 'none';
+    renderBlueprint(); // wallCanvas neu zeichnen ohne die geöffnete Tür
+    GameState.paused = false;
+};
+
+window.doorIgnore = function() {
+    document.getElementById('door-menu').style.display = 'none';
+    GameState.paused = false;
+    // triggered bleibt true – Dialog erst wieder nach Entfernen
+};
+
 window.showAttackMenu = function() { combatMenu.style.display = 'none'; attackMenu.style.display = 'flex'; }
 window.cancelAttack = function() { attackMenu.style.display = 'none'; combatMenu.style.display = 'flex'; }
 window.resumeGame = function() { combatMenu.style.display = 'none'; GameState.paused = false; };

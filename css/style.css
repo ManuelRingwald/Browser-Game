@@ -1,3 +1,5 @@
+:root { --slot-size: 50px; }
+
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
 
 html, body {
@@ -162,46 +164,76 @@ html, body {
 }
 .tooltip-trigger:hover .tooltip-info, .tooltip-trigger.active .tooltip-info { visibility: visible; opacity: 1; }
 
+/* ── SEITE 2: Ausrüstung & Inventar ─────────────────────── */
 .ausrüstung-inventar-section {
-    display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between;
-    width: 100%; max-width: 500px; gap: 20px; margin-bottom: 30px;
-}
-
-#char-body-svg {
+    display: flex;
+    flex-direction: row;
     width: 100%;
-    max-width: 220px;
-    height: auto;
-    display: block;
-    flex-shrink: 0;
-    align-self: flex-start;
-    margin: 0 auto;
-    overflow: visible;
+    gap: 16px;
+    flex: 1;
+    min-height: 0;
+    align-items: flex-start;
+    overflow-y: auto;
 }
 
-.slot {
-    border: 2px dotted #333;
-    background-color: rgba(255,255,255,0.7);
-    display: flex; justify-content: center; align-items: center;
-    font-size: 0.9rem; font-weight: bold; text-align: center; line-height: 1;
-}
-
-/* Slots in SVG-foreignObject füllen ihren Container vollständig */
-#char-body-svg .slot {
+/* Schema-Bereich: Bild + absolut platzierte Slots */
+#schema-bereich {
     position: relative;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
+    flex-shrink: 0;
+    /* Container ist breiter als das Bild → gibt Raum für Hand-Slots an den Seiten */
+    width: 190px;
 }
 
-#rucksack-inventar-bereich { flex: 1; min-width: 180px; display: flex; flex-direction: column; }
+#human-schema-image {
+    display: block;
+    width: 150px;       /* Bildbreite; Höhe ergibt sich aus Aspect-Ratio 420:930 ≈ 332px */
+    height: auto;
+    margin: 0 auto;     /* Bild horizontal in Container zentrieren → 20px Rand je Seite */
+    /* contrast(100) drückt graue Schachbrettfelder zu weiß, multiply entfernt dann das Weiß */
+    filter: contrast(100);
+    mix-blend-mode: multiply;
+}
 
-#rucksack-container { border: 2px solid #333; padding: 10px; background-color: rgba(255,255,255,0.3); }
+/* Alle Body-Slots: absolut im schema-bereich, einheitliche Größe */
+.slot {
+    position: absolute;
+    width: var(--slot-size);
+    height: var(--slot-size);
+    border: 2px dotted #333;
+    background-color: rgba(255,255,255,0.65);
+    display: flex; justify-content: center; align-items: center;
+    font-size: 0.65rem; font-weight: bold; text-align: center; line-height: 1.1;
+}
+
+/* .drop-zone setzt position:relative — #schema-bereich .slot überschreibt das mit höherer Spezifität */
+#schema-bereich .slot { position: absolute; }
+
+/* Slot-Positionen basieren auf Bildkoordinaten (420×930px):
+   Bild rendert mit 150px Breite → 332px Höhe, zentriert mit 20px Rand im 190px Container */
+#slot-kopf       { top: 3%;  left: 50%; transform: translateX(-50%); }
+#slot-torso      { top: 25%; left: 50%; transform: translateX(-50%); }
+#slot-rechteHand { top: 53%; left:  6%; }
+#slot-linkeHand  { top: 53%; right: 6%; }
+
+/* Rucksack */
+#rucksack-inventar-bereich { flex: 0 0 auto; display: flex; flex-direction: column; }
+
+#rucksack-container { border: 2px solid #333; padding: 10px; background-color: rgba(255,255,255,0.3); width: fit-content; }
 #rucksack-container h3 { text-align: center; font-size: 1.4rem; margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 2px; }
 #rucksack-details { display: flex; justify-content: space-between; font-size: 1rem; margin-bottom: 10px; color: #444; }
-#rucksack-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-/* Fixed-size cells — content must NOT expand them */
-.rucksack-slot { width: 100%; aspect-ratio: 1/1; border: 1px solid #333; background-color: rgba(0,0,0,0.05); overflow: hidden; }
-/* Items are absolutely centred so they fit INTO the slot without influencing its size */
+
+/* 2 Spalten, Zellen exakt so groß wie Body-Slots */
+#rucksack-grid { display: grid; grid-template-columns: repeat(2, var(--slot-size)); gap: 8px; }
+
+.rucksack-slot {
+    width: var(--slot-size);
+    height: var(--slot-size);
+    border: 1px solid #333;
+    background-color: rgba(0,0,0,0.05);
+    overflow: hidden;
+    position: relative;
+}
+
 .rucksack-slot .draggable-item {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -254,25 +286,22 @@ html, body {
     .hauptwerte-tabelle { font-size: 1.1rem; margin-bottom: 0; }
     .hauptwerte-tabelle th { font-size: 1.15rem; }
 
-    /* ── Page 2: Ausrüstung – SVG oben, Rucksack unten ── */
+    /* ── Page 2: Ausrüstung – Schema oben, Rucksack unten ── */
+    :root { --slot-size: 44px; }
+
     .ausrüstung-inventar-section {
-        flex-direction: column; align-items: center;
-        flex-wrap: nowrap; gap: 8px; margin-bottom: 0;
-        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
     }
-    #rucksack-inventar-bereich {
-        flex: 0 0 auto;
-        width: 100%;
-    }
-    #rucksack-container { display: flex; flex-direction: column; }
-    #rucksack-details { flex-shrink: 0; }
-    #rucksack-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 5px;
-    }
-    .rucksack-slot { aspect-ratio: auto; height: 40px; }
-    .slot { width: 34px; height: 34px; font-size: 0.65rem; }
-    .slot-label { font-size: 0.65rem; line-height: 1.1; }
+
+    /* Schema kleiner auf Mobile */
+    #schema-bereich { width: 154px; }
+    #human-schema-image { width: 122px; }
+
+    /* Rucksack: 3 Spalten spart vertikalen Platz */
+    #rucksack-grid { grid-template-columns: repeat(3, var(--slot-size)); }
+    #rucksack-inventar-bereich { width: 100%; }
 
     /* ── Menus / Buttons ── */
     .menu-box { padding: 20px 15px; min-width: min(280px, 90vw); }
