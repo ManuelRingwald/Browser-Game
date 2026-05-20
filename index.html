@@ -19,105 +19,176 @@
             <button class="sketch-button" id="startBtn">Eingang betreten</button>
         </div>
 
-        <button class="sketch-button hud-button" id="charBtn">Profil</button>
+        <button id="charBtn">&#9776; Profil</button>
 
         <div id="char-sheet">
             <div class="coffee-stain stain-1"></div>
             <div class="coffee-stain stain-2"></div>
 
             <div class="char-page active" id="char-page-1">
+
+                <!-- ── KOPFZEILE ─────────────────────────────────── -->
                 <header class="header-section">
+                    <div id="porträt-container">
+                        <img src="img/profil.png" alt="Profil" class="pencil-art">
+                    </div>
                     <div class="header-text">
                         <div class="char-title">Charakterbogen</div>
-                        <div class="char-name">John<br>Gramatikus</div>
-                        <div class="char-subtitle">Char-Header &rarr;</div>
-                    </div>
-                    <div id="porträt-container">
-                        <img src="img/profil.png" alt="Profile" class="pencil-art">
+                        <div class="char-name">John Gramatikus</div>
+                        <div class="char-subtitle">Überlebender · Spencer Herrenhaus</div>
                     </div>
                 </header>
 
-                <h3 class="section-titel">Hauptwerte</h3>
-                <table class="hauptwerte-tabelle">
-                    <tr>
-                        <th>
-                            <div class="tooltip-trigger" onclick="toggleTooltip(event, this)">KG
-                                <span class="tooltip-info"><strong>Kampfgeschick:</strong><br>Bestimmt deine Trefferchance im Nahkampf.</span>
-                            </div><br>65%
-                        </th>
-                        <th>
-                            <div class="tooltip-trigger" onclick="toggleTooltip(event, this)">KK
-                                <span class="tooltip-info"><strong>Körperkraft:</strong><br>Bestimmt deinen Nahkampfschaden.</span>
-                            </div><br>55
-                        </th>
-                        <th>
-                            <div class="tooltip-trigger" onclick="toggleTooltip(event, this)">GS
-                                <span class="tooltip-info"><strong>Geschwindigkeit:</strong><br>Bestimmt dein Bewegungstempo und Ausweichen.</span>
-                            </div><br>70
-                        </th>
-                        <th>
-                            <div class="tooltip-trigger" onclick="toggleTooltip(event, this)">WA
-                                <span class="tooltip-info"><strong>Wahrnehmung:</strong><br>Bestimmt, wie gut du Feinde oder Fallen erkennst.</span>
-                            </div><br>70
-                        </th>
-                        <th>
-                            <div class="tooltip-trigger" onclick="toggleTooltip(event, this)">LP
-                                <span class="tooltip-info"><strong>Lebenspunkte:</strong><br>Deine Gesundheit. Fällt sie auf Null, bist du erledigt.</span>
-                            </div><br>12/12
-                        </th>
-                    </tr>
-                    <tr>
-                        <td>K: 65</td>
-                        <td>1W6+2</td>
-                        <td>1W10+2</td>
-                        <td>-</td>
-                        <td>15/15</td>
-                    </tr>
+                <!-- ── LEBENSPUNKTE ──────────────────────────────── -->
+                <h3 class="section-titel">
+                    <span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Lebenspunkte (LP)
+                        <span class="tooltip-info"><strong>Lebenspunkte (LP)</strong><br>Zeigen an, wie viel Schaden du noch überstehen kannst. Fallen sie auf&nbsp;0, bist du besiegt.<br><br>Im Kampf: Schaden des Feindes wird von deinen LP abgezogen, sofern Ausweichen und Blocken fehlschlagen.</span>
+                    </span>
+                </h3>
+                <div class="lp-section">
+                    <div class="lp-numbers"><span id="cs-lp-cur">12</span> / <span id="cs-lp-max">12</span></div>
+                    <div class="lp-bar-track"><div class="lp-bar-fill" id="cs-lp-bar"></div></div>
+                </div>
+
+                <!-- ── KAMPFWERTE ────────────────────────────────── -->
+                <h3 class="section-titel">Kampfwerte</h3>
+                <table class="kampf-tabelle">
+                    <thead>
+                        <tr>
+                            <th>Wert</th>
+                            <th>%</th>
+                            <th>Bedeutung</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">ANG
+                                <span class="tooltip-info"><strong>Angriff (ANG)</strong><br>Beim Angriff würfelst du W100 (1–100). Liegt das Ergebnis <em>kleiner oder gleich</em> diesem Wert, triffst du.<br><br>Würfelergebnis ≤ ANG → Treffer!</span>
+                            </span></td>
+                            <td class="kw-val">65</td>
+                            <td class="kw-desc">Trefferchance</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">AUS
+                                <span class="tooltip-info"><strong>Ausweichen (AUS)</strong><br>Wenn ein Feind trifft, würfelst du W100. Liegt das Ergebnis ≤ AUS, weichst du erfolgreich aus und nimmst keinen Schaden.<br><br>Beim Ausweichen als Aktion: +20% Bonus.</span>
+                            </span></td>
+                            <td class="kw-val">40</td>
+                            <td class="kw-desc">Ausweichen</td>
+                        </tr>
+                        <tr>
+                            <td><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">BLK
+                                <span class="tooltip-info"><strong>Blocken (BLK)</strong><br>Nur im Nahkampf. Schlägt das Ausweichen fehl, kannst du noch blocken. Erfolg = Schaden wird halbiert.<br><br>Blocken ist nicht möglich gegen Schusswaffen.</span>
+                            </span></td>
+                            <td class="kw-val">45</td>
+                            <td class="kw-desc">Schaden halbieren (Nah)</td>
+                        </tr>
+                    </tbody>
                 </table>
+
+                <!-- ── BEWAFFNUNG (Referenz + Ausrüstungsstatus fusioniert) ── -->
+                <h3 class="section-titel">Bewaffnung
+                    <span class="tooltip-trigger" onclick="toggleTooltip(event,this)" style="font-size:0.9rem;font-weight:400;color:#888;"> ❓
+                        <span class="tooltip-info"><strong>Kampfablauf</strong><br>1. Begegnung: Angriff / Ausweichen / Rückzug<br>2. W100 ≤ ANG → Treffer + Schadenswurf<br>3. Feind: AUS → Ausweichen; BLK → halber Schaden<br>4. Verfehlt: Feind greift zurück<br><br><em>Schleichangriff (Messer):</em> Auto-Treffer, 2× Schaden</span>
+                    </span>
+                </h3>
+                <table class="waffen-tabelle">
+                    <thead>
+                        <tr>
+                            <th colspan="2">Waffe</th>
+                            <th><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Schd.<span class="tooltip-info">1W4=1–4 · 1W6=1–6 · 1W8=1–8 · 2W6=2–12</span></span></th>
+                            <th><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Rw.<span class="tooltip-info"><b>Nah</b> 1 Feld · <b>N–M</b> 4 Felder · <b>Mit.</b> 8 Felder</span></span></th>
+                            <th>Mun.</th>
+                            <th><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Slot<span class="tooltip-info">Zeigt wo die Waffe liegt.<br>Nur ausgerüstete Waffen (Hand-Slot) sind im Kampf verfügbar.</span></span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="cs-row-faust">
+                            <td class="wt-icon"></td>
+                            <td class="waffe-name"><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Faustkampf<span class="tooltip-info"><strong>Faustkampf</strong><br>Immer verfügbar – keine Ausrüstung nötig.<br>Kann ausgewichen und geblockt werden.</span></span></td>
+                            <td>1W4</td><td>Nah</td><td>∞</td>
+                            <td><span class="ws-always">✓ Immer</span></td>
+                        </tr>
+                        <tr id="cs-row-messer">
+                            <td class="wt-icon" id="cs-icon-messer"></td>
+                            <td class="waffe-name"><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Messer<span class="tooltip-info"><strong>Messer</strong><br>Lautlos. Schleichangriff: auto. Treffer + 2× Schaden.</span></span></td>
+                            <td>1W6</td><td>Nah</td><td>∞</td>
+                            <td id="cs-status-messer"><span class="ws-bag">Rucksack</span></td>
+                        </tr>
+                        <tr id="cs-row-pistole">
+                            <td class="wt-icon" id="cs-icon-pistole"></td>
+                            <td class="waffe-name"><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Pistole<span class="tooltip-info"><strong>Pistole</strong><br>Gute Reichweite. Nicht blockbar.</span></span></td>
+                            <td>1W8</td><td>Mittel</td><td id="cs-ammo-pistole">12</td>
+                            <td id="cs-status-pistole"><span class="ws-bag">Rucksack</span></td>
+                        </tr>
+                        <tr id="cs-row-schrot" class="wt-unavailable">
+                            <td class="wt-icon"></td>
+                            <td class="waffe-name"><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Schrotflinte<span class="tooltip-info"><strong>Schrotflinte</strong><br>+2 Schaden auf kurze Distanz. Nicht blockbar. 6 Patronen.</span></span></td>
+                            <td>2W6</td><td>N–M</td><td id="cs-ammo-schrot">—</td>
+                            <td><span class="ws-none">— Kein</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
             </div>
 
             <div class="char-page" id="char-page-2">
                 <h3 class="section-titel">Ausrüstung & Inventar</h3>
-                <section class="ausrüstung-inventar-section">
-                    <div id="schema-bereich">
-                        <img src="img/human_schema.png" id="human-schema-image" alt="Schema">
-                        <div class="slot drop-zone" id="slot-kopf" data-accepts="kopf-gadget">
-                            <span class="slot-label">Kopf</span>
+                <div class="p2-layout">
+
+                    <!-- ── AUSGERÜSTET ────────────────────────────── -->
+                    <div class="p2-equip">
+                        <div class="p2-panel-title">Ausgerüstet
+                            <span class="p2-panel-hint">Ziehe Items per Drag&amp;Drop</span>
                         </div>
-                        <div class="slot drop-zone" id="slot-torso" data-accepts="rüstung">
-                            <span class="slot-label">Torso</span>
-                        </div>
-                        <div class="slot drop-zone" id="slot-rechteHand" data-accepts="waffe">
-                            <span class="slot-label">Rechte<br>Hand</span>
-                        </div>
-                        <div class="slot drop-zone" id="slot-linkeHand" data-accepts="waffe">
-                            <span class="slot-label">Linke<br>Hand</span>
+                        <div class="equip-grid">
+                            <div class="equip-cell">
+                                <div class="slot drop-zone" id="slot-rechteHand" data-accepts="waffe">
+                                    <span class="slot-label">leer</span>
+                                </div>
+                                <span class="equip-cell-label">Rechte Hand</span>
+                            </div>
+                            <div class="equip-cell">
+                                <div class="slot drop-zone" id="slot-linkeHand" data-accepts="waffe">
+                                    <span class="slot-label">leer</span>
+                                </div>
+                                <span class="equip-cell-label">Linke Hand</span>
+                            </div>
+                            <div class="equip-cell equip-future">
+                                <div class="slot drop-zone" id="slot-torso" data-accepts="rüstung">
+                                    <span class="slot-label">—</span>
+                                </div>
+                                <span class="equip-cell-label">Körper</span>
+                            </div>
+                            <div class="equip-cell equip-future">
+                                <div class="slot drop-zone" id="slot-kopf" data-accepts="kopf-gadget">
+                                    <span class="slot-label">—</span>
+                                </div>
+                                <span class="equip-cell-label">Kopf</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div id="rucksack-inventar-bereich">
-                        <div id="rucksack-container">
-                            <h3>Rucksack</h3>
-                            <div id="rucksack-details">
-                                <span>Ausgerüstet</span>
-                                <span>6 Plätze</span>
-                            </div>
-                            <div id="rucksack-grid">
-                                <div class="rucksack-slot drop-zone">
-                                    <img src="img/messer.png" alt="Messer" id="messer-skizze" class="pencil-art draggable-item" draggable="true" data-category="waffe">
-                                </div>
-                                <div class="rucksack-slot drop-zone">
-                                    <img src="img/pistole.png" alt="Pistole" id="pistole-skizze" class="pencil-art draggable-item" draggable="true" data-category="waffe">
-                                </div>
-                                <div class="rucksack-slot drop-zone"></div>
-                                <div class="rucksack-slot drop-zone"></div>
-                                <div class="rucksack-slot drop-zone"></div>
-                                <div class="rucksack-slot drop-zone"></div>
-                            </div>
+                    <!-- ── RUCKSACK ───────────────────────────────── -->
+                    <div class="p2-rucksack">
+                        <div class="p2-panel-title">Rucksack
+                            <span class="p2-panel-hint">6 Plätze</span>
                         </div>
-                    </div>
-                </section>
-            </div>
+                        <div id="rucksack-grid">
+                                <div class="rucksack-slot drop-zone">
+                                    <img src="img/messer.png" alt="Messer" id="messer-skizze" class="pencil-art draggable-item" draggable="true" data-category="waffe" data-weapon="messer">
+                                </div>
+                                <div class="rucksack-slot drop-zone">
+                                    <img src="img/pistole.png" alt="Pistole" id="pistole-skizze" class="pencil-art draggable-item" draggable="true" data-category="waffe" data-weapon="pistole">
+                                </div>
+                                <div class="rucksack-slot drop-zone"></div>
+                                <div class="rucksack-slot drop-zone"></div>
+                                <div class="rucksack-slot drop-zone"></div>
+                                <div class="rucksack-slot drop-zone"></div>
+                            </div><!-- /rucksack-grid -->
+                        </div><!-- /p2-rucksack -->
+                    </div><!-- /p2-layout -->
+
+            </div><!-- /char-page-2 -->
 
             <div id="page-nav">
                 <div id="page-controls">
@@ -136,27 +207,48 @@
             <button class="sketch-button" onclick="doorIgnore()" style="border-color:#555;color:#555;">Nein</button>
         </div>
 
-        <div id="enemy-spotted-menu" class="menu-box">
-            <h2>Entdeckt!</h2>
-            <p style="font-size: 1.4rem; margin-bottom: 15px;">Die Wache hat dich zuerst bemerkt.</p>
-            <button class="sketch-button" onclick="resumeFromSpotted()">Weiter</button>
+        <!-- Spieler-Zug (AP-basiert) -->
+        <div id="encounter-menu" class="battle-box">
+            <div class="battle-header">
+                <span id="enc-title">Dein Zug</span>
+                <span id="enc-target" class="battle-target"></span>
+            </div>
+            <p id="enc-desc" class="battle-desc"></p>
+            <button id="btn-enc-angriff"  class="battle-btn" onclick="combatAttack()">Angriff  <span class="battle-stat">2 AP</span></button>
+            <button id="btn-enc-bewegen"  class="battle-btn" onclick="combatMove()">Bewegen  <span class="battle-stat">1 AP / Feld</span></button>
+            <button id="btn-enc-flucht"   class="battle-btn" onclick="combatFlee()">Rückzug  <span class="battle-stat">1 AP</span></button>
+            <button id="btn-change-target"   class="battle-btn battle-btn-muted" onclick="cycleTarget()" style="display:none;">Ziel wechseln</button>
+            <button id="btn-enc-end-turn"    class="battle-btn battle-btn-confirm" onclick="combatEndTurn()">Zug beenden ▶</button>
+            <button id="btn-cancel-move"     class="battle-btn battle-btn-muted" onclick="cancelMove()" style="display:none;">✕ Abbrechen</button>
         </div>
-        <div id="combat-menu" class="menu-box">
-            <h2>Feind gesichtet!</h2>
-            <button class="sketch-button" onclick="showAttackMenu()">Angriff</button>
-            <button class="sketch-button" onclick="resumeGame()">Verstecken</button>
-            <button class="sketch-button" onclick="resumeGame()">Rückzug</button>
+
+
+        <!-- Waffe wählen -->
+        <div id="weapon-menu" class="battle-box">
+            <div class="battle-header">Waffe wählen</div>
+            <button class="battle-btn" id="btn-faust"  onclick="selectWeapon('faust')">Faustkampf  <span class="battle-stat">1W4 · 1 Feld</span></button>
+            <button class="battle-btn" id="btn-messer" onclick="selectWeapon('messer')">Messer  <span class="battle-stat">1W6 · 1 Feld</span></button>
+            <button class="battle-btn" id="btn-pistole" onclick="selectWeapon('pistole')">Pistole  <span class="battle-stat">1W8 · 8 Felder</span></button>
+            <button class="battle-btn" id="btn-schrot"  onclick="selectWeapon('schrotflinte')">Schrotflinte  <span class="battle-stat">2W6 · 4 Felder</span></button>
+            <p id="weapon-error" style="display:none;color:#e87878;font-size:0.88rem;margin-top:4px;"></p>
+            <div id="weapon-confirm-section" style="display:none;border-top:1px solid rgba(195,168,118,0.25);margin-top:6px;padding-top:6px;">
+                <p id="weapon-confirm-label" class="battle-desc"></p>
+                <button class="battle-btn battle-btn-confirm" onclick="confirmAttack()">▶ Bestätigen</button>
+            </div>
+            <button class="battle-btn battle-btn-muted" onclick="backToEncounter()">← Zurück</button>
         </div>
-        <div id="attack-menu" class="menu-box">
-            <h2>Waffe wählen</h2>
-            <button class="sketch-button" onclick="executeAttack('Messer')">Messer</button>
-            <button class="sketch-button" onclick="executeAttack('Pistole')">Beretta M92F</button>
-            <button class="sketch-button" onclick="cancelAttack()" style="border-color: #555; color: #555; margin-top: 15px;">Zurück</button>
-        </div>
-        <div id="combat-result" class="menu-box">
-            <h2>Würfelwurf...</h2>
-            <div id="dice-log"></div>
-            <button id="btn-weiter" class="sketch-button" onclick="finishCombat()">Weiter</button>
+
+        <!-- Kampfergebnis -->
+        <div id="combat-result" class="battle-box battle-box-result">
+            <div class="battle-header">Kampfbericht</div>
+            <div id="combat-log"></div>
+            <!-- Ausweichen als Reaktion auf Feind-Angriff -->
+            <div id="react-section" style="display:none;border-top:1px solid rgba(200,172,118,0.28);margin-top:7px;padding-top:7px;">
+                <p id="react-desc" class="battle-desc"></p>
+                <button id="btn-react-dodge" class="battle-btn battle-btn-confirm" onclick="reactDodge()">Ausweichen versuchen</button>
+                <button class="battle-btn" onclick="reactAccept()">Treffer hinnehmen</button>
+            </div>
+            <button id="btn-weiter" class="battle-btn battle-btn-confirm" onclick="combatContinue()" style="display:none;">Weiter ▶</button>
         </div>
 
         <canvas id="gameCanvas"></canvas>

@@ -25,30 +25,139 @@ html, body {
 #landing-page h1 { font-size: 3rem; color: #222; margin-bottom: 5px; }
 
 .sketch-button {
-    font-family: 'Kalam', cursive; font-size: 1.6rem; color: #222; font-weight: 700;
-    padding: 8px 25px; background: transparent;
+    font-family: 'Kalam', cursive; font-size: 1.0rem; color: #222; font-weight: 700;
+    padding: 7px 20px; background: transparent;
     border: 2px solid #333; border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
-    cursor: pointer; box-shadow: 2px 3px 0px rgba(0,0,0,0.15); margin: 5px; background-color: rgba(240, 235, 216, 0.8);
+    cursor: pointer; box-shadow: 2px 3px 0px rgba(0,0,0,0.15); margin: 4px;
+    background-color: rgba(240, 235, 216, 0.8); min-height: 36px;
 }
 .sketch-button:active { transform: translate(1px, 2px); box-shadow: 1px 1px 0px rgba(0,0,0,0.15); }
 
-.hud-button { position: absolute; top: 15px; right: 15px; z-index: 15; display: none; }
+/* Charakterbogen-Icon: kleines Menü-Symbol oben-links, über der LP-Anzeige */
+#charBtn {
+    position: absolute; top: 8px; left: 10px; z-index: 15; display: none;
+    font-family: 'Kalam', cursive; font-size: 0.88rem; font-weight: 700; color: rgba(55,40,22,0.82);
+    background: rgba(235, 225, 200, 0.70); border: 1.5px solid rgba(75,55,30,0.40);
+    border-radius: 3px; padding: 2px 8px; cursor: pointer; line-height: 1.4; min-height: 0;
+    box-shadow: 1px 1px 4px rgba(0,0,0,0.15);
+}
+#charBtn:hover { background: rgba(235, 225, 200, 0.95); }
 
 .menu-box {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     display: none; flex-direction: column; align-items: center;
     z-index: 30; background-color: rgba(240, 235, 216, 0.98);
-    padding: 30px; border: 2px solid #333;
+    padding: 24px 28px; border: 2px solid #333;
     border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
-    box-shadow: 5px 10px 20px rgba(0,0,0,0.4); min-width: 300px; text-align: center;
+    box-shadow: 5px 10px 20px rgba(0,0,0,0.4); min-width: 260px; text-align: center;
+    font-family: 'Kalam', cursive; font-size: 1.0rem;
+}
+/* Alle Dialog-Buttons (menu-box) auf gleiche Größe wie Kampfdialog */
+.menu-box h2 { font-size: 1.2rem; margin-bottom: 10px; font-family: 'Kalam', cursive; }
+.menu-box p  { font-size: 1.0rem; margin-bottom: 10px; }
+.menu-box .sketch-button { font-size: 1.0rem; margin: 3px; }
+
+/* ── FF7-Stil Kampfdialoge (unten links, kompakt) ──────────── */
+.battle-box {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 200px;
+    max-width: 290px;
+    background: rgba(14, 9, 5, 0.93);
+    border: 2px solid rgba(200, 172, 118, 0.65);
+    border-radius: 3px;
+    padding: 8px 12px 10px;
+    color: #f0e8d0;
+    font-family: 'Kalam', cursive;
+    display: none;
+    flex-direction: column;
+    gap: 1px;
+    z-index: 30;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.45), 0 0 24px rgba(0,0,0,0.5);
+}
+.battle-box-result {
+    max-width: 320px;
+    min-width: 220px;
 }
 
-#dice-log { font-size: 1.4rem; color: #333; margin-bottom: 20px; text-align: left; width: 100%; line-height: 1.4; }
-.success-text { color: #282; font-weight: bold; }
-.fail-text { color: #822; font-weight: bold; }
-.rolling-number { display: inline-block; min-width: 30px; text-align: center; }
+/* Mobile: Volle Breite am unteren Rand */
+@media (max-width: 520px) {
+    .battle-box {
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        transform: none;
+        max-width: none;
+        min-width: 0;
+    }
+    .battle-btn { min-height: 36px; font-size: 1.05rem; }
+}
+/* ── Einheitliche Schriftgrößen: 1.0rem (primär) · 0.88rem (sekundär) ── */
+
+.battle-header {
+    font-size: 0.88rem;     /* sekundär: Überschrift kompakter */
+    font-weight: 700;
+    color: #ffe890;
+    letter-spacing: 0.03em;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(200,172,118,0.30);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-style: normal;
+}
+.battle-target { font-size: 0.88rem; color: #e87878; font-weight: 400; }
+.battle-desc   { font-size: 0.88rem; color: #c8b890; margin-bottom: 4px; line-height: 1.4; font-style: normal; }
+.battle-btn {
+    background: transparent;
+    border: none;
+    color: #f0e8d0;
+    font-family: 'Kalam', cursive;
+    font-size: 1.0rem;      /* primär: alle Buttons gleich */
+    font-style: normal;
+    text-align: left;
+    padding: 3px 4px 3px 14px;
+    cursor: pointer;
+    border-radius: 2px;
+    width: 100%;
+    min-height: 26px;
+    position: relative;
+    transition: background 0.08s;
+}
+.battle-btn::before { content: ''; position:absolute; left:4px; opacity:0; font-size:0.7rem; top:6px; }
+.battle-btn:hover::before,
+.battle-btn:focus::before { content: '▶'; opacity:1; }
+.battle-btn:hover, .battle-btn:focus {
+    background: rgba(200,172,118,0.16);
+    outline: none;
+}
+.battle-btn.weapon-selected { color: #ffe890; background: rgba(200,172,118,0.12); }
+.battle-btn.weapon-selected::before { content: '▶'; opacity:1; }
+.battle-btn.battle-btn-unavail { opacity: 0.38; }
+.battle-btn.battle-btn-unavail:hover { background: rgba(200,172,118,0.06); }
+.battle-btn-muted   { color: #888; }          /* gleiche Größe, nur andere Farbe */
+.battle-btn-confirm { color: #ffe890; font-weight: 700; }
+.battle-btn:disabled { opacity: 0.28; cursor: default; }
+.battle-stat { font-size: 0.88rem; color: #a09070; margin-left: 4px; } /* sekundär */
+
+/* Kampf-Log: gleiche Größe wie Buttons */
+#combat-log {
+    font-size: 1.0rem;
+    font-family: 'Kalam', cursive;
+    font-style: normal;
+    color: #e0d4b8;
+    line-height: 1.5;
+    margin-bottom: 6px;
+}
+.success-text { color: #78d878; font-weight: 700; }
+.fail-text    { color: #e87878; font-weight: 700; }
+.rolling-number { display: inline-block; min-width: 26px; text-align: center; }
 
 #gameCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 5; }
+#gameCanvas.combat-move { cursor: crosshair; }
 #wallCanvas, #exploredCanvas { position: absolute; display: none; }
 
 #char-sheet {
@@ -129,101 +238,180 @@ html, body {
 
 .page-btn { font-size: 1rem !important; padding: 4px 12px !important; margin: 0 !important; }
 .page-btn:disabled { opacity: 0.3; cursor: default; }
-#char-sheet::before { content: ''; position: absolute; top: 0; bottom: 0; left: 25px; width: 2px; background-color: #b34d4d; opacity: 0.6; }
-#char-sheet::after { content: ''; position: absolute; top: 0; bottom: 0; left: 33px; width: 2px; background-color: #4d6eb3; opacity: 0.6; }
+/* Rote/blaue Notizbuchlinien entfernt */
 
 .pencil-art { filter: grayscale(100%) contrast(130%) brightness(0.9); mix-blend-mode: multiply; }
 
-.header-section { display: flex; width: 100%; max-width: 500px; justify-content: space-between; align-items: center; margin-bottom: 25px; position: relative; }
-.header-text { display: flex; flex-direction: column; align-items: center; flex-grow: 1; padding-right: 15px; }
-.char-title { font-size: 2rem; font-weight: 400; border-bottom: 2px solid #333; padding-bottom: 2px; margin-bottom: 5px; width: 100%; text-align: center; }
-.char-name { font-size: 2.2rem; font-weight: bold; line-height: 1.1; text-align: center; border-bottom: 2px solid #333; margin-bottom: 5px; width: 100%; }
-.char-subtitle { font-size: 1.4rem; color: #444; }
-
-#porträt-container { width: 100px; height: 100px; border-radius: 50%; border: 3px solid #333; padding: 4px; position: relative; flex-shrink: 0; background: rgba(0,0,0,0.02); }
-#porträt-container::before { content: ''; position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px; border: 1px solid #555; border-radius: 50%; }
-#porträt-container img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-
-.section-titel { text-align: center; font-size: 1.8rem; margin-bottom: 10px; margin-top: 15px; width: 100%; max-width: 500px; border-bottom: 1px solid rgba(0,0,0,0.2); }
-
-.hauptwerte-tabelle { width: 100%; max-width: 500px; border-collapse: collapse; text-align: center; border: 2px solid #222; margin-bottom: 25px; font-size: 1.3rem; background: rgba(255,255,255,0.2); }
-.hauptwerte-tabelle th, .hauptwerte-tabelle td { border: 1px solid #444; padding: 4px 8px; vertical-align: middle; }
-.hauptwerte-tabelle th { font-weight: 400; font-size: 1.5rem; border-bottom: 2px solid #222; width: 20%; }
-.hauptwerte-tabelle td { font-weight: 700; color: #333; }
+.section-titel { text-align:center; font-size:1.1rem; margin-bottom:4px; margin-top:8px; width:100%; max-width:500px; border-bottom:1px solid rgba(0,0,0,0.15); padding-bottom:2px; }
 
 .tooltip-trigger { position: relative; display: inline-block; cursor: pointer; border-bottom: 2px dotted #555; }
+
+/* position:fixed → entkommen aus jedem overflow:hidden Container */
 .tooltip-info {
-    visibility: hidden; width: 180px; background-color: #2b2b2b; color: #f0ebd8;
-    text-align: center; border-radius: 6px; padding: 10px; position: absolute; z-index: 100;
-    bottom: 130%; left: 50%; transform: translateX(-50%); font-size: 1.1rem; line-height: 1.3;
-    opacity: 0; transition: opacity 0.2s, visibility 0.2s; box-shadow: 0px 5px 15px rgba(0,0,0,0.5); font-weight: normal; border: 1px solid #555;
+    visibility: hidden; opacity: 0;
+    position: fixed; z-index: 9000;
+    width: 220px;
+    background-color: #2b2b2b; color: #f0ebd8;
+    text-align: left; border-radius: 6px; padding: 10px 12px;
+    font-size: 1.05rem; line-height: 1.35; font-weight: normal;
+    border: 1px solid #555; box-shadow: 0 6px 20px rgba(0,0,0,0.55);
+    transition: opacity 0.15s, visibility 0.15s;
+    pointer-events: none;
 }
-.tooltip-info::after {
-    content: ""; position: absolute; top: 100%; left: 50%; margin-left: -6px; border-width: 6px;
-    border-style: solid; border-color: #2b2b2b transparent transparent transparent;
+/* Kein statischer Pfeil mehr — Position wird per JS gesetzt */
+.tooltip-info::after { display: none; }
+
+/* Nur via JS (.active) sichtbar – verhindert falsch positioniertes Anzeigen per :hover */
+.tooltip-trigger.active .tooltip-info { visibility: visible; opacity: 1; }
+
+/* ── CHARAKTERBOGEN SEITE 1 ─────────────────────────────── */
+
+/* Kopfzeile: Portrait links, Text rechts */
+.header-section { display:flex; flex-direction:row; gap:10px; align-items:center; width:100%; max-width:500px; margin-bottom:6px; }
+.header-text { display:flex; flex-direction:column; flex:1; }
+.char-title    { font-size:0.9rem; color:#888; margin-bottom:1px; }
+.char-name     { font-size:1.4rem; font-weight:700; line-height:1.15; border-bottom:1.5px solid #555; padding-bottom:2px; margin-bottom:2px; }
+.char-subtitle { font-size:0.85rem; color:#888; }
+#porträt-container { width:54px; height:54px; border-radius:50%; border:2px solid #555; padding:2px; flex-shrink:0; }
+#porträt-container img { width:100%; height:100%; border-radius:50%; object-fit:cover; }
+
+/* LP-Block */
+.lp-section { width:100%; max-width:500px; margin-bottom:6px; }
+.lp-numbers { font-size:1.5rem; font-weight:700; color:#222; line-height:1; margin-bottom:3px; }
+.lp-bar-track { width:100%; height:8px; background:rgba(0,0,0,0.12); border-radius:4px; overflow:hidden; }
+.lp-bar-fill  { height:100%; width:100%; background:rgba(55,130,50,0.85); border-radius:4px; transition:width 0.4s; }
+
+/* Kampfwerte-Tabelle */
+.kampf-tabelle { width:100%; max-width:500px; border-collapse:collapse; margin-bottom:6px; font-size:1.05rem; }
+.kampf-tabelle thead th { text-align:left; padding:2px 6px; font-size:0.85rem; color:#777; border-bottom:1px solid #ccc; font-weight:400; }
+.kampf-tabelle tbody td { padding:3px 6px; border-bottom:1px solid rgba(0,0,0,0.07); vertical-align:middle; }
+.kw-val  { font-size:1.3rem; font-weight:700; color:#222; white-space:nowrap; }
+.kw-val::after { content:'%'; font-size:0.85rem; font-weight:400; color:#777; }
+.kw-desc { color:#777; font-size:0.85rem; }
+
+/* Waffen-Tabelle */
+.waffen-tabelle { width:100%; max-width:500px; border-collapse:collapse; font-size:0.98rem; margin-bottom:5px; }
+.waffen-tabelle thead th { text-align:left; padding:2px 5px; font-size:0.82rem; color:#777; border-bottom:1px solid #ccc; font-weight:400; }
+.waffen-tabelle tbody td { padding:3px 5px; border-bottom:1px solid rgba(0,0,0,0.07); }
+.waffe-name .tooltip-trigger { font-weight:700; }
+
+
+/* Waffen-Tabelle (fusioniert: Referenz + Ausrüstungsstatus) */
+.waffen-tabelle { width:100%; max-width:500px; border-collapse:collapse; font-size:1.05rem; margin-bottom:8px; }
+.waffen-tabelle thead th { text-align:left; padding:3px 6px; font-size:0.88rem; color:#666; border-bottom:1.5px solid #bbb; font-weight:400; }
+.waffen-tabelle tbody td { padding:5px 6px; border-bottom:1px solid rgba(0,0,0,0.07); }
+.waffe-name .tooltip-trigger { font-weight:700; cursor:pointer; }
+.wt-unavailable { opacity:0.4; }
+
+/* Icon-Spalte: kleines Waffen-Bild */
+.wt-icon { width:28px; padding:2px; }
+.wt-item-img { width:24px; height:24px; object-fit:contain; display:block; }
+
+/* Ausgerüstete Zeile hervorheben */
+.wt-equipped { background:rgba(55,130,50,0.09); }
+.wt-equipped .waffe-name { color:#2a6a22; }
+
+/* Ausgewählte Waffe im Kampfmenü */
+.weapon-selected { background-color:rgba(55,130,50,0.12) !important; border-color:#2a6a22 !important; color:#1a4a15 !important; }
+.weapon-confirm-btn { background-color:rgba(180,35,35,0.08); border-color:#a02020; color:#a02020; font-weight:700; }
+
+/* Ausrüstungs-Hinweis */
+.equip-hint { font-size:0.95rem; color:#666; margin-bottom:6px; max-width:500px; }
+.equip-hint .tooltip-trigger { border-bottom:1px dotted #999; cursor:pointer; }
+
+/* Waffen-Status-Icons */
+.ws-always { color:#3a7a32; font-weight:700; }
+.ws-hand   { color:#3a7a32; font-weight:700; }
+.ws-bag    { color:#888; }
+.ws-none   { color:#bbb; font-size:0.9rem; }
+.ws-unavailable { opacity:0.5; }
+
+/* Ablauf-Hinweis */
+.mechanic-hint { margin-top:6px; font-size:1.0rem; }
+.mechanic-hint .tooltip-trigger { border-bottom:1px dotted #888; color:#555; cursor:pointer; }
+
+/* Mobile Anpassungen Seite 1 */
+@media (max-width:480px) {
+    .char-name     { font-size:1.5rem; }
+    .kampf-tabelle,
+    .waffen-tabelle { font-size:1.0rem; }
+    .kw-val        { font-size:1.3rem; }
 }
-.tooltip-trigger:hover .tooltip-info, .tooltip-trigger.active .tooltip-info { visibility: visible; opacity: 1; }
 
 /* ── SEITE 2: Ausrüstung & Inventar ─────────────────────── */
-.ausrüstung-inventar-section {
+:root { --equip-size: 72px; }
+
+.p2-layout {
     display: flex;
     flex-direction: row;
+    gap: 24px;
     width: 100%;
-    gap: 16px;
     flex: 1;
     min-height: 0;
     align-items: flex-start;
     overflow-y: auto;
+    padding-bottom: 8px;
 }
 
-/* Schema-Bereich: Bild + absolut platzierte Slots */
-#schema-bereich {
-    position: relative;
-    flex-shrink: 0;
-    /* Container ist breiter als das Bild → gibt Raum für Hand-Slots an den Seiten */
-    width: 190px;
+.p2-panel-title {
+    font-size: 1.15rem; font-weight: 700; color: #333;
+    border-bottom: 1.5px solid rgba(0,0,0,0.15);
+    padding-bottom: 4px; margin-bottom: 12px;
+    display: flex; align-items: baseline; gap: 8px;
+}
+.p2-panel-hint { font-size: 0.82rem; font-weight: 400; color: #999; }
+
+/* ── Equip-Bereich ── */
+.p2-equip { flex: 0 0 auto; }
+
+.equip-grid {
+    display: grid;
+    grid-template-columns: repeat(2, var(--equip-size));
+    gap: 14px;
 }
 
-#human-schema-image {
-    display: block;
-    width: 150px;       /* Bildbreite; Höhe ergibt sich aus Aspect-Ratio 420:930 ≈ 332px */
-    height: auto;
-    margin: 0 auto;     /* Bild horizontal in Container zentrieren → 20px Rand je Seite */
-    /* contrast(100) drückt graue Schachbrettfelder zu weiß, multiply entfernt dann das Weiß */
-    filter: contrast(100);
-    mix-blend-mode: multiply;
+.equip-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
 }
 
-/* Alle Body-Slots: absolut im schema-bereich, einheitliche Größe */
+.equip-cell-label {
+    font-size: 0.78rem; color: #666; text-align: center; line-height: 1.2;
+}
+
+.equip-future { opacity: 0.35; pointer-events: none; }
+
+/* Slots – im normalen Fluss, keine absoluten Positionen mehr */
 .slot {
-    position: absolute;
-    width: var(--slot-size);
-    height: var(--slot-size);
-    border: 2px dotted #333;
+    width: var(--equip-size);
+    height: var(--equip-size);
+    border: 2px dotted #555;
     background-color: rgba(255,255,255,0.65);
     display: flex; justify-content: center; align-items: center;
-    font-size: 0.65rem; font-weight: bold; text-align: center; line-height: 1.1;
+    font-size: 0.7rem; font-weight: bold; text-align: center; line-height: 1.2;
+    position: relative; flex-shrink: 0;
+    transition: background-color 0.15s;
+}
+.slot:hover:not(.equip-future *) { background-color: rgba(255,255,255,0.90); }
+
+/* Item-Bilder im Slot zentriert */
+.slot .draggable-item {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%; height: 80%; object-fit: contain;
 }
 
-/* .drop-zone setzt position:relative — #schema-bereich .slot überschreibt das mit höherer Spezifität */
-#schema-bereich .slot { position: absolute; }
+/* ── Rucksack ── */
+.p2-rucksack { flex: 1; min-width: 0; }
 
-/* Slot-Positionen basieren auf Bildkoordinaten (420×930px):
-   Bild rendert mit 150px Breite → 332px Höhe, zentriert mit 20px Rand im 190px Container */
-#slot-kopf       { top: 3%;  left: 50%; transform: translateX(-50%); }
-#slot-torso      { top: 25%; left: 50%; transform: translateX(-50%); }
-#slot-rechteHand { top: 53%; left:  6%; }
-#slot-linkeHand  { top: 53%; right: 6%; }
+#rucksack-grid {
+    display: grid;
+    grid-template-columns: repeat(3, var(--slot-size));
+    gap: 8px;
+}
 
-/* Rucksack */
-#rucksack-inventar-bereich { flex: 0 0 auto; display: flex; flex-direction: column; }
-
-#rucksack-container { border: 2px solid #333; padding: 10px; background-color: rgba(255,255,255,0.3); width: fit-content; }
-#rucksack-container h3 { text-align: center; font-size: 1.4rem; margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 2px; }
-#rucksack-details { display: flex; justify-content: space-between; font-size: 1rem; margin-bottom: 10px; color: #444; }
-
-/* 2 Spalten, Zellen exakt so groß wie Body-Slots */
-#rucksack-grid { display: grid; grid-template-columns: repeat(2, var(--slot-size)); gap: 8px; }
 
 .rucksack-slot {
     width: var(--slot-size);
@@ -286,22 +474,12 @@ html, body {
     .hauptwerte-tabelle { font-size: 1.1rem; margin-bottom: 0; }
     .hauptwerte-tabelle th { font-size: 1.15rem; }
 
-    /* ── Page 2: Ausrüstung – Schema oben, Rucksack unten ── */
-    :root { --slot-size: 44px; }
+    /* ── Page 2: Ausrüstung ── */
+    :root { --slot-size: 42px; --equip-size: 58px; }
 
-    .ausrüstung-inventar-section {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-    }
-
-    /* Schema kleiner auf Mobile */
-    #schema-bereich { width: 154px; }
-    #human-schema-image { width: 122px; }
-
-    /* Rucksack: 3 Spalten spart vertikalen Platz */
-    #rucksack-grid { grid-template-columns: repeat(3, var(--slot-size)); }
-    #rucksack-inventar-bereich { width: 100%; }
+    .p2-layout { flex-direction: column; gap: 16px; }
+    .equip-grid { grid-template-columns: repeat(4, var(--equip-size)); gap: 10px; }
+    #rucksack-grid { grid-template-columns: repeat(4, var(--slot-size)); }
 
     /* ── Menus / Buttons ── */
     .menu-box { padding: 20px 15px; min-width: min(280px, 90vw); }
