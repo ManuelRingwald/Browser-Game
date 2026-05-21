@@ -29,29 +29,55 @@
 
 // ── Tür-Interaktion ───────────────────────────────────────────────────────────
 
-// Zeigt Tür-Dialog wenn Spieler eine geschlossene Tür berührt.
-function checkDoorProximity() {
-    const p = Entities.player;
-    let nearAny = false;
-    for (const door of GameState.doors) {
-        if (door.open) continue;
-        const cx = Math.max(door.x, Math.min(p.x, door.x + door.w));
-        const cy = Math.max(door.y, Math.min(p.y, door.y + door.h));
-        const dist = Math.sqrt((p.x - cx) ** 2 + (p.y - cy) ** 2);
-        if (dist < p.radius + 4) {
-            nearAny = true;
-            if (!door.triggered) {
-                door.triggered = true;
-                GameState.paused = true;
-                GameState.activeDoor = door;
-                GameState.isTouching = false;
-                document.getElementById('door-menu').style.display = 'flex';
-                break;
-            }
-        }
+const DOOR_INTERACT_RANGE = FELD_PX * 1.6; // ~96 px
+
+// Gibt das Rect zurück, das für Hover/Klick relevant ist:
+// geschlossen → originales Rect; offen → Türblatt-Position.
+function getDoorInteractRect(door) {
+    if (!door.open) return { x: door.x, y: door.y, w: door.w, h: door.h };
+    const len   = Math.max(door.w, door.h); // lange Seite = Türbreite
+    const thick = Math.min(door.w, door.h); // kurze Seite = Rahmendicke
+    if (door.w > door.h) {
+        // Horizontale Tür → Blatt schwingt senkrecht nach oben an door.x
+        const hy = door.y + door.h / 2;
+        return { x: door.x - thick, y: hy - len, w: thick * 3, h: len };
+    } else {
+        // Vertikale Tür → Blatt schwingt waagerecht nach rechts an door.y
+        const cx = door.x + door.w / 2;
+        return { x: cx, y: door.y - thick, w: len, h: thick * 3 };
     }
-    if (!nearAny) {
-        for (const door of GameState.doors) { if (!door.open) door.triggered = false; }
+}
+
+function playerNearDoor(player, door) {
+    const r = getDoorInteractRect(door);
+    const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+    return Math.hypot(player.x - cx, player.y - cy) <= DOOR_INTERACT_RANGE;
+}
+
+// Tür öffnen/schließen und wallCanvas neu zeichnen.
+function toggleDoor(door) {
+    door.open = !door.open;
+    renderBlueprint();
+}
+
+// Läuft der Spieler gerade auf einen Weltgegenstand zu? → bei Ankunft Pickup-Dialog.
+function checkWorldItemApproach() {
+    if (!GameState.worldItemTarget || GameState.combatTriggered) return;
+    const p    = Entities.player;
+    const item = GameState.worldItemTarget;
+    if (Math.hypot(p.x - item.x, p.y - item.y) <= FELD_PX * 1.5) {
+        GameState.worldItemTarget = null;
+        openPickupDialog(item); // definiert in ui.js
+    }
+}
+
+// Läuft der Spieler gerade auf eine Tür zu? → bei Ankunft togglen.
+function checkDoorApproach() {
+    if (!GameState.doorTarget || GameState.combatTriggered) return;
+    const p = Entities.player;
+    if (playerNearDoor(p, GameState.doorTarget)) {
+        toggleDoor(GameState.doorTarget);
+        GameState.doorTarget = null;
     }
 }
 
@@ -102,6 +128,41 @@ function updatePlayer() {
         if (!checkCollision(nextX, player.y, player)) player.x = nextX;
         if (!checkCollision(player.x, nextY, player)) player.y = nextY;
 
+        GameState.targetX = player.x; GameState.targetY = player.y;
+    }
+    else if (GameState.worldItemTarget && !GameState.combatTriggered) {
+        const wi = GameState.worldItemTarget;
+        const wdx = wi.x - player.x, wdy = wi.y - player.y;
+        const wd  = Math.sqrt(wdx*wdx + wdy*wdy);
+        if (wd > 5) {
+            player.angle = Math.atan2(wdy, wdx);
+            const nx = player.x + Math.cos(player.angle) * player.speed;
+            const ny = player.y + Math.sin(player.angle) * player.speed;
+            if (!checkCollision(nx, player.y, player)) player.x = nx;
+            if (!checkCollision(player.x, ny, player)) player.y = ny;
+        }
+    }
+    else if (GameState.doorTarget && !GameState.combatTriggered) {
+        // Zur Tür laufen — ignoriert isTouching/mouseup
+        const door = GameState.doorTarget;
+        const tcx = door.x + door.w / 2, tcy = door.y + door.h / 2;
+        const ddx = tcx - player.x, ddy = tcy - player.y;
+        const ddist = Math.sqrt(ddx * ddx + ddy * ddy);
+        if (ddist > 5) {
+            player.angle = Math.atan2(ddy, ddx);
+            const nx = player.x + Math.cos(player.angle) * player.speed;
+            const ny = player.y + Math.sin(player.angle) * player.speed;
+            if (!checkCollision(nx, player.y, player)) player.x = nx;
+            if (!checkCollision(player.x, ny, player)) player.y = ny;
+        }
+    }
+    else if (GameState.dpad.active && !GameState.combatTriggered) {
+        // D-Pad: analog, hat Vorrang vor Tap-to-move
+        player.angle = Math.atan2(GameState.dpad.dy, GameState.dpad.dx);
+        const nextX = player.x + Math.cos(player.angle) * player.speed;
+        const nextY = player.y + Math.sin(player.angle) * player.speed;
+        if (!checkCollision(nextX, player.y, player)) player.x = nextX;
+        if (!checkCollision(player.x, nextY, player)) player.y = nextY;
         GameState.targetX = player.x; GameState.targetY = player.y;
     }
     else if (GameState.isTouching) {
@@ -169,6 +230,7 @@ function snapAllToGrid(onDone) {
 function endCombat() {
     GameState.paused            = false;
     GameState.combatTriggered   = false;
+    document.getElementById('dpad')?.classList.remove('dpad-combat');
     GameState.enemySeen         = false;
     GameState.combatGridVisible  = false;
     GameState.combatMoving       = false;
@@ -178,6 +240,7 @@ function endCombat() {
     GameState.selectingDirection = false;
     GameState.postMoveRotation   = false;
     GameState.pendingNoiseMsg    = null;
+    GameState.dodgeAnim          = null;
     canvas.classList.remove('combat-move');
 }
 
@@ -210,9 +273,9 @@ function checkCombatState() {
     GameState.enemySeen = living.some(e => canSee(Entities.player, e));
 
     if (GameState.combatTriggered) {
-        // Kampf vorbei wenn kein Kontakt mehr
+        // Kampf vorbei wenn kein Kontakt mehr (Kampf-LOS: kein FOV-Winkel, Engagement-Zone)
         const anyContact = living.some(e =>
-            canSee(Entities.player, e) || canSee(e, Entities.player));
+            canSeeInCombat(Entities.player, e) || canSeeInCombat(e, Entities.player));
         if (!anyContact) GameState.combatTriggered = false;
         return;
     }
@@ -227,6 +290,7 @@ function checkCombatState() {
             GameState.paused = true;
             GameState.isTouching = false;
             GameState.combatTriggered = true;
+            document.getElementById('dpad')?.classList.add('dpad-combat');
             GameState.combatEnemyFirst = eSees;
             GameState.combatAmbush     = pSees && !eSees; // Hinterhalt: Spieler sieht, Gegner nicht
             GameState.combatPlayerHeard = false;
@@ -340,46 +404,122 @@ function enemyTakeTurnAI(enemy) {
 }
 
 // Berechnet, was ein Feind als nächstes tut (ohne Ausführung).
+// Gibt { type, weapon, weaponKey } zurück.
 function enemyComputeAction(enemy) {
     const p = Entities.player;
-    const w = WEAPONS[enemy.waffe];
     const dist = Math.hypot(p.x - enemy.x, p.y - enemy.y);
+    // Im Kampf: kein FOV-Winkel, nur Wand-LOS + Engagement-Zone
+    const hasLOS_val = canSeeInCombat(enemy, p);
+    const canDetect  = hasLOS_val || GameState.combatPlayerHeard;
+
+    if (!canDetect) return { type: 'chase' };
+
+    // Primärwaffe prüfen
+    const w      = WEAPONS[enemy.waffe];
     const ammoOk = !w.ammoKey || (enemy.ammo?.[w.ammoKey] ?? 0) > 0;
-    const hasLOS = canSee(enemy, p);
-    const canDetect = hasLOS || GameState.combatPlayerHeard; // LOS oder gehört
-    // Fernkampf: mind. 1 freies Feld zwischen den Charakteren (> 1 Feld Abstand = ≥ 1.5×FELD_PX)
+    // Fernkampf braucht mind. 1 freies Feld Abstand
     const minDist = w.ammoKey ? FELD_PX * 1.5 : 0;
-    if (dist <= w.range && dist >= minDist && ammoOk && canDetect) return { type:'attack', weapon:w };
-    if (!hasLOS && !GameState.combatPlayerHeard) return { type:'chase' };
-    return { type:'move' };
+
+    if (dist >= minDist && dist <= w.range && ammoOk) {
+        return { type: 'attack', weapon: w, weaponKey: enemy.waffe };
+    }
+
+    // Fallback Faustkampf: wenn Primärwaffe nicht nutzbar (kein Ammo, zu nah, zu weit)
+    // und Spieler in Nahkampf-Reichweite
+    const fist = WEAPONS.faust;
+    if (dist <= fist.range) {
+        return { type: 'attack', weapon: fist, weaponKey: 'faust' };
+    }
+
+    // Zu weit für alles → näher bewegen
+    return { type: 'move' };
 }
 
-// Führt einen Feind-Angriff aus. tryDodge = Spieler versucht auszuweichen.
-// Gibt ein Log-Objekt {type, text} zurück.
-function enemyExecuteAttack(enemy, tryDodge) {
-    const p = Entities.player;
-    const w = WEAPONS[enemy.waffe];
-    if (w.ammoKey) enemy.ammo[w.ammoKey]--;
+// Spawnt Geschoss-Schnipsel.
+// overshoot: Geschoss fliegt weiter als Zielposition.
+// sideways: Seitwärts-Versatz in px (senkrecht zur Schussrichtung); 0 = gerade.
+function spawnProjectiles(sx, sy, tx, ty, weaponKey, overshoot = false, sideways = 0) {
+    const w = WEAPONS[weaponKey];
+    if (!w?.ammoKey) return;
 
-    // Verb je nach Waffe
+    // Seitwärts-Versatz auf den Zielpunkt anwenden
+    const baseAngle = Math.atan2(ty - sy, tx - sx);
+    const perpAngle = baseAngle + Math.PI / 2;
+    const aimX = tx + Math.cos(perpAngle) * sideways;
+    const aimY = ty + Math.sin(perpAngle) * sideways;
+
+    const shootAngle = Math.atan2(aimY - sy, aimX - sx);
+    const aimDist    = Math.hypot(aimX - sx, aimY - sy);
+    const totalDist  = overshoot ? aimDist + 120 : aimDist;
+    const duration   = 260 + totalDist * 0.16;
+
+    const shots = weaponKey === 'schrotflinte' ? [-0.16, 0, 0.16] : [0];
+
+    shots.forEach(offset => {
+        const a = shootAngle + offset;
+        GameState.projectiles.push({
+            sx, sy,
+            tx: sx + Math.cos(a) * totalDist,
+            ty: sy + Math.sin(a) * totalDist,
+            angle: a,
+            startTime: performance.now(),
+            duration,
+            done: false,
+        });
+    });
+}
+
+// Führt einen Feind-Angriff aus. Berechnet Ergebnis VOR dem Geschoss-Spawn,
+// damit Overshoot korrekt gesetzt werden kann.
+// Gibt { type, text, dodged? } zurück.
+function enemyExecuteAttack(enemy, tryDodge, weaponKey) {
+    const p    = Entities.player;
+    const wKey = weaponKey || enemy.waffe;
+    const w    = WEAPONS[wKey];
     const verb = w.ammoKey ? 'schießt' : 'schlägt zu';
     const label = `${enemy.name} ${verb} (${w.name})`;
 
-    const atkRoll = Math.floor(Math.random()*100)+1;
-    if (atkRoll <= enemy.angriff) {
-        const dmg = rollDice(w.n, w.s);
-        if (tryDodge) {
-            const dr = Math.floor(Math.random()*100)+1;
-            if (dr <= p.ausweichen) {
-                return { type:'miss', text:`${label} → Ausgewichen! (${dr} ≤ ${p.ausweichen}%) Kein Schaden.` };
-            }
-            p.hp = Math.max(0, p.hp - dmg);
-            return { type:'hit', text:`${label} → Ausweichen fehlgeschlagen (${dr} > ${p.ausweichen}%) – ${dmg} Schaden! Du: ${p.hp}/${p.maxHp} LP` };
-        }
-        p.hp = Math.max(0, p.hp - dmg);
-        return { type:'hit', text:`${label} → Treffer! ${dmg} Schaden (Du: ${p.hp}/${p.maxHp} LP)` };
+    // 1. Angriffswurf
+    const atkRoll   = Math.floor(Math.random() * 100) + 1;
+    const enemyHits = atkRoll <= enemy.angriff;
+
+    // 2. Ausweich-Wurf (nur wenn Treffer + tryDodge)
+    let dodgeRoll    = null;
+    let dodgeSuccess = false;
+    if (enemyHits && tryDodge) {
+        dodgeRoll = Math.floor(Math.random() * 100) + 1;
+        const effAus = Math.max(0, p.ausweichen + GameState.dodgeFacingMod);
+        dodgeSuccess = dodgeRoll <= effAus;
     }
-    return { type:'miss', text:`${label} → Verfehlt! (${atkRoll} > ${enemy.angriff}%)` };
+
+    // 3. Schuss-Animation: Overshoot + Seitwärts-Versatz je nach Ergebnis
+    //    - Natürlicher Fehlschuss: schräg seitlich am Spieler vorbei (sideways ≠ 0)
+    //    - Ausweichen: gerade durch Ursprungsposition (Spieler hat sich wegbewegt)
+    //    - Treffer: gerade auf Spieler
+    if (w.ammoKey) {
+        enemy.ammo[w.ammoKey]--;
+        const overshoot = !enemyHits || dodgeSuccess;
+        const sideways  = !enemyHits ? (Math.random() < 0.5 ? 1 : -1) * 22 : 0;
+        spawnProjectiles(enemy.x, enemy.y, p.x, p.y, wKey, overshoot, sideways);
+    }
+
+    // 4. Ergebnis berechnen
+    if (!enemyHits) {
+        return { type: 'miss', text: `${label} → Verfehlt! (${atkRoll} > ${enemy.angriff}%)` };
+    }
+    const dmg = rollDice(w.n, w.s);
+    const effAus = Math.max(0, p.ausweichen + GameState.dodgeFacingMod);
+    if (dodgeSuccess) {
+        return { type: 'miss', dodged: true,
+            text: `${label} → Ausgewichen! (${dodgeRoll} ≤ ${effAus}%) Kein Schaden.` };
+    }
+    if (tryDodge) {
+        p.hp = Math.max(0, p.hp - dmg);
+        return { type: 'hit',
+            text: `${label} → Ausweichen fehlgeschlagen (${dodgeRoll} > ${effAus}%) – ${dmg} Schaden! Du: ${p.hp}/${p.maxHp} LP` };
+    }
+    p.hp = Math.max(0, p.hp - dmg);
+    return { type: 'hit', text: `${label} → Treffer! ${dmg} Schaden (Du: ${p.hp}/${p.maxHp} LP)` };
 }
 
 // Führt Feind-Bewegung aus. Gibt Log-Objekt zurück.
@@ -407,9 +547,11 @@ function enemyExecuteMove(enemy) {
         enemy.x = (Math.round((enemy.x - GS * 0.5) / GS) + 0.5) * GS;
         enemy.y = (Math.round((enemy.y - GS * 0.5) / GS) + 0.5) * GS;
     }
-    const feld = Math.floor(len / FELD_PX);
+    // Distanz NACH dem Zug berechnen (eingerastete Position)
+    const postDx = p.x - enemy.x, postDy = p.y - enemy.y;
+    const feld = Math.round(Math.sqrt(postDx*postDx + postDy*postDy) / FELD_PX);
     return moved
-        ? { type:'move', text:`${enemy.name} bewegt sich 1 Feld näher. (${feld} Felder Abstand)` }
+        ? { type:'move', text:`${enemy.name} bewegt sich 1 Feld näher. (${feld} ${feld === 1 ? 'Feld' : 'Felder'} Abstand)` }
         : { type:'move', text:`${enemy.name} kann sich nicht bewegen.` };
 }
 

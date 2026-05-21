@@ -155,15 +155,8 @@ function drawCombatGrid() {
                 const wx = (c + 0.5) * GS, wy = (r + 0.5) * GS;
                 if (checkCollision(wx, wy, { radius: GS * 0.35 })) continue;
 
-                const dist = Math.abs(c - pCol) + Math.abs(r - pRow);
-                // 1. FOV-Winkelfilter
-                if (dist > 0) {
-                    let diff = Math.atan2(wy - p.y, wx - p.x) - p.angle;
-                    while (diff >  Math.PI) diff -= 2*Math.PI;
-                    while (diff < -Math.PI) diff += 2*Math.PI;
-                    if (Math.abs(diff) > p.fov/2 + 0.08) continue;
-                }
-                // 2. Sichtlinien-Check: kein Feld hinter Wänden/Türen
+                const dist = Math.max(Math.abs(c - pCol), Math.abs(r - pRow)); // Chebyshev
+                // Nur Wand-LOS prüfen – kein FOV-Winkelfilter mehr (Chebyshev erlaubt alle 8 Richtungen)
                 if (dist > 0 && !hasLOS(p.x, p.y, wx, wy)) continue;
 
                 const sx = wx2s(c * GS), sy = wy2s(r * GS);
@@ -270,16 +263,6 @@ function drawDirectionArrows(player, hoverIdx = null) {
         ctx.closePath();
         ctx.fill(); ctx.stroke();
         ctx.restore();
-
-        // Beschriftung
-        ctx.save();
-        ctx.font = `bold ${Math.max(16, Math.round(FELD_PX * 0.32))}px 'Kalam'`;
-        ctx.fillStyle   = isHovered ? 'rgba(200,140,10,0.98)'
-                        : isCurrent ? 'rgba(25,100,25,0.95)' : 'rgba(48,36,20,0.62)';
-        ctx.textAlign   = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(lbl, ax, ay + sz + 5);
-        ctx.restore();
     });
 
     // Hinweis
@@ -368,7 +351,7 @@ function handleGridClick(worldX, worldY) {
     const pRow = Math.floor(p.y / GS);
     const col  = Math.floor(worldX / GS);
     const row  = Math.floor(worldY / GS);
-    const dist = Math.abs(col - pCol) + Math.abs(row - pRow);
+    const dist = Math.max(Math.abs(col - pCol), Math.abs(row - pRow)); // Chebyshev
 
     if (dist === 0) { cancelMove(); return; }
 
@@ -377,24 +360,18 @@ function handleGridClick(worldX, worldY) {
 
     const cx = (col + 0.5) * GS, cy = (row + 0.5) * GS;
 
-    // FOV + LOS: nur sichtbare Felder anklickbar
-    {
-        const dx2 = cx - p.x, dy2 = cy - p.y;
-        let diff = Math.atan2(dy2, dx2) - p.angle;
-        while (diff >  Math.PI) diff -= 2*Math.PI;
-        while (diff < -Math.PI) diff += 2*Math.PI;
-        if (Math.abs(diff) > p.fov/2 + 0.08) return;  // außerhalb Sichtkegel
-        if (!hasLOS(p.x, p.y, cx, cy)) return;        // Wand blockiert Sicht
-    }
+    // Nur Wand-LOS prüfen – kein FOV-Winkelfilter (Chebyshev: alle 8 Richtungen erlaubt)
+    if (!hasLOS(p.x, p.y, cx, cy)) return;
 
     if (checkCollision(cx, cy, { radius: GS * 0.35 })) return;  // Zielzelle Wand
     if (!gridPathClear(pCol, pRow, col, row)) return;            // Weg durch Wand
     if (cellOccupied(col, row, Entities.player)) return;         // Feld durch Charakter belegt
 
-    // AP sofort abziehen, Modus beenden
+    // AP sofort abziehen, Modus beenden, Menü sofort mit neuem AP-Stand aktualisieren
     GameState.combatAP -= apCost;
     GameState.combatMoving = false;
     canvas.classList.remove('combat-move');
+    openEncounterMenu(); // Button-States sofort auf aktuellen AP-Stand bringen
 
     // Animiert bewegen → danach Nachher-Drehung (postMoveRotation, kein AP)
     animatePlayerMove(cx, cy, () => {
@@ -495,6 +472,308 @@ function drawEnemyHUD(enemy) {
     ctx.fillStyle = col;
     const label = ignored ? `${name}  [flüchtet…]` : `${name}  ${hp}/${maxHp}`;
     ctx.fillText(label, x, y - ringR - 3);
+
+    // AP-Punkte (nur während aktivem Kampf, Feind-Zug)
+    if (GameState.combatTriggered && GameState.combatPhase === 'enemy') {
+        const curAP = enemy.currentAP ?? 0;
+        const mxAP  = enemy.maxAP    ?? 4;
+        const dots  = '●'.repeat(Math.max(0, curAP)) + '○'.repeat(Math.max(0, mxAP - curAP));
+        ctx.font = "bold 16px 'Kalam'";
+        ctx.fillStyle = 'rgba(190,80,80,0.90)';
+        ctx.fillText(`AP ${dots}`, x, y - ringR - 25);
+    }
+
+    ctx.restore();
+}
+
+// ── Weltgegenstände: Marker + Hover (World-Space) ────────────────────────────
+
+const _imgCache = {};
+function _loadImg(src) {
+    if (!_imgCache[src]) { const i = new Image(); i.src = src; _imgCache[src] = i; }
+    return _imgCache[src];
+}
+
+function drawWorldItems() {
+    const now = performance.now();
+    const p   = Entities.player;
+
+    GameState.worldItems.forEach(item => {
+        const isHovered = GameState.hoveredWorldItem === item;
+        const near      = Math.hypot(p.x - item.x, p.y - item.y) <= FELD_PX * 1.5;
+        const pulse     = 0.55 + 0.45 * Math.abs(Math.sin(now / 500));
+
+        // ── Glüh-Ring ─────────────────────────────────────────────────────
+        const ringR = 13 + (isHovered ? 3 : 0);
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(item.x, item.y, ringR + 3, 0, Math.PI * 2);
+        ctx.fillStyle = isHovered
+            ? `rgba(255,220,80,${0.18 + pulse * 0.14})`
+            : `rgba(220,180,60,${0.10 + pulse * 0.08})`;
+        ctx.fill();
+
+        // ── Papierkreis-Hintergrund ────────────────────────────────────────
+        ctx.beginPath();
+        ctx.arc(item.x, item.y, ringR, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(235,220,190,0.92)';
+        ctx.fill();
+        ctx.strokeStyle = isHovered
+            ? `rgba(200,160,30,${0.80 + pulse * 0.18})`
+            : `rgba(140,100,40,0.55)`;
+        ctx.lineWidth = isHovered ? 2.0 : 1.2;
+        ctx.stroke();
+        ctx.restore();
+
+        // ── Item-Bild ──────────────────────────────────────────────────────
+        ctx.save();
+        const img = _loadImg(item.img);
+        if (img.complete) {
+            const s = ringR * 1.3;
+            ctx.drawImage(img, item.x - s / 2, item.y - s / 2, s, s);
+        }
+        ctx.restore();
+
+        // ── Proximity-Badge (analog zu Türen) ─────────────────────────────
+        if (near && !isHovered) {
+            _drawItemBadge(item, 'Aufheben', 0.55 + pulse * 0.35);
+        }
+        if (isHovered) {
+            const label = near ? 'Aufheben' : 'Zu weit';
+            const alpha = near ? 0.85 + pulse * 0.12 : 0.45 + pulse * 0.15;
+            ctx.save();
+            ctx.setLineDash([5, 3]);
+            ctx.strokeStyle = near
+                ? `rgba(220,190,40,${alpha})`
+                : `rgba(160,145,100,${alpha * 0.7})`;
+            ctx.lineWidth = near ? 2.0 : 1.4;
+            ctx.beginPath(); ctx.arc(item.x, item.y, ringR + 5, 0, Math.PI * 2); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+            _drawItemBadge(item, label, alpha);
+            if (!near && GameState.worldItemTarget === item) {
+                _drawItemBadge(item, '↵ läuft hin…', 0.5, 16);
+            }
+        }
+    });
+}
+
+function _drawItemBadge(item, label, alpha, extraY = 0) {
+    ctx.save();
+    ctx.font = "bold 13px 'Kalam'";
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const tw = ctx.measureText(label).width;
+    const bx = item.x - tw / 2 - 6, by = item.y - 28 - extraY;
+    const bw = tw + 12, bh = 18;
+    ctx.fillStyle = `rgba(220,195,80,${alpha * 0.85})`;
+    ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 5); ctx.fill();
+    ctx.fillStyle = `rgba(40,28,8,${alpha})`;
+    ctx.fillText(label, item.x, by + bh / 2);
+    ctx.fillStyle = `rgba(220,195,80,${alpha * 0.85})`;
+    ctx.beginPath();
+    ctx.moveTo(item.x - 5, by + bh); ctx.lineTo(item.x + 5, by + bh);
+    ctx.lineTo(item.x, by + bh + 6); ctx.closePath(); ctx.fill();
+    ctx.restore();
+}
+
+// ── Tür-Hover-Highlight + Mobile-Proximity-Indikator (World-Space) ───────────
+function drawDoorHighlight() {
+    if (GameState.combatTriggered) return;
+    const p     = Entities.player;
+    const pulse = 0.5 + 0.5 * Math.abs(Math.sin(Date.now() / 320));
+    const EXP   = 5;
+
+    GameState.doors.forEach(door => {
+        const r    = getDoorInteractRect(door);
+        const rcx  = r.x + r.w / 2;
+        const rcy  = r.y + r.h / 2;
+        const near = playerNearDoor(p, door);
+
+        const isHovered = GameState.hoveredDoor === door;
+        // Mobile: Indikator zeigen wenn nah (kein hover nötig) – auf Desktop ersetzt hover es
+        const showIndicator = near && !isHovered;
+
+        // ── Hover-Highlight (Desktop) ──────────────────────────────────────
+        if (isHovered) {
+            ctx.save();
+            ctx.setLineDash([5, 3]);
+            if (near) {
+                ctx.fillStyle   = `rgba(220,190,60,${0.18 + pulse * 0.12})`;
+                ctx.strokeStyle = `rgba(230,200,70,${0.65 + pulse * 0.25})`;
+                ctx.lineWidth   = 2.2;
+            } else {
+                ctx.fillStyle   = `rgba(160,148,110,${0.10 + pulse * 0.07})`;
+                ctx.strokeStyle = `rgba(170,158,118,${0.38 + pulse * 0.12})`;
+                ctx.lineWidth   = 1.5;
+            }
+            ctx.beginPath();
+            ctx.rect(r.x - EXP, r.y - EXP, r.w + EXP * 2, r.h + EXP * 2);
+            ctx.fill(); ctx.stroke();
+            ctx.setLineDash([]);
+
+            const label  = near ? (door.open ? 'Schließen' : 'Öffnen') : 'Zu weit';
+            const labelY = r.y - EXP - 10;
+            ctx.font        = "bold 15px 'Kalam'";
+            ctx.textAlign   = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillStyle   = near
+                ? `rgba(50,38,8,${0.80 + pulse * 0.15})`
+                : 'rgba(90,80,55,0.50)';
+            ctx.fillText(label, rcx, labelY);
+            if (!near && GameState.doorTarget === door) {
+                ctx.fillStyle = 'rgba(90,140,90,0.75)';
+                ctx.font      = "14px 'Kalam'";
+                ctx.fillText('↵ läuft hin…', rcx, labelY - 16);
+            }
+            ctx.restore();
+        }
+
+        // ── Proximity-Indikator (Mobile + Desktop ohne Hover) ─────────────
+        // Kleines pulsierendes Icon direkt am Türblatt / Türrahmen
+        if (showIndicator || (!isHovered && GameState.doorTarget === door)) {
+            const label = door.open ? 'Schließen' : 'Öffnen';
+            const alpha = showIndicator ? 0.55 + pulse * 0.35 : 0.40 + pulse * 0.20;
+            // Kleines Pill/Badge über der Türmitte
+            ctx.save();
+            ctx.font        = "bold 13px 'Kalam'";
+            ctx.textAlign   = 'center';
+            ctx.textBaseline = 'middle';
+            const textW = ctx.measureText(label).width;
+            const bx = rcx - textW / 2 - 6;
+            const by = r.y - 22;
+            const bw = textW + 12;
+            const bh = 18;
+            // Badge-Hintergrund
+            ctx.fillStyle = near
+                ? `rgba(200,170,40,${alpha * 0.85})`
+                : `rgba(120,110,80,${alpha * 0.6})`;
+            ctx.beginPath();
+            ctx.roundRect(bx, by, bw, bh, 5);
+            ctx.fill();
+            // Badge-Text
+            ctx.fillStyle = `rgba(40,28,8,${alpha})`;
+            ctx.fillText(label, rcx, by + bh / 2);
+            // Kleiner Pfeil nach unten (zeigt auf Tür)
+            ctx.fillStyle = near
+                ? `rgba(200,170,40,${alpha * 0.85})`
+                : `rgba(120,110,80,${alpha * 0.6})`;
+            ctx.beginPath();
+            ctx.moveTo(rcx - 5, by + bh);
+            ctx.lineTo(rcx + 5, by + bh);
+            ctx.lineTo(rcx,     by + bh + 6);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+    });
+}
+
+// ── Geschoss-Schnipsel (World-Space) ─────────────────────────────────────────
+function drawProjectiles() {
+    const now = performance.now();
+    GameState.projectiles = GameState.projectiles.filter(p => !p.done);
+
+    GameState.projectiles.forEach(proj => {
+        const raw = (now - proj.startTime) / proj.duration;
+        if (raw >= 1) { proj.done = true; return; }
+
+        // Ease-out: schnell los, leicht abbremsen
+        const t = 1 - Math.pow(1 - raw, 1.6);
+
+        const x = proj.sx + (proj.tx - proj.sx) * t;
+        const y = proj.sy + (proj.ty - proj.sy) * t;
+
+        // Verblassen kurz vor Aufprall
+        const alpha = raw > 0.78 ? 1 - (raw - 0.78) / 0.22 : 1;
+        // Leichtes Taumeln (Papier dreht sich leicht im Flug)
+        const wobble = Math.sin(raw * Math.PI * 4) * 0.25;
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(x, y);
+        ctx.rotate(proj.angle + wobble);
+
+        // Papierschnipsel-Form
+        ctx.fillStyle   = 'rgba(238, 224, 196, 0.96)';
+        ctx.strokeStyle = 'rgba(55, 38, 14, 0.82)';
+        ctx.lineWidth   = 0.9;
+        ctx.beginPath();
+        BULLET_SCRAP_VERTS.forEach(([vx, vy], i) =>
+            i === 0 ? ctx.moveTo(vx, vy) : ctx.lineTo(vx, vy));
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Kugel: kleine dunkle Ellipse im Zentrum des Schnipsels
+        ctx.fillStyle = 'rgba(45, 30, 10, 0.92)';
+        ctx.beginPath();
+        ctx.ellipse(0.5, 0.5, 2.2, 3.8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Kleiner Glanzpunkt auf der Kugel
+        ctx.fillStyle = 'rgba(200, 190, 160, 0.60)';
+        ctx.beginPath();
+        ctx.ellipse(-0.6, -1.0, 0.7, 1.1, -0.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    });
+}
+
+// ── Schleich-Effekte (World-Space) ────────────────────────────────────────────
+function drawSneakEffects(player) {
+    const sa = GameState.sneakAnim;
+    if (!sa) return;
+    const t = Date.now();
+
+    // 1. Geister-Spur: halbtransparente Kopien des Spielers entlang des Weges
+    sa.ghosts.forEach(g => {
+        if (g.alpha <= 0.01) return;
+        ctx.save();
+        ctx.globalAlpha = g.alpha * 0.45;
+        ctx.translate(g.x, g.y);
+        ctx.rotate(sa.angle);
+        ctx.fillStyle = 'rgba(80,200,130,0.9)';
+        ctx.beginPath();
+        SCRAP_VERTS.forEach(([vx, vy], i) =>
+            i === 0 ? ctx.moveTo(vx, vy) : ctx.lineTo(vx, vy));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    });
+
+    // 2. Fußspuren: kleine Ellipsen, abwechselnd links/rechts, erscheinen schrittweise
+    const perp = sa.angle + Math.PI / 2;
+    sa.footsteps.forEach(fs => {
+        if (fs.alpha <= 0.01) return;
+        ctx.save();
+        ctx.globalAlpha = fs.alpha * 0.75;
+        ctx.translate(fs.x + Math.cos(perp) * fs.side * 5, fs.y + Math.sin(perp) * fs.side * 5);
+        ctx.rotate(sa.angle);
+        ctx.fillStyle = 'rgba(60,180,110,1)';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 2.5, 4.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    });
+
+    // 3. Pulsierender "schleich..." Text mit Wobble
+    const pulse  = 0.65 + 0.35 * Math.abs(Math.sin(t / 280));
+    const wobble = Math.sin(t / 170) * 2.5;
+    const tilt   = Math.sin(t / 230) * 0.08;
+    // Zusätzlich wechselnde Punkte: "schleich." / "schleich.." / "schleich..."
+    const dots   = '.'.repeat(1 + (Math.floor(t / 400) % 3));
+    ctx.save();
+    ctx.translate(player.x + wobble, player.y - player.radius - 22);
+    ctx.rotate(tilt);
+    ctx.font = "italic bold 22px 'Kalam'";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    // Schatten für Lesbarkeit
+    ctx.fillStyle = `rgba(10,40,20,${pulse * 0.6})`;
+    ctx.fillText(`schleich${dots}`, 1, 1);
+    ctx.fillStyle = `rgba(80,210,130,${pulse})`;
+    ctx.fillText(`schleich${dots}`, 0, 0);
     ctx.restore();
 }
 
@@ -563,45 +842,23 @@ function drawGame() {
     ctx.setLineDash([]);
     ctx.restore();
 
+    // Weltgegenstände + Tür-Hover
+    drawWorldItems();
+    drawDoorHighlight();
+
     // Alle lebenden Gegner zeichnen
     Entities.enemies.forEach(enemy => {
         if (enemy.isDead) return;
-        const pSees = canSee(player, enemy);
-        const eSees = canSee(enemy, player);
-        if (!pSees && !eSees) return;
+        // Im Kampf: kein FOV-Winkel, nur Wand-LOS + Engagement-Zone
+        const pSees = GameState.combatTriggered
+            ? canSeeInCombat(player, enemy)
+            : canSee(player, enemy);
 
-        if (pSees) {
-            // Im Spieler-FOV clipping zeichnen
-            ctx.save();
-            ctx.beginPath(); ctx.moveTo(player.x, player.y);
-            ctx.arc(player.x, player.y, player.viewDistance, player.angle - player.fov/2, player.angle + player.fov/2);
-            ctx.closePath(); ctx.clip();
-            // Sichtkegel Feind: zwei Linien + Bogen (gleicher Bleistift-Stil, rot)
-            ctx.strokeStyle = 'rgba(200,50,50,0.30)'; ctx.lineWidth = 1.8;
-            ctx.lineCap = 'round';
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.moveTo(enemy.x, enemy.y);
-            ctx.lineTo(enemy.x + Math.cos(enemy.angle - enemy.fov/2)*enemy.viewDistance,
-                       enemy.y + Math.sin(enemy.angle - enemy.fov/2)*enemy.viewDistance);
-            ctx.moveTo(enemy.x, enemy.y);
-            ctx.lineTo(enemy.x + Math.cos(enemy.angle + enemy.fov/2)*enemy.viewDistance,
-                       enemy.y + Math.sin(enemy.angle + enemy.fov/2)*enemy.viewDistance);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(enemy.x, enemy.y, enemy.viewDistance,
-                    enemy.angle - enemy.fov/2, enemy.angle + enemy.fov/2);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            drawEntityScrap(ctx, enemy, NPC_SCRAP_VERTS, NPC_CIRCLE_VERTS, 'rgba(140,35,35,0.90)');
-            ctx.restore();
-            // HP-Ring + Name (außerhalb clip)
-            drawEnemyHUD(enemy);
-        } else {
-            // Nur "tap..." wenn Feind nahe aber unsichtbar
+        // "tap... tap..." – nur außerhalb Kampf (im Kampf immer sichtbar wenn engaged)
+        if (!pSees && !GameState.combatTriggered) {
             const dx = enemy.x - player.x, dy = enemy.y - player.y;
             const dist = Math.sqrt(dx*dx + dy*dy);
-            if (dist <= player.viewDistance * 2) {
+            if (dist <= player.viewDistance) {
                 const aE = Math.atan2(dy, dx);
                 const tr = Math.min(dist - 15, player.viewDistance * 0.85);
                 const pulse = 0.3 + 0.7 * Math.abs(Math.sin(Date.now() / 400));
@@ -615,6 +872,49 @@ function drawGame() {
                 ctx.restore();
             }
         }
+
+        // Feind unsichtbar: im Kampf canSeeInCombat, außerhalb klassisches canSee
+        const eSees = GameState.combatTriggered
+            ? canSeeInCombat(enemy, player)
+            : canSee(enemy, player);
+        if (!pSees && !eSees) return;
+
+        if (pSees) {
+            ctx.save();
+
+            if (!GameState.combatTriggered) {
+                // Erkundung: Feind nur innerhalb des Spieler-FOV-Kegels sichtbar (Clip)
+                ctx.beginPath(); ctx.moveTo(player.x, player.y);
+                ctx.arc(player.x, player.y, player.viewDistance,
+                        player.angle - player.fov/2, player.angle + player.fov/2);
+                ctx.closePath(); ctx.clip();
+            }
+            // Im Kampf: kein Clip – Feind komplett sichtbar
+
+            // Sichtkegel Feind (nur in Erkundung sinnvoll, im Kampf weggelassen)
+            if (!GameState.combatTriggered) {
+                ctx.strokeStyle = 'rgba(200,50,50,0.30)'; ctx.lineWidth = 1.8;
+                ctx.lineCap = 'round'; ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(enemy.x, enemy.y);
+                ctx.lineTo(enemy.x + Math.cos(enemy.angle - enemy.fov/2)*enemy.viewDistance,
+                           enemy.y + Math.sin(enemy.angle - enemy.fov/2)*enemy.viewDistance);
+                ctx.moveTo(enemy.x, enemy.y);
+                ctx.lineTo(enemy.x + Math.cos(enemy.angle + enemy.fov/2)*enemy.viewDistance,
+                           enemy.y + Math.sin(enemy.angle + enemy.fov/2)*enemy.viewDistance);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(enemy.x, enemy.y, enemy.viewDistance,
+                        enemy.angle - enemy.fov/2, enemy.angle + enemy.fov/2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            drawEntityScrap(ctx, enemy, NPC_SCRAP_VERTS, NPC_CIRCLE_VERTS, 'rgba(140,35,35,0.90)');
+            ctx.restore();
+            // HP-Ring + Name (außerhalb clip)
+            drawEnemyHUD(enemy);
+        }
     });
 
     // Ziellinie anzeigen (Schritt 1 der 2-Schritt-Auswahl)
@@ -623,9 +923,34 @@ function drawGame() {
         drawTargetLine(player.x, player.y, t.x, t.y);
     }
 
-    // Spieler als Papierschnipsel + HP/AP-Ring
-    drawEntityScrap(ctx, player, SCRAP_VERTS, CIRCLE_VERTS, 'rgba(35, 30, 25, 0.88)');
-    drawPlayerHUD(player);
+    // Fliegende Geschoss-Schnipsel (zwischen Gegnern und Spieler)
+    drawProjectiles();
+
+    // Spieler als Papierschnipsel + HP/AP-Ring (mit optionalem Ausweich-Offset)
+    {
+        let offX = 0, offY = 0;
+        const da = GameState.dodgeAnim;
+        if (da && !da.done) {
+            const t = Math.min(1, (performance.now() - da.startTime) / da.duration);
+            if (t >= 1) {
+                da.done = true;
+            } else {
+                // Phase 1: raus (0–40%), Phase 2: halten (40–60%), Phase 3: zurück (60–100%)
+                let factor;
+                if      (t < 0.40) { const x = t / 0.40; factor = x * (2 - x); }   // ease-out
+                else if (t < 0.60) { factor = 1; }
+                else               { const x = (t - 0.60) / 0.40; factor = 1 - x * x; } // ease-in
+                offX = da.dx * factor;
+                offY = da.dy * factor;
+            }
+        }
+        ctx.save();
+        if (offX !== 0 || offY !== 0) ctx.translate(offX, offY);
+        drawEntityScrap(ctx, player, SCRAP_VERTS, CIRCLE_VERTS, 'rgba(35, 30, 25, 0.88)');
+        drawPlayerHUD(player);
+        drawSneakEffects(player);
+        ctx.restore();
+    }
 
     // Richtungspfeile: bei Richtungswahl UND bei Bewegungsraster (zum Drehen)
     if (GameState.selectingDirection || GameState.combatMoving) {
@@ -634,6 +959,18 @@ function drawGame() {
 
     ctx.restore(); // Kamera-Transform beenden
     ctx.restore(); // Zoom beenden
+
+    // Schleich-Vignette (Screen-Space: dunkle Ränder, dramatischer Look)
+    if (GameState.sneakAnim) {
+        const cx = canvas.width / 2, cy = canvas.height / 2;
+        const r  = Math.sqrt(cx * cx + cy * cy);
+        const vg = ctx.createRadialGradient(cx, cy, r * 0.18, cx, cy, r);
+        vg.addColorStop(0, 'rgba(0,15,8,0)');
+        vg.addColorStop(0.55, 'rgba(0,15,8,0.18)');
+        vg.addColorStop(1,   'rgba(0,5,3,0.82)');
+        ctx.fillStyle = vg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     // ── Kampfraster als UI-Overlay (Screen-Space, keine Transform-Abhängigkeit) ──
     if (GameState.combatGridVisible) {

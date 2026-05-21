@@ -22,8 +22,41 @@
         <button id="charBtn">&#9776; Profil</button>
 
         <div id="char-sheet">
-            <div class="coffee-stain stain-1"></div>
-            <div class="coffee-stain stain-2"></div>
+
+            <!-- ── SEITE 1 ─────────────────────────────────────── -->
+            <div class="char-paper" id="paper-1">
+                <!-- Kaffeefleck, Radierspuren, Kritzeleien -->
+                <div class="coffee-stain stain-1"></div>
+                <div class="coffee-stain stain-p1-b"></div>
+                <div class="eraser-mark erase-1"></div>
+                <!-- Winzige Uhr-Kritzelei (Bleistift, kaum sichtbar) -->
+                <!-- Winzige Katze -->
+                <svg class="paper-doodle doodle-cat" viewBox="0 0 26 24" fill="none"
+                     stroke="rgba(60,42,22,0.19)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1">
+                    <ellipse cx="13" cy="14" rx="9" ry="8.5"/>
+                    <path d="M4 8 L6 3 L9 8"/>   <!-- Ohr links -->
+                    <path d="M17 8 L20 3 L22 8"/> <!-- Ohr rechts -->
+                    <ellipse cx="10" cy="13" rx="1.5" ry="2" fill="rgba(60,42,22,0.19)" stroke="none"/>
+                    <ellipse cx="16" cy="13" rx="1.5" ry="2" fill="rgba(60,42,22,0.19)" stroke="none"/>
+                    <path d="M11 16 L13 15 L15 16"/>
+                    <path d="M12 17.5 Q13 19 14 17.5"/>
+                    <line x1="3"  y1="15" x2="9"  y2="15.5"/>
+                    <line x1="3"  y1="17" x2="9"  y2="16.5"/>
+                    <line x1="17" y1="15.5" x2="23" y2="15"/>
+                    <line x1="17" y1="16.5" x2="23" y2="17"/>
+                </svg>
+                <svg class="paper-doodle doodle-clock" viewBox="0 0 28 28" fill="none"
+                     stroke="rgba(60,42,22,0.22)" stroke-width="1.2" stroke-linecap="round">
+                    <circle cx="14" cy="14" r="11"/>
+                    <line x1="14" y1="6" x2="14" y2="14"/>
+                    <line x1="14" y1="14" x2="20" y2="17"/>
+                    <circle cx="14" cy="14" r="1.2" fill="rgba(60,42,22,0.22)" stroke="none"/>
+                    <!-- Stunden-Markierungen -->
+                    <line x1="14" y1="3.5" x2="14" y2="5.5" stroke-opacity="0.5"/>
+                    <line x1="14" y1="22.5" x2="14" y2="24.5" stroke-opacity="0.5"/>
+                    <line x1="3.5" y1="14" x2="5.5" y2="14" stroke-opacity="0.5"/>
+                    <line x1="22.5" y1="14" x2="24.5" y2="14" stroke-opacity="0.5"/>
+                </svg>
 
             <div class="char-page active" id="char-page-1">
 
@@ -86,8 +119,8 @@
                 </table>
 
                 <!-- ── BEWAFFNUNG (Referenz + Ausrüstungsstatus fusioniert) ── -->
-                <h3 class="section-titel">Bewaffnung
-                    <span class="tooltip-trigger" onclick="toggleTooltip(event,this)" style="font-size:0.9rem;font-weight:400;color:#888;"> ❓
+                <h3 class="section-titel">
+                    <span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Bewaffnung
                         <span class="tooltip-info"><strong>Kampfablauf</strong><br>1. Begegnung: Angriff / Ausweichen / Rückzug<br>2. W100 ≤ ANG → Treffer + Schadenswurf<br>3. Feind: AUS → Ausweichen; BLK → halber Schaden<br>4. Verfehlt: Feind greift zurück<br><br><em>Schleichangriff (Messer):</em> Auto-Treffer, 2× Schaden</span>
                     </span>
                 </h3>
@@ -96,99 +129,198 @@
                         <tr>
                             <th colspan="2">Waffe</th>
                             <th><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Schd.<span class="tooltip-info">1W4=1–4 · 1W6=1–6 · 1W8=1–8 · 2W6=2–12</span></span></th>
-                            <th><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Rw.<span class="tooltip-info"><b>Nah</b> 1 Feld · <b>N–M</b> 4 Felder · <b>Mit.</b> 8 Felder</span></span></th>
+                            <th>Rw.</th>
                             <th>Mun.</th>
                             <th><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Slot<span class="tooltip-info">Zeigt wo die Waffe liegt.<br>Nur ausgerüstete Waffen (Hand-Slot) sind im Kampf verfügbar.</span></span></th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr id="cs-row-faust">
-                            <td class="wt-icon"></td>
-                            <td class="waffe-name"><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Faustkampf<span class="tooltip-info"><strong>Faustkampf</strong><br>Immer verfügbar – keine Ausrüstung nötig.<br>Kann ausgewichen und geblockt werden.</span></span></td>
-                            <td>1W4</td><td>Nah</td><td>∞</td>
+                            <td class="wt-icon" id="cs-icon-faust"></td>
+                            <td class="waffe-name weapon-info-trigger" data-weapon="faust">Faustkampf</td>
+                            <td>1W4</td><td>1 Feld</td><td>∞</td>
                             <td><span class="ws-always">✓ Immer</span></td>
                         </tr>
                         <tr id="cs-row-messer">
                             <td class="wt-icon" id="cs-icon-messer"></td>
-                            <td class="waffe-name"><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Messer<span class="tooltip-info"><strong>Messer</strong><br>Lautlos. Schleichangriff: auto. Treffer + 2× Schaden.</span></span></td>
-                            <td>1W6</td><td>Nah</td><td>∞</td>
+                            <td class="waffe-name weapon-info-trigger" data-weapon="messer">Messer</td>
+                            <td>1W6</td><td>1 Feld</td><td>∞</td>
                             <td id="cs-status-messer"><span class="ws-bag">Rucksack</span></td>
                         </tr>
                         <tr id="cs-row-pistole">
                             <td class="wt-icon" id="cs-icon-pistole"></td>
-                            <td class="waffe-name"><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Pistole<span class="tooltip-info"><strong>Pistole</strong><br>Gute Reichweite. Nicht blockbar.</span></span></td>
-                            <td>1W8</td><td>Mittel</td><td id="cs-ammo-pistole">12</td>
+                            <td class="waffe-name weapon-info-trigger" data-weapon="pistole">Pistole</td>
+                            <td>1W8</td><td>8 Felder</td><td id="cs-ammo-pistole">12</td>
                             <td id="cs-status-pistole"><span class="ws-bag">Rucksack</span></td>
                         </tr>
-                        <tr id="cs-row-schrot" class="wt-unavailable">
-                            <td class="wt-icon"></td>
-                            <td class="waffe-name"><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Schrotflinte<span class="tooltip-info"><strong>Schrotflinte</strong><br>+2 Schaden auf kurze Distanz. Nicht blockbar. 6 Patronen.</span></span></td>
-                            <td>2W6</td><td>N–M</td><td id="cs-ammo-schrot">—</td>
-                            <td><span class="ws-none">— Kein</span></td>
+                        <tr id="cs-row-schrot">
+                            <td class="wt-icon" id="cs-icon-schrot"></td>
+                            <td class="waffe-name weapon-info-trigger" data-weapon="schrotflinte">Schrotflinte</td>
+                            <td>2W6</td><td>4 Felder</td><td id="cs-ammo-schrot">6</td>
+                            <td id="cs-status-schrot"><span class="ws-bag">Rucksack</span></td>
                         </tr>
                     </tbody>
                 </table>
 
-            </div>
+            </div><!-- /char-page-1 -->
+            </div><!-- /paper-1 -->
+
+            <!-- ── SEITE 2 ─────────────────────────────────────── -->
+            <div class="char-paper" id="paper-2">
+                <div class="coffee-stain stain-2"></div>
+                <div class="coffee-stain stain-p2-b"></div>
+                <div class="eraser-mark erase-2"></div>
+                <!-- Winziges Monster -->
+                <svg class="paper-doodle doodle-monster" viewBox="0 0 30 28" fill="none"
+                     stroke="rgba(60,42,22,0.18)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1">
+                    <!-- Körper -->
+                    <ellipse cx="15" cy="16" rx="10" ry="9"/>
+                    <!-- Zähne -->
+                    <path d="M8 20 L9.5 24 L11 20 L12.5 24 L14 20 L15.5 24 L17 20 L18.5 24 L20 20 L22 20"/>
+                    <!-- Augen (weit aufgerissen) -->
+                    <ellipse cx="11" cy="13" rx="3" ry="3.5"/>
+                    <ellipse cx="19" cy="13" rx="3" ry="3.5"/>
+                    <ellipse cx="11" cy="13" rx="1.5" ry="2" fill="rgba(60,42,22,0.18)" stroke="none"/>
+                    <ellipse cx="19" cy="13" rx="1.5" ry="2" fill="rgba(60,42,22,0.18)" stroke="none"/>
+                    <!-- Arme (tentakel-artig) -->
+                    <path d="M6 14 Q2 10 3 6"/>
+                    <path d="M24 14 Q28 10 27 6"/>
+                    <path d="M8 22 Q4 25 5 28"/>
+                    <path d="M22 22 Q26 25 25 28"/>
+                    <!-- Hörner -->
+                    <path d="M11 7 L9 2"/> <path d="M19 7 L21 2"/>
+                </svg>
+                <!-- Winzige Spinne in der Ecke (Horror-Touch) -->
+                <svg class="paper-doodle doodle-spider" viewBox="0 0 24 24" fill="none"
+                     stroke="rgba(60,42,22,0.20)" stroke-width="1.0" stroke-linecap="round">
+                    <circle cx="12" cy="12" r="3.5"/>
+                    <!-- Beine -->
+                    <line x1="8.5" y1="10" x2="3" y2="6"/>   <line x1="8.5" y1="12" x2="2" y2="12"/>
+                    <line x1="8.5" y1="14" x2="3" y2="18"/>  <line x1="15.5" y1="10" x2="21" y2="6"/>
+                    <line x1="15.5" y1="12" x2="22" y2="12"/> <line x1="15.5" y1="14" x2="21" y2="18"/>
+                    <!-- Augen -->
+                    <circle cx="10.5" cy="11" r="0.8" fill="rgba(60,42,22,0.22)" stroke="none"/>
+                    <circle cx="13.5" cy="11" r="0.8" fill="rgba(60,42,22,0.22)" stroke="none"/>
+                </svg>
+                <!-- Gefaltete Ecke -->
+                <div class="folded-corner"></div>
 
             <div class="char-page" id="char-page-2">
-                <h3 class="section-titel">Ausrüstung & Inventar</h3>
+                <h3 class="section-titel">Ausrüstung &amp; Inventar</h3>
+
                 <div class="p2-layout">
 
-                    <!-- ── AUSGERÜSTET ────────────────────────────── -->
-                    <div class="p2-equip">
-                        <div class="p2-panel-title">Ausgerüstet
-                            <span class="p2-panel-hint">Ziehe Items per Drag&amp;Drop</span>
-                        </div>
-                        <div class="equip-grid">
-                            <div class="equip-cell">
-                                <div class="slot drop-zone" id="slot-rechteHand" data-accepts="waffe">
-                                    <span class="slot-label">leer</span>
-                                </div>
-                                <span class="equip-cell-label">Rechte Hand</span>
+                        <!-- ── FIGUR + SLOTS ───────────────────────── -->
+                        <div class="p2-equip">
+                            <div class="p2-panel-title">Ausgerüstet
+                                <span class="p2-panel-hint">Drag &amp; Drop</span>
                             </div>
-                            <div class="equip-cell">
-                                <div class="slot drop-zone" id="slot-linkeHand" data-accepts="waffe">
-                                    <span class="slot-label">leer</span>
-                                </div>
-                                <span class="equip-cell-label">Linke Hand</span>
-                            </div>
-                            <div class="equip-cell equip-future">
-                                <div class="slot drop-zone" id="slot-torso" data-accepts="rüstung">
-                                    <span class="slot-label">—</span>
-                                </div>
-                                <span class="equip-cell-label">Körper</span>
-                            </div>
-                            <div class="equip-cell equip-future">
-                                <div class="slot drop-zone" id="slot-kopf" data-accepts="kopf-gadget">
-                                    <span class="slot-label">—</span>
-                                </div>
-                                <span class="equip-cell-label">Kopf</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- ── RUCKSACK ───────────────────────────────── -->
-                    <div class="p2-rucksack">
-                        <div class="p2-panel-title">Rucksack
-                            <span class="p2-panel-hint">6 Plätze</span>
+                            <div class="equip-figure-wrap">
+
+                                <!-- Kopf-Slot -->
+                                <div class="ef-slot ef-head">
+                                    <div class="slot drop-zone equip-future" id="slot-kopf" data-accepts="kopf-gadget"><span class="slot-label">—</span></div>
+                                    <div class="ef-label">Kopf</div>
+                                </div>
+
+                                <!-- SVG-Person -->
+                                <svg class="equip-figure-svg" viewBox="0 0 100 155" fill="none"
+                                     stroke="rgba(60,42,22,0.52)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6">
+                                    <!-- Kopf -->
+                                    <ellipse cx="50" cy="19" rx="14" ry="16" stroke-width="1.5"/>
+                                    <!-- Haare-Andeutung -->
+                                    <path d="M36 14 Q38 8 44 7 Q50 5 56 7 Q62 8 64 14" stroke-width="1.2" stroke-opacity="0.6"/>
+                                    <!-- Augen -->
+                                    <ellipse cx="44" cy="18" rx="1.8" ry="1.8" fill="rgba(60,42,22,0.5)" stroke="none"/>
+                                    <ellipse cx="56" cy="18" rx="1.8" ry="1.8" fill="rgba(60,42,22,0.5)" stroke="none"/>
+                                    <!-- Nase / Mund -->
+                                    <line x1="50" y1="20" x2="50" y2="24" stroke-width="1.0" stroke-opacity="0.45"/>
+                                    <path d="M46 26 Q50 29 54 26" stroke-width="1.0" stroke-opacity="0.45"/>
+                                    <!-- Hals -->
+                                    <line x1="44" y1="35" x2="43" y2="43"/>
+                                    <line x1="56" y1="35" x2="57" y2="43"/>
+                                    <!-- Schultern -->
+                                    <path d="M43 43 Q30 46 20 56"/>
+                                    <path d="M57 43 Q70 46 80 56"/>
+                                    <!-- Torso -->
+                                    <path d="M43 43 Q33 48 30 100 Q38 106 50 107 Q62 106 70 100 Q67 48 57 43 Z"/>
+                                    <!-- Gürtel -->
+                                    <line x1="32" y1="97" x2="68" y2="97" stroke-dasharray="3,2" stroke-opacity="0.35"/>
+                                    <!-- Linker Arm -->
+                                    <path d="M20 56 Q14 75 10 90"/>
+                                    <ellipse cx="9" cy="94" rx="5.5" ry="6.5" stroke-width="1.4"/>
+                                    <!-- Rechter Arm -->
+                                    <path d="M80 56 Q86 75 90 90"/>
+                                    <ellipse cx="91" cy="94" rx="5.5" ry="6.5" stroke-width="1.4"/>
+                                    <!-- Beine (angedeutet) -->
+                                    <path d="M38 107 Q35 130 34 150" stroke-opacity="0.55"/>
+                                    <path d="M62 107 Q65 130 66 150" stroke-opacity="0.55"/>
+                                    <!-- Knöpfe -->
+                                    <circle cx="50" cy="58" r="1.5" fill="rgba(60,42,22,0.45)" stroke="none"/>
+                                    <circle cx="50" cy="68" r="1.5" fill="rgba(60,42,22,0.45)" stroke="none"/>
+                                    <circle cx="50" cy="78" r="1.5" fill="rgba(60,42,22,0.45)" stroke="none"/>
+                                </svg>
+
+                                <!-- Rechte-Hand-Slot -->
+                                <div class="ef-slot ef-right">
+                                    <div class="slot drop-zone" id="slot-rechteHand" data-accepts="waffe"><span class="slot-label">leer</span></div>
+                                    <div class="ef-label">R. Hand</div>
+                                </div>
+
+                                <!-- Linke-Hand-Slot -->
+                                <div class="ef-slot ef-left">
+                                    <div class="slot drop-zone" id="slot-linkeHand" data-accepts="waffe"><span class="slot-label">leer</span></div>
+                                    <div class="ef-label">L. Hand</div>
+                                </div>
+
+                                <!-- Torso-Slot -->
+                                <div class="ef-slot ef-torso equip-future">
+                                    <div class="slot drop-zone" id="slot-torso" data-accepts="rüstung"><span class="slot-label">—</span></div>
+                                    <div class="ef-label">Torso</div>
+                                </div>
+
+                            </div><!-- /equip-figure-wrap -->
                         </div>
-                        <div id="rucksack-grid">
-                                <div class="rucksack-slot drop-zone">
-                                    <img src="img/messer.png" alt="Messer" id="messer-skizze" class="pencil-art draggable-item" draggable="true" data-category="waffe" data-weapon="messer">
+
+                        <!-- ── RUCKSACK ────────────────────────────── -->
+                        <div class="p2-rucksack">
+                            <div class="p2-panel-title">Rucksack
+                                <span class="p2-panel-hint">6 Plätze · Rechtsklick → fallen lassen</span>
+                            </div>
+                            <div class="rucksack-bag">
+                                <!-- Rucksack-Schnalle (dekorativ) -->
+                                <div class="bag-buckle bag-buckle-top"></div>
+                                <div class="bag-buckle bag-buckle-side"></div>
+                                <div id="rucksack-grid">
+                                    <div class="rucksack-slot drop-zone">
+                                        <img src="img/icon-messer.svg" alt="Messer" id="messer-skizze" class="inv-icon draggable-item" draggable="true" data-category="waffe" data-weapon="messer">
+                                    </div>
+                                    <div class="rucksack-slot drop-zone">
+                                        <img src="img/icon-pistole.svg" alt="Pistole" id="pistole-skizze" class="inv-icon draggable-item" draggable="true" data-category="waffe" data-weapon="pistole">
+                                    </div>
+                                    <div class="rucksack-slot drop-zone">
+                                        <img src="img/icon-schrotflinte.svg" alt="Schrotflinte" id="schrotflinte-skizze" class="inv-icon draggable-item" draggable="true" data-category="waffe" data-weapon="schrotflinte">
+                                    </div>
+                                    <div class="rucksack-slot medikit-slot" id="medikit-slot">
+                                        <img src="img/icon-medikit.svg" alt="Medikit" id="medikit-item" class="inv-icon consumable-item" onclick="openMedikitMenu()" title="Medikit – heilt 6 LP">
+                                    </div>
+                                    <div class="rucksack-slot drop-zone"></div>
+                                    <div class="rucksack-slot drop-zone"></div>
                                 </div>
-                                <div class="rucksack-slot drop-zone">
-                                    <img src="img/pistole.png" alt="Pistole" id="pistole-skizze" class="pencil-art draggable-item" draggable="true" data-category="waffe" data-weapon="pistole">
-                                </div>
-                                <div class="rucksack-slot drop-zone"></div>
-                                <div class="rucksack-slot drop-zone"></div>
-                                <div class="rucksack-slot drop-zone"></div>
-                                <div class="rucksack-slot drop-zone"></div>
-                            </div><!-- /rucksack-grid -->
-                        </div><!-- /p2-rucksack -->
-                    </div><!-- /p2-layout -->
+                            </div><!-- /rucksack-bag -->
+                        </div>
+
+                </div><!-- /p2-layout -->
+
+                <!-- ── MINIATURKARTE ───────────────────────── -->
+                <div class="minimap-section">
+                    <div class="minimap-header">Grundriss · Spencer-Herrenhaus</div>
+                    <canvas id="minimap-canvas" class="minimap-canvas"></canvas>
+                </div>
 
             </div><!-- /char-page-2 -->
+            </div><!-- /paper-2 -->
 
             <div id="page-nav">
                 <div id="page-controls">
@@ -200,13 +332,6 @@
             </div>
         </div>
 
-        <div id="door-menu" class="menu-box">
-            <h2>Tür entdeckt</h2>
-            <p style="font-size:1.3rem; margin-bottom:18px;">Soll die Tür geöffnet werden?</p>
-            <button class="sketch-button" onclick="doorOpen()">Ja, öffnen</button>
-            <button class="sketch-button" onclick="doorIgnore()" style="border-color:#555;color:#555;">Nein</button>
-        </div>
-
         <!-- Spieler-Zug (AP-basiert) -->
         <div id="encounter-menu" class="battle-box">
             <div class="battle-header">
@@ -214,6 +339,7 @@
                 <span id="enc-target" class="battle-target"></span>
             </div>
             <p id="enc-desc" class="battle-desc"></p>
+            <button id="btn-enc-schleichen" class="battle-btn battle-btn-sneak" onclick="combatSneak()" style="display:none;">Anschleichen  <span class="battle-stat">2 AP · krit.</span></button>
             <button id="btn-enc-angriff"  class="battle-btn" onclick="combatAttack()">Angriff  <span class="battle-stat">2 AP</span></button>
             <button id="btn-enc-bewegen"  class="battle-btn" onclick="combatMove()">Bewegen  <span class="battle-stat">1 AP / Feld</span></button>
             <button id="btn-enc-flucht"   class="battle-btn" onclick="combatFlee()">Rückzug  <span class="battle-stat">1 AP</span></button>
@@ -254,6 +380,61 @@
         <canvas id="gameCanvas"></canvas>
         <canvas id="wallCanvas"></canvas>
         <canvas id="exploredCanvas"></canvas>
+    </div>
+
+    <!-- Mobile D-Pad (nur auf Touch-Geräten sichtbar via CSS) -->
+    <div id="dpad" aria-hidden="true">
+        <div id="dpad-base">
+            <div id="dpad-thumb"></div>
+        </div>
+    </div>
+
+    <!-- Weltgegenstand Pickup-Dialog -->
+    <div id="pickup-dialog" style="display:none;">
+        <div id="pickup-card">
+            <img id="pickup-img" src="" alt="" class="pickup-item-img">
+            <h2 id="pickup-title" class="pickup-title"></h2>
+            <p  id="pickup-desc"  class="pickup-desc"></p>
+            <div class="pickup-buttons">
+                <button id="pickup-btn-take"   class="sketch-button" onclick="executePickup()">Aufheben</button>
+                <button class="sketch-button" onclick="closePickupDialog()" style="border-color:#555;color:#555;">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rechtsklick-Kontextmenü (Item fallen lassen) -->
+    <div id="item-context-menu" style="display:none;">
+        <button class="ctx-btn" onclick="executeDropItem()">Fallen lassen</button>
+        <button class="ctx-btn ctx-cancel" onclick="closeContextMenu()">Abbrechen</button>
+    </div>
+
+    <!-- Hover-Tooltip für Waffen-Icons (Page 1) -->
+    <div id="icon-hover-tip"></div>
+
+    <!-- Item-Info-Box (Hover auf Inventar-Items) -->
+    <div id="item-info-box">
+        <div class="iib-name"></div>
+        <div class="iib-type"></div>
+        <div class="iib-divider"></div>
+        <div class="iib-stats"></div>
+    </div>
+
+    <!-- Medikit-Popup -->
+    <div id="medikit-menu" class="menu-box" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:150; text-align:center;">
+        <h2 style="font-size:1.6rem; margin-bottom:8px;">Medikit</h2>
+        <p style="font-size:1.1rem; margin-bottom:18px; color:#555;">Heilt <strong>6 LP</strong>. Nur außerhalb des Kampfes.</p>
+        <button class="sketch-button" onclick="useMedikit()">Nehmen</button>
+        <button class="sketch-button" onclick="closeMedikitMenu()" style="border-color:#555;color:#555;">Abbrechen</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" style="display:none;">
+        <div id="gameover-card">
+            <div class="go-stain"></div>
+            <div class="go-title">Gefallen.</div>
+            <p class="go-subtitle">Das Herrenhaus hat dich besiegt.</p>
+            <button class="sketch-button go-btn" onclick="resetGame()">Neues Spiel</button>
+        </div>
     </div>
 
     <script src="js/config.js"></script>

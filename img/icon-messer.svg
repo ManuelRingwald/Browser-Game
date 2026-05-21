@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 28" fill="none"
+     stroke="#3c2a16" stroke-linecap="round" stroke-linejoin="round">
+
+  <!-- ── KLINGE ───────────────────────────────── -->
+  <!-- Haupt-Klingenform: Clip-Point -->
+  <path d="M2 15 L34.5 11 Q35.5 10.8 35.5 11.8 L35.5 16.5 Q35.5 17 34.5 17.2 Z"
+        fill="rgba(185,172,135,0.60)" stroke-width="1.15"/>
+
+  <!-- Klingenrücken (Spine) – leicht abgesetzt -->
+  <path d="M2 15 Q10 14.8 25 13 Q31 12.2 34.5 11.2"
+        fill="none" stroke-width="0.55" stroke-opacity="0.55"/>
+
+  <!-- Fuller (Hohlschliff / Blutrinne) -->
+  <path d="M4 15.2 Q15 14.2 30 12.8 Q33 12.5 35 12.8"
+        fill="none" stroke-width="0.7" stroke-opacity="0.42"
+        stroke-dasharray="3,1.2"/>
+
+  <!-- Schneidenfase (Bevel) – untere Kante der Klinge -->
+  <path d="M2 15.5 Q15 15.3 30 15 Q33 14.9 35.5 15.5"
+        fill="none" stroke-width="0.45" stroke-opacity="0.4"/>
+
+  <!-- Clip-Point-Abschrägung an der Spitze -->
+  <path d="M2 15 Q2.5 14 2 14.5" stroke-width="1.5"/>
+
+  <!-- ── PARIERSTANGE (Cross-guard) ───────────── -->
+  <path d="M35.5 8.5 L37 8.5 L37 18.5 L35.5 18.5 Z"
+        fill="rgba(148,132,100,0.72)" stroke-width="1.1"/>
+  <!-- Parierstange-Kerbe -->
+  <line x1="35.5" y1="13.5" x2="37" y2="13.5" stroke-width="0.8" stroke-opacity="0.5"/>
+  <!-- Parierstangen-Ziernieten -->
+  <circle cx="36.2" cy="9.8" r="0.7" fill="rgba(55,38,18,0.5)" stroke-width="0"/>
+  <circle cx="36.2" cy="17.2" r="0.7" fill="rgba(55,38,18,0.5)" stroke-width="0"/>
+
+  <!-- ── GRIFF ───────────────────────────────── -->
+  <path d="M37 9.5 Q37.2 9 38 9 L52.5 9 Q53.5 9 53.5 10 L53.5 17
+           Q53.5 18 52.5 18 L38 18 Q37.2 18 37 17.5 Z"
+        fill="rgba(78,52,22,0.68)" stroke-width="1.2"/>
+
+  <!-- Griff-Maserung (Holzoptik) – feine Längslinien -->
+  <g stroke="rgba(55,35,10,0.22)" stroke-width="0.5">
+    <path d="M38 9.5 Q44 11 50 9.5"/>
+    <path d="M38 11 Q44 12.5 52 11"/>
+    <path d="M38 12.5 Q44 14 52.5 12.5"/>
+    <path d="M38 14 Q44 15.5 52.5 14.2"/>
+    <path d="M38 15.5 Q44 17 52 15.5"/>
+    <path d="M38 17 Q44 18 51 17"/>
+  </g>
+  <!-- Griff-Nieten (Rivets) -->
+  <g fill="rgba(155,140,108,0.82)" stroke-width="0.9">
+    <circle cx="40" cy="13.5" r="1.4"/>
+    <circle cx="45" cy="13.5" r="1.4"/>
+    <circle cx="50" cy="13.5" r="1.4"/>
+  </g>
+  <!-- Niet-Glanzpunkte -->
+  <g fill="rgba(215,205,165,0.6)" stroke-width="0">
+    <circle cx="39.5" cy="13" r="0.5"/>
+    <circle cx="44.5" cy="13" r="0.5"/>
+    <circle cx="49.5" cy="13" r="0.5"/>
+  </g>
+
+  <!-- Griffschalenrand -->
+  <line x1="37" y1="9.5" x2="37" y2="17.5" stroke-width="0.7" stroke-opacity="0.5"/>
+
+  <!-- ── KNAUF (Pommel) ─────────────────────── -->
+  <path d="M53.5 9.5 Q55.5 10.5 55.5 13.5 Q55.5 16.5 53.5 17.5"
+        fill="rgba(148,132,100,0.68)" stroke-width="1.2"/>
+  <!-- Knauf-Schraube -->
+  <circle cx="54.5" cy="13.5" r="1.0" fill="rgba(155,140,108,0.8)" stroke-width="0.9"/>
+  <line x1="54" y1="13.5" x2="55" y2="13.5" stroke-width="0.5" stroke-opacity="0.6"/>
+</svg>

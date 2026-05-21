@@ -30,8 +30,9 @@ function addFurniture(x, y, w, h, type) {
 // Zentrum       : x[.38,.55]  y[.02,.96]  (Korridor + Eingangshalle + Hauptsaal)
 // Rechter Flügel: x[.55,.97]  y[.15,.75]  (Korridor + 2 Räume)
 function buildMansion() {
-    GameState.walls = [];
-    GameState.doors = [];
+    GameState.walls     = [];
+    GameState.doors     = [];
+    GameState.furniture = [];
     // wallCanvas ist bereits weltgroß (2× Viewport)
     const W = wallCanvas.width, H = wallCanvas.height;
     GameState.worldW = W;
@@ -208,6 +209,20 @@ function buildMansion() {
         { x: W * 0.72, y: H * 0.65 }, { x: W * 0.58, y: H * 0.65 },
     ];
     e2.x = e2.waypoints[0].x; e2.y = e2.waypoints[0].y;
+
+    // ── WELTGEGENSTÄNDE – nur beim ersten Laden / nach Reset ───────────────
+    if (GameState.worldItems.length === 0) {
+        // Medikit auf dem Couchtisch im Startraum (Zentrum/Eingangshalle)
+        GameState.worldItems.push({
+            id: 'world_medikit_1',
+            type: 'medikit',
+            label: 'Medikit',
+            img: 'img/icon-medikit.svg',
+            color: 'rgba(180,30,30,0.85)',
+            x: W * 0.504,
+            y: H * 0.732,
+        });
+    }
 
     renderBlueprint();
 }

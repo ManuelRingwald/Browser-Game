@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 36" fill="none"
+     stroke="#3c2a16" stroke-linecap="round" stroke-linejoin="round">
+
+  <!-- ── LAUF ────────────────────────────────────── -->
+  <path d="M2 11.5 L15.5 11.5 L15.5 14.5 L2 14.5 Z"
+        fill="rgba(165,150,115,0.65)" stroke-width="1.1"/>
+  <!-- Laufseele-Andeutung -->
+  <line x1="3.5" y1="13" x2="15" y2="13" stroke-width="0.45" stroke-opacity="0.5"/>
+  <!-- Mündungskrone -->
+  <path d="M2.3 10.8 L2 11.5 M2.3 15.2 L2 14.5" stroke-width="1.6"/>
+
+  <!-- ── SCHLITTEN ───────────────────────────────── -->
+  <path d="M13.5 7.5 Q14 7 15 7 L42.5 7 Q43.5 7 43.5 8 L43.5 17.5
+           Q43.5 18 42.5 18 L15 18 Q14 18 13.5 17.5 Z"
+        fill="rgba(190,175,140,0.58)" stroke-width="1.15"/>
+
+  <!-- Hinteres Visier (Kimme) -->
+  <rect x="38.5" y="5.2" width="5" height="2.5" rx="0.4"
+        fill="rgba(55,38,18,0.78)" stroke-width="0.9"/>
+  <line x1="40" y1="5.2" x2="42.5" y2="5.2"
+        stroke="rgba(215,205,165,0.9)" stroke-width="1.1"/>
+  <!-- Vorderes Visier (Korn) -->
+  <rect x="15" y="4.8" width="2.2" height="2.5" rx="0.3"
+        fill="rgba(55,38,18,0.78)" stroke-width="0.85"/>
+  <!-- Kornpunkt -->
+  <circle cx="16.1" cy="5.5" r="0.55" fill="rgba(215,205,165,0.85)" stroke-width="0"/>
+
+  <!-- Schlitterillen (Serrations) hinten -->
+  <g stroke-width="0.6" stroke-opacity="0.5">
+    <line x1="37.5" y1="7.3" x2="37.5" y2="18"/>
+    <line x1="35.8" y1="7.3" x2="35.8" y2="18"/>
+    <line x1="34.1" y1="7.3" x2="34.1" y2="18"/>
+    <line x1="32.4" y1="7.3" x2="32.4" y2="18"/>
+    <line x1="39.2" y1="7.3" x2="39.2" y2="18"/>
+  </g>
+  <!-- Schlitterillen vorne -->
+  <g stroke-width="0.5" stroke-opacity="0.38">
+    <line x1="16.5" y1="7.3" x2="16.5" y2="18"/>
+    <line x1="18"   y1="7.3" x2="18"   y2="18"/>
+  </g>
+
+  <!-- Auswurfhülse -->
+  <path d="M21.5 7.5 L30 7.5 L30 12.5 L21.5 12.5"
+        fill="rgba(45,30,12,0.16)" stroke-width="0.9"/>
+  <!-- Ladeanzeige-Pin -->
+  <circle cx="29" cy="9" r="0.9" fill="rgba(55,38,18,0.55)" stroke-width="0"/>
+
+  <!-- Griffsicherung (Slide release) -->
+  <ellipse cx="19" cy="18.8" rx="1.8" ry="1.1"
+           fill="rgba(155,140,108,0.72)" stroke-width="0.9"/>
+
+  <!-- ── RAHMEN / LOWER RECEIVER ───────────────── -->
+  <path d="M15.5 18 L43.5 18 L43.5 20.5 L15.5 20.5 Z"
+        fill="rgba(198,183,142,0.52)" stroke-width="1.05"/>
+  <!-- Picatinny-Rail-Andeutung -->
+  <g stroke-width="0.5" stroke-opacity="0.35">
+    <line x1="17" y1="19.2" x2="37" y2="19.2"/>
+    <line x1="17" y1="20" x2="37" y2="20"/>
+    <line x1="20" y1="19.2" x2="20" y2="20"/>
+    <line x1="23" y1="19.2" x2="23" y2="20"/>
+    <line x1="26" y1="19.2" x2="26" y2="20"/>
+    <line x1="29" y1="19.2" x2="29" y2="20"/>
+    <line x1="32" y1="19.2" x2="32" y2="20"/>
+    <line x1="35" y1="19.2" x2="35" y2="20"/>
+  </g>
+
+  <!-- Magazin-Entriegelung -->
+  <rect x="29.5" y="19.5" width="2" height="3.5" rx="0.6"
+        fill="rgba(155,140,108,0.72)" stroke-width="0.9"/>
+
+  <!-- ── ABZUGSBÜGEL ─────────────────────────── -->
+  <path d="M19.5 20.5 Q17.5 21.5 17.5 23.5 L17.5 28 Q17.5 29 19.5 29
+           L30.5 29 Q32 29 32 27.5 L32 20.5"
+        fill="rgba(198,183,142,0.42)" stroke-width="1.1"/>
+  <!-- Abzug -->
+  <path d="M24 20.5 Q23.5 25 25.5 28" stroke-width="1.15"/>
+  <!-- Abzug-Detail: Zugstange-Hint -->
+  <line x1="24.5" y1="21.5" x2="25" y2="25" stroke-width="0.6" stroke-opacity="0.4"/>
+
+  <!-- ── GRIFF ───────────────────────────────── -->
+  <path d="M29.5 18 Q30.5 17.8 32 18 L32 35 Q32 35.8 30.5 35.8
+           L20.5 35.8 Q19 35.8 18.5 35 L18.5 29 L19.5 20.5 L29.5 20.5 Z"
+        fill="rgba(82,58,28,0.68)" stroke-width="1.2"/>
+
+  <!-- Griffschalen-Textur: Kreuzschraffur -->
+  <g stroke="rgba(60,42,22,0.28)" stroke-width="0.5">
+    <!-- / Richtung -->
+    <line x1="19.5" y1="21.5" x2="31.5" y2="33.5"/>
+    <line x1="19.5" y1="24.5" x2="31.5" y2="35.5"/>
+    <line x1="19.5" y1="27.5" x2="29.5" y2="35.5"/>
+    <line x1="20.5" y1="21" x2="31.5" y2="30.5"/>
+    <line x1="23.5" y1="21" x2="31.5" y2="28.5"/>
+    <line x1="26.5" y1="21" x2="31.5" y2="25.5"/>
+    <!-- \ Richtung -->
+    <line x1="19.5" y1="24.5" x2="28.5" y2="21"/>
+    <line x1="19.5" y1="27.5" x2="31" y2="21"/>
+    <line x1="19.5" y1="30.5" x2="31.5" y2="21.5"/>
+    <line x1="19.5" y1="33.5" x2="31.5" y2="23.5"/>
+    <line x1="20.5" y1="35.5" x2="31.5" y2="26.5"/>
+    <line x1="24" y1="35.5" x2="31.5" y2="29.5"/>
+    <line x1="27.5" y1="35.5" x2="31.5" y2="32.5"/>
+  </g>
+
+  <!-- Griff-Fingerrillen -->
+  <path d="M19 23.5 Q18.2 24 18.5 24.8" stroke-width="0.7" stroke-opacity="0.5"/>
+  <path d="M19 25.5 Q18.2 26 18.5 26.8" stroke-width="0.7" stroke-opacity="0.5"/>
+  <path d="M19 27.5 Q18.2 28 18.5 28.8" stroke-width="0.7" stroke-opacity="0.5"/>
+
+  <!-- Magazin-Bodenplatte -->
+  <rect x="18.8" y="34.5" width="12.8" height="2" rx="0.6"
+        fill="rgba(155,140,108,0.72)" stroke-width="1.0"/>
+</svg>

@@ -153,6 +153,34 @@ function canSee(observer, target) {
     return true;
 }
 
+// Kampf-Sichtcheck: kein FOV-Winkel, nur Wand-LOS.
+// Engagement-Zone (≤ 1,5 Felder) → immer true, unabhängig von Wänden.
+function canSeeInCombat(observer, target) {
+    const dx   = target.x - observer.x;
+    const dy   = target.y - observer.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // Engagement-Zone: zu nah um sich zu ignorieren
+    if (dist <= FELD_PX * 1.5) return true;
+
+    // Außerhalb: Reichweiten-Cap (2× viewDistance, mind. 400px)
+    if (dist > Math.max(observer.viewDistance * 2, 400)) return false;
+
+    // Wand-/Tür-/Möbel-LOS ohne FOV-Winkelprüfung
+    for (const w of GameState.walls) {
+        if (lineIntersectsRect(observer.x, observer.y, target.x, target.y, w)) return false;
+    }
+    for (const d of GameState.doors) {
+        if (!d.open && lineIntersectsRect(observer.x, observer.y, target.x, target.y,
+            { x: d.x, y: d.y, width: d.w, height: d.h })) return false;
+    }
+    for (const f of GameState.furniture) {
+        if (f.blockSight && lineIntersectsRect(observer.x, observer.y, target.x, target.y,
+            { x: f.x, y: f.y, width: f.w, height: f.h })) return false;
+    }
+    return true;
+}
+
 // Gibt Wände + geschlossene Türen + sichtblockierende Möbel als einheitliche
 // Rechtecksliste zurück (für Raycasting).
 function getObstacles() {
@@ -197,50 +225,45 @@ function cellOccupied(col, row, exceptEntity) {
     return false;
 }
 
-// Baut einen Manhattan-Pfad (Zellen-Koordinaten-Liste).
-function buildManhattanCells(fc, fr, tc, tr, colsFirst) {
-    const sc = tc > fc ? 1 : tc < fc ? -1 : 0;
-    const sr = tr > fr ? 1 : tr < fr ? -1 : 0;
+// Baut einen Chebyshev-Pfad (8-Richtungen, Diagonalschritte erlaubt).
+// Jeder Schritt bewegt sich um max(|dc|,|dr|)=1 in die nächstgelegene Richtung.
+function buildChebyshevPath(fc, fr, tc, tr) {
     const cells = [];
     let c = fc, r = fr;
-    if (colsFirst) {
-        while (c !== tc) { c += sc; cells.push([c, r]); }
-        while (r !== tr) { r += sr; cells.push([c, r]); }
-    } else {
-        while (r !== tr) { r += sr; cells.push([c, r]); }
-        while (c !== tc) { c += sc; cells.push([c, r]); }
+    while (c !== tc || r !== tr) {
+        if (c !== tc) c += tc > c ? 1 : -1;
+        if (r !== tr) r += tr > r ? 1 : -1;
+        cells.push([c, r]);
     }
     return cells;
 }
 
-// Gibt den wandfreien Manhattan-Pfad zurück (probiert beide Reihenfolgen).
+// Gibt den Chebyshev-Pfad zurück (für Highlight-Anzeige).
 function getMovePath(fc, fr, tc, tr) {
-    const p1 = buildManhattanCells(fc, fr, tc, tr, true);
-    const GS = FELD_PX, r = GS * 0.35;
-    const clear = cells => cells.every(([c2,r2]) =>
-        !checkCollision((c2+0.5)*GS, (r2+0.5)*GS, {radius:r}));
-    return clear(p1) ? p1 : buildManhattanCells(fc, fr, tc, tr, false);
+    return buildChebyshevPath(fc, fr, tc, tr);
 }
 
-// Prüft einen Manhattan-Teilpfad (entweder erst Spalten oder erst Zeilen).
-function _tryManhattanPath(pCol, pRow, col, row, colsFirst) {
-    const GS = FELD_PX, r = GS * 0.38;
-    const sc = col > pCol ? 1 : col < pCol ? -1 : 0;
-    const sr = row > pRow ? 1 : row < pRow ? -1 : 0;
-    let c = pCol, rw = pRow;
-    if (colsFirst) {
-        while (c !== col)  { c  += sc; if (checkCollision((c  + 0.5)*GS, (rw + 0.5)*GS, {radius:r})) return false; }
-        while (rw !== row) { rw += sr; if (checkCollision((c  + 0.5)*GS, (rw + 0.5)*GS, {radius:r})) return false; }
-    } else {
-        while (rw !== row) { rw += sr; if (checkCollision((c  + 0.5)*GS, (rw + 0.5)*GS, {radius:r})) return false; }
-        while (c !== col)  { c  += sc; if (checkCollision((c  + 0.5)*GS, (rw + 0.5)*GS, {radius:r})) return false; }
+// Prüft ob ein Chebyshev-Schritt wandfrei ist.
+// Bei Diagonalschritten werden auch beide Orthogonal-Zwischenfelder geprüft
+// (verhindert "Ecken-Clipping" durch Wandecken).
+function _checkDiagonalStep(c, r, nc, nr) {
+    const GS = FELD_PX, rad = GS * 0.38;
+    const blocked = (cx, cy) => checkCollision((cx + 0.5) * GS, (cy + 0.5) * GS, { radius: rad });
+    if (blocked(nc, nr)) return false;
+    // Bei Diagonalschritt: beide angrenzenden Orthogonalfelder prüfen
+    if (nc !== c && nr !== r) {
+        if (blocked(nc, r) && blocked(c, nr)) return false; // Ecke vollständig blockiert
     }
     return true;
 }
 
-// Ein Feld ist erreichbar, wenn MINDESTENS EINER der beiden Manhattan-Pfade
-// (erst Spalten oder erst Zeilen) wandfrei ist.
+// Chebyshev-Pfad-Check: alle Schritte entlang des Chebyshev-Pfads wandfrei?
 function gridPathClear(pCol, pRow, col, row) {
-    return _tryManhattanPath(pCol, pRow, col, row, true)
-        || _tryManhattanPath(pCol, pRow, col, row, false);
+    const path = buildChebyshevPath(pCol, pRow, col, row);
+    let c = pCol, r = pRow;
+    for (const [nc, nr] of path) {
+        if (!_checkDiagonalStep(c, r, nc, nr)) return false;
+        c = nc; r = nr;
+    }
+    return true;
 }

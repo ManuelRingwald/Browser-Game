@@ -140,6 +140,7 @@ html, body {
 .battle-btn.battle-btn-unavail:hover { background: rgba(200,172,118,0.06); }
 .battle-btn-muted   { color: #888; }          /* gleiche Größe, nur andere Farbe */
 .battle-btn-confirm { color: #ffe890; font-weight: 700; }
+.battle-btn-sneak   { color: #7ecfa0; font-weight: 700; letter-spacing: 0.02em; }
 .battle-btn:disabled { opacity: 0.28; cursor: default; }
 .battle-stat { font-size: 0.88rem; color: #a09070; margin-left: 4px; } /* sekundär */
 
@@ -160,18 +161,105 @@ html, body {
 #gameCanvas.combat-move { cursor: crosshair; }
 #wallCanvas, #exploredCanvas { position: absolute; display: none; }
 
+/* Papier-Textur als Variable (für Wiederverwendung) */
+:root {
+    --paper-bg: #e8dfc0;
+    --paper-texture:
+        radial-gradient(ellipse 90% 80% at 60% 50%, rgba(150,110,50,0.05) 0%, transparent 70%),
+        url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSdub2lzZSc+PGZlVHVyYnVsZW5jZSB0eXBlPSdmcmFjdGFsTm9pc2UnIGJhc2VGcmVxdWVuY3k9JzAuOCcgbnVtT2N0YXZlcz0nNCcgc3RpdGNoVGlsZXM9J3N0aXRjaCcvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPScxMDAlJyBoZWlnaHQ9JzEwMCUnIGZpbHRlcj0ndXJsKCNub2lzZScpJyBvcGFjaXR5PScwLjA4Jy8+PC9zdmc+');
+    --paper-shadow: 5px 5px 0 rgba(0,0,0,0.06), 12px 18px 40px rgba(0,0,0,0.55), 0 5px 15px rgba(0,0,0,0.2);
+}
+
 #char-sheet {
     position: absolute; top: 2%; left: 2%; width: min(550px, 96%); height: 94%;
-    background-color: #e8dfc0;
-    background-image:
-        radial-gradient(ellipse 90% 80% at 60% 50%, rgba(150, 110, 50, 0.05) 0%, transparent 70%),
-        url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSdub2lzZSc+PGZlVHVyYnVsZW5jZSB0eXBlPSdmcmFjdGFsTm9pc2UnIGJhc2VGcmVxdWVuY3k9JzAuOCcgbnVtT2N0YXZlcz0nNCcgc3RpdGNoVGlsZXM9J3N0aXRjaCcvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPScxMDAlJyBoZWlnaHQ9JzEwMCUnIGZpbHRlcj0ndXJsKCNub2lzZScpJyBvcGFjaXR5PScwLjA4Jy8+PC9zdmc+');
+    background-color: var(--paper-bg);
+    background-image: var(--paper-texture);
     z-index: 40; display: none; flex-direction: column; align-items: center;
     padding: 20px 20px 0 50px; overflow: hidden; color: #2a2a2a;
     transform: rotate(-0.8deg);
     transform-origin: center;
-    box-shadow: 5px 5px 0 rgba(0,0,0,0.06), 12px 18px 40px rgba(0,0,0,0.55), 0 5px 15px rgba(0,0,0,0.2);
+    box-shadow: var(--paper-shadow);
     border-radius: 2px 3px 3px 2px;
+}
+
+/* ── char-paper: Wrapper pro Seite ────────────────────────────────── */
+/* Schmal: pass-through (verhält sich als wäre es nicht da) */
+.char-paper {
+    display: contents;
+}
+
+/* ── Neue Dekorationen ────────────────────────────────────────────── */
+
+/* Kaffeeflecken (zusätzliche) */
+.stain-p1-b {
+    width: 52px; height: 44px;
+    bottom: 22%; right: 12%;
+    background: radial-gradient(ellipse at 50% 48%,
+        rgba(101,67,33,0.22) 0%, rgba(101,67,33,0.10) 45%, transparent 75%);
+    border-radius: 55% 45% 60% 40% / 48% 55% 45% 52%;
+    filter: blur(2px);
+    transform: rotate(33deg);
+}
+.stain-p2-b {
+    width: 68px; height: 58px;
+    top: 8%; right: 5%;
+    background: radial-gradient(ellipse at 45% 52%,
+        rgba(101,67,33,0.28) 0%, rgba(101,67,33,0.12) 40%, transparent 72%);
+    border-radius: 48% 52% 42% 58% / 56% 44% 60% 40%;
+    filter: blur(2.5px);
+    transform: rotate(-8deg);
+}
+
+/* Radierspuren */
+.eraser-mark {
+    position: absolute; pointer-events: none; z-index: 1;
+    background: rgba(240,232,210,0.55);
+    filter: blur(4px);
+}
+.erase-1 {
+    width: 55px; height: 22px;
+    top: 31%; left: 4%;
+    border-radius: 40% 60% 55% 45% / 50% 48% 52% 50%;
+    transform: rotate(-3deg);
+}
+.erase-2 {
+    width: 45px; height: 18px;
+    bottom: 28%; right: 3%;
+    border-radius: 50% 50% 48% 52% / 44% 56% 44% 56%;
+    transform: rotate(6deg);
+}
+
+/* Kritzeleien */
+.paper-doodle {
+    position: absolute; pointer-events: none; z-index: 1;
+}
+.doodle-clock {
+    width: 28px; height: 28px;
+    bottom: 4%; right: 4%;
+}
+.doodle-spider {
+    width: 24px; height: 24px;
+    top: 3.5%; left: 4%;
+}
+
+/* Gefaltete Ecke (top-right) */
+.folded-corner {
+    position: absolute; pointer-events: none; z-index: 2;
+    top: 0; right: 0;
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 0 22px 22px 0;
+    border-color: transparent rgba(200,185,148,1) transparent transparent;
+    filter: drop-shadow(-2px 2px 2px rgba(0,0,0,0.18));
+}
+.folded-corner::after {
+    content: '';
+    position: absolute;
+    top: 1px; right: -21px;
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 0 20px 20px 0;
+    border-color: transparent rgba(215,200,162,0.5) transparent transparent;
 }
 
 .coffee-stain {
@@ -212,6 +300,7 @@ html, body {
     align-items: center;
     flex: 1;
     width: 100%;
+    min-height: 0;        /* flex-overflow funktioniert nur mit min-height:0 */
     overflow: hidden;
     position: relative;
     z-index: 2;
@@ -301,11 +390,310 @@ html, body {
 .waffen-tabelle thead th { text-align:left; padding:3px 6px; font-size:0.88rem; color:#666; border-bottom:1.5px solid #bbb; font-weight:400; }
 .waffen-tabelle tbody td { padding:5px 6px; border-bottom:1px solid rgba(0,0,0,0.07); }
 .waffe-name .tooltip-trigger { font-weight:700; cursor:pointer; }
+.weapon-info-trigger { cursor:pointer; border-bottom: 2px dotted rgba(60,42,22,0.45); font-weight:700; }
 .wt-unavailable { opacity:0.4; }
 
 /* Icon-Spalte: kleines Waffen-Bild */
 .wt-icon { width:28px; padding:2px; }
-.wt-item-img { width:24px; height:24px; object-fit:contain; display:block; }
+.wt-item-img { width:56px; height:56px; object-fit:contain; display:block; }
+
+/* ── Hover-Tooltip (per JS positioniert) ── */
+#icon-hover-tip {
+    position: fixed;
+    background: rgba(35, 24, 10, 0.94);
+    color: rgba(228, 212, 180, 0.98);
+    font-family: 'Kalam', cursive;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    padding: 7px 13px;
+    border-radius: 3px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 9999;
+    border: 1px solid rgba(120,90,40,0.45);
+    box-shadow: 2px 4px 14px rgba(0,0,0,0.55);
+    display: none;
+}
+.wt-icon[data-tip] { cursor: default; }
+
+/* ── Miniaturkarte (Page 2) ────────────────────────────────────────── */
+.minimap-section {
+    flex: 1;
+    min-height: 110px;
+    max-height: 290px;
+    display: flex;
+    flex-direction: column;
+    margin-top: 6px;
+    border-top: 1px dashed rgba(60,42,22,0.28);
+    padding-top: 5px;
+    padding-bottom: 8px;
+}
+.minimap-header {
+    font-family: 'Kalam', cursive;
+    font-size: 0.78rem; font-weight: 700;
+    color: rgba(60,42,22,0.60);
+    text-align: center;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+    flex-shrink: 0;
+}
+.minimap-canvas {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    display: block;
+    border: 1.5px solid rgba(60,42,22,0.28);
+    border-radius: 2px;
+    image-rendering: pixelated;
+}
+
+/* ── Dual-Page: Beide Seiten nebeneinander auf breiten Screens ──────── */
+@media (min-width: 980px) {
+    #char-sheet {
+        /* Breiter Container, selbst transparent */
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: min(98vw, 1120px);
+        height: min(92vh, 820px);
+        background: none;
+        background-image: none;
+        box-shadow: none;
+        padding: 0;
+        border-radius: 0;
+        overflow: visible;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 18px;
+    }
+
+    /* Jedes Papier bekommt seinen eigenen Look */
+    .char-paper {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        height: min(92vh, 820px);
+        background-color: var(--paper-bg);
+        background-image: var(--paper-texture);
+        padding: 20px 20px 0 44px;
+        overflow: hidden;
+        position: relative;
+        color: #2a2a2a;
+        border-radius: 2px 3px 3px 2px;
+        box-shadow: var(--paper-shadow);
+    }
+
+    #paper-1 { transform: rotate(-1.3deg); }
+    #paper-2 { transform: rotate(0.65deg); margin-top: 18px; }
+
+    /* Beide Seiten sichtbar */
+    .char-page { display: flex !important; overflow: hidden !important; }
+    #page-nav  { display: none !important; }
+
+    /* p2-layout kein Scroll */
+    .p2-layout {
+        overflow: hidden;
+        flex-shrink: 0;
+        -webkit-overflow-scrolling: unset;
+        touch-action: auto;
+    }
+}
+
+/* ══════════════════════════════════════════════════════
+   EQUIP-FIGUR (SVG-Person mit Slots)
+   ══════════════════════════════════════════════════════ */
+
+.equip-figure-wrap {
+    position: relative;
+    width: 224px;    /* breiter: Platz für Slots links+rechts neben Figur */
+    height: 248px;
+    flex-shrink: 0;
+}
+
+/* Figur größer: zentriert zwischen den Hand-Slots */
+.equip-figure-svg {
+    position: absolute;
+    top: 26px; left: 57px;  /* zentriert in 224px mit 110px Breite */
+    width: 110px; height: auto;
+    opacity: 0.72;
+}
+
+/* Slot-Größe für Figur-Slots (kleiner als Rucksack-Slots) */
+.ef-slot .slot {
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 0.6rem;
+}
+
+/* Gemeinsame Slot-Anker-Styles */
+.ef-slot {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+.ef-label {
+    font-family: 'Kalam', cursive;
+    font-size: 0.60rem; color: #888;
+    white-space: nowrap;
+}
+
+/* Kopf: oben mittig */
+.ef-head {
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+}
+.ef-head .ef-label { order: 0; margin-bottom: 1px; }
+.ef-head .slot      { order: 1; }
+
+/* ── Beide Hände: EXAKT gleiche top-Koordinate ── */
+/* Slot zuerst, Label darunter → gleiche Slot-Oberkante garantiert */
+.ef-right {
+    top: 115px; right: 2px;
+    align-items: center;
+}
+.ef-left {
+    top: 115px; left: 2px;
+    align-items: center;
+}
+.ef-right .slot,
+.ef-left  .slot  { order: 0; }
+.ef-right .ef-label,
+.ef-left  .ef-label { order: 1; margin-top: 2px; }
+
+/* Torso: auf dem Torso der Figur */
+.ef-torso {
+    top: 95px; left: 50%;
+    transform: translateX(-50%);
+}
+.ef-torso .slot      { order: 0; }
+.ef-torso .ef-label  { order: 1; font-size: 0.58rem; margin-top: 2px; }
+
+/* Verbindungslinien als CSS box-shadow-Simulation entfällt – Positionen sind selbsterklärend */
+
+/* Zweihand-Geist: nur die Waffe halb-transparent, kein Schraffur */
+.two-handed-ghost {
+    opacity: 0.32;
+    pointer-events: none;
+    cursor: default;
+}
+/* Ghost-Slot: kein Schraffur, nur Cursor + "leer" ausblenden */
+.slot[data-ghost] {
+    cursor: not-allowed;
+    background: rgba(200,185,155,0.35);
+}
+.slot[data-ghost] .slot-label { display: none; }
+
+/* ══════════════════════════════════════════════════════
+   RUCKSACK (Rucksack-Optik, 2×3 Grid)
+   ══════════════════════════════════════════════════════ */
+
+.p2-rucksack { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+
+.rucksack-bag {
+    position: relative;
+    width: fit-content;    /* nur so breit wie der Grid */
+    background: rgba(95,68,32,0.10);
+    border: 2px solid rgba(95,68,32,0.42);
+    border-radius: 8px 8px 12px 12px;
+    padding: 12px 10px 10px;
+    box-shadow:
+        inset 0 3px 8px rgba(0,0,0,0.07),
+        inset 0 -2px 4px rgba(0,0,0,0.04),
+        2px 4px 10px rgba(0,0,0,0.14);
+}
+
+/* Schulterriemen links & rechts (oben) */
+.rucksack-bag::before,
+.rucksack-bag::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    width: 14px; height: 18px;
+    background: rgba(95,68,32,0.50);
+    border-radius: 4px 4px 0 0;
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.15);
+}
+.rucksack-bag::before { left: 18%; }
+.rucksack-bag::after  { right: 18%; }
+
+/* Griff (Schlaufe oben mittig) */
+.bag-buckle-top {
+    position: absolute;
+    top: -18px; left: 50%;
+    transform: translateX(-50%);
+    width: 26px; height: 10px;
+    border: 2.5px solid rgba(95,68,32,0.55);
+    border-radius: 10px 10px 0 0;
+    background: none;
+    pointer-events: none;
+}
+
+/* Horizontaler Brustgurt */
+.bag-buckle-side {
+    position: absolute;
+    top: 42%; left: -8px; right: -8px;
+    height: 7px;
+    background: rgba(95,68,32,0.35);
+    border-radius: 3px;
+    pointer-events: none;
+    /* Schnalle-Andeutung in der Mitte */
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.bag-buckle-side::after {
+    content: '';
+    position: absolute;
+    left: 50%; top: -1px;
+    transform: translateX(-50%);
+    width: 10px; height: 9px;
+    background: rgba(95,68,32,0.55);
+    border-radius: 2px;
+}
+
+/* Untere Naht */
+.rucksack-bag > #rucksack-grid {
+    position: relative;
+}
+.rucksack-bag > #rucksack-grid::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 4px; right: 4px;
+    height: 3px;
+    border-bottom: 2px solid rgba(95,68,32,0.28);
+    border-radius: 50%;
+}
+
+/* ══════════════════════════════════════════════════════
+   ITEM-INFO-BOX (Hover auf Inventar-Items)
+   ══════════════════════════════════════════════════════ */
+#item-info-box {
+    position: fixed;
+    z-index: 9999;
+    background: rgba(38, 26, 10, 0.95);
+    color: rgba(228, 212, 180, 0.98);
+    font-family: 'Kalam', cursive;
+    padding: 10px 14px 10px;
+    border-radius: 3px;
+    border: 1px solid rgba(140,100,40,0.50);
+    box-shadow: 3px 5px 16px rgba(0,0,0,0.60);
+    pointer-events: none;
+    display: none;
+    min-width: 160px;
+    max-width: 240px;
+}
+.iib-name  { font-size: 1.0rem; font-weight: 700; margin-bottom: 1px; }
+.iib-type  { font-size: 0.72rem; color: rgba(180,160,110,0.85); margin-bottom: 6px; font-style: italic; }
+.iib-divider { height: 1px; background: rgba(140,100,40,0.40); margin-bottom: 6px; }
+.iib-stats { font-size: 0.82rem; line-height: 1.7; }
+.iib-stat  { display: flex; justify-content: space-between; gap: 16px; }
+.iib-key   { color: rgba(180,160,110,0.85); }
+.iib-val   { font-weight: 700; text-align: right; }
+.iib-special { margin-top: 5px; font-size: 0.76rem; color: rgba(200,180,130,0.80); font-style: italic; }
+
+/* ── Neue Kritzeleien-Positionen ──────────────────── */
+.doodle-cat     { width: 26px; height: 24px; bottom: 16%; left: 4%; }
+.doodle-monster { width: 30px; height: 28px; bottom: 5%; left: 5%; }
 
 /* Ausgerüstete Zeile hervorheben */
 .wt-equipped { background:rgba(55,130,50,0.09); }
@@ -338,28 +726,29 @@ html, body {
     .kw-val        { font-size:1.3rem; }
 }
 
-/* ── SEITE 2: Ausrüstung & Inventar ─────────────────────── */
-:root { --equip-size: 72px; }
+/* ══════════════════════════════════════════════════════
+   SEITE 2: Ausrüstung & Inventar (RPG-Bogen-Stil)
+   ══════════════════════════════════════════════════════ */
+:root { --equip-size: 64px; }
 
 .p2-layout {
     display: flex;
     flex-direction: row;
-    gap: 24px;
+    gap: 20px;
     width: 100%;
-    flex: 1;
-    min-height: 0;
+    flex-shrink: 0;      /* nicht für Minimap komprimieren */
     align-items: flex-start;
-    overflow-y: auto;
-    padding-bottom: 8px;
+    overflow: hidden;    /* kein Scrollbalken */
+    padding-bottom: 6px;
 }
 
 .p2-panel-title {
-    font-size: 1.15rem; font-weight: 700; color: #333;
+    font-size: 1.05rem; font-weight: 700; color: #333;
     border-bottom: 1.5px solid rgba(0,0,0,0.15);
-    padding-bottom: 4px; margin-bottom: 12px;
+    padding-bottom: 3px; margin-bottom: 10px;
     display: flex; align-items: baseline; gap: 8px;
 }
-.p2-panel-hint { font-size: 0.82rem; font-weight: 400; color: #999; }
+.p2-panel-hint { font-size: 0.75rem; font-weight: 400; color: #aaa; }
 
 /* ── Equip-Bereich ── */
 .p2-equip { flex: 0 0 auto; }
@@ -404,11 +793,12 @@ html, body {
 }
 
 /* ── Rucksack ── */
-.p2-rucksack { flex: 1; min-width: 0; }
+.p2-rucksack { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; }
 
 #rucksack-grid {
     display: grid;
-    grid-template-columns: repeat(3, var(--slot-size));
+    grid-template-columns: repeat(2, var(--slot-size));
+    grid-template-rows: repeat(3, var(--slot-size));
     gap: 8px;
 }
 
@@ -426,6 +816,124 @@ html, body {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     width: 85%; height: 85%; object-fit: contain;
+}
+
+/* ── Zustandsbereich ───────────────────────────────── */
+.p2-zustand {
+    width: 100%; flex-shrink: 0;
+    border-top: 1px dashed rgba(0,0,0,0.18);
+    padding-top: 8px;
+}
+
+.zustand-boxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+}
+
+.zustand-box {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.zustand-box input[type="checkbox"] { display: none; }
+
+/* Hand-gezeichnete Checkbox */
+.zustand-mark {
+    width: 16px; height: 16px; flex-shrink: 0;
+    border: 1.8px solid rgba(60,42,22,0.70);
+    border-radius: 1px;
+    position: relative;
+    background: rgba(255,255,255,0.45);
+    /* Leicht unregelmäßiger Rahmen via box-shadow */
+    box-shadow: 1px 1px 0 rgba(60,42,22,0.12), -0.5px -0.5px 0 rgba(60,42,22,0.08);
+}
+/* Häkchen wenn gecheckt */
+.zustand-box input:checked + .zustand-mark::after {
+    content: '';
+    position: absolute;
+    left: 2px; top: -1px;
+    width: 9px; height: 13px;
+    border-right: 2px solid rgba(60,42,22,0.85);
+    border-bottom: 2px solid rgba(60,42,22,0.85);
+    transform: rotate(45deg) translate(-2px, -2px);
+}
+
+.zustand-label {
+    font-family: 'Kalam', cursive;
+    font-size: 0.88rem; color: #444; line-height: 1;
+}
+.zustand-box input:checked ~ .zustand-label { color: #8b1a1a; font-weight: 700; }
+
+/* ── Untere Reihe: Kampf-Referenz + Notizen ───────── */
+.p2-bottom-row {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    flex: 1;
+    min-height: 0;
+    border-top: 1px dashed rgba(0,0,0,0.18);
+    padding-top: 8px;
+}
+
+/* Kampf-Kurzreferenz */
+.p2-combat-ref { flex: 0 0 auto; }
+
+.ref-table {
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    width: 100%;
+    margin-bottom: 6px;
+}
+.ref-table td {
+    padding: 2px 6px;
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+    color: #444;
+    font-family: 'Kalam', cursive;
+}
+.ref-table td:last-child { text-align: right; font-weight: 700; color: #222; }
+.ref-header td {
+    font-size: 0.72rem; font-weight: 700;
+    color: #888; text-transform: uppercase;
+    letter-spacing: 0.06em; padding-top: 6px;
+    border-bottom: 1px solid rgba(0,0,0,0.18);
+}
+.ref-spacer td { padding: 2px; border: none; }
+.ref-rule {
+    font-family: 'Kalam', cursive;
+    font-size: 0.78rem; color: #888;
+    font-style: italic; text-align: center;
+    padding: 4px 6px;
+    border: 1px dashed rgba(0,0,0,0.20);
+    border-radius: 3px;
+}
+
+/* Feldnotizen */
+.p2-notes { flex: 1; min-width: 0; }
+
+.notes-area {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex: 1;
+}
+.note-line {
+    height: 28px;
+    border-bottom: 1px solid rgba(100,80,40,0.28);
+    /* Leichte Unregelmäßigkeit via gradient */
+    background: linear-gradient(to right,
+        transparent 0%, rgba(100,80,40,0.03) 50%, transparent 100%);
+    position: relative;
+}
+/* Randlinie (Notizbuch-Stil) */
+.note-line::before {
+    content: '';
+    position: absolute;
+    left: 22px; top: 0; bottom: 0;
+    border-left: 1px solid rgba(180,60,60,0.22);
 }
 
 /* =========================================
@@ -456,6 +964,25 @@ html, body {
     transform: translate(-50%, -50%);
 }
 
+/* Inventar-Icon: SVG-basiert, füllt den Slot gut aus */
+.inv-icon {
+    width: 82%;
+    height: 82%;
+    object-fit: contain;
+    display: block;
+    margin: auto;
+    /* Kein Filter nötig – Farben sind im SVG baked in */
+}
+
+/* Medikit: konsumierbar, nicht draggable, klickbar */
+.consumable-item {
+    cursor: pointer;
+    width: 80%; height: 80%; object-fit: contain;
+    transition: transform 0.12s, filter 0.12s;
+}
+.consumable-item:hover { transform: scale(1.12); filter: brightness(1.15); }
+.medikit-slot { position: relative; }
+
 /* =========================================
    MOBILE / RESPONSIVE
    ========================================= */
@@ -463,29 +990,139 @@ html, body {
 
 @media (max-width: 480px) {
     /* ── Char sheet container ── */
-    #char-sheet { padding: 8px 12px 8px 12px; }
+    #char-sheet { padding: 8px 10px 0 10px; }
 
-    /* ── Page 1: Stats ── */
-    .char-title  { font-size: 1.5rem; }
-    .char-name   { font-size: 1.7rem; }
-    .header-section { margin-bottom: 8px; }
-    #porträt-container { width: 68px; height: 68px; }
-    .section-titel { font-size: 1.4rem; margin-top: 6px; margin-bottom: 6px; }
-    .hauptwerte-tabelle { font-size: 1.1rem; margin-bottom: 0; }
-    .hauptwerte-tabelle th { font-size: 1.15rem; }
+    /* Scrollbar auf Mobile — touch-action überschreibt body: none */
+    .char-page.active {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+        padding-bottom: 24px;
+    }
+
+    /* ── Page 1: kompakter Header ── */
+    .header-section  { margin-bottom: 4px; gap: 8px; }
+    #porträt-container { width: 52px; height: 52px; }
+    .char-title      { font-size: 1.15rem; }
+    .char-name       { font-size: 1.4rem; }
+    .char-subtitle   { font-size: 0.78rem; }
+
+    /* ── Sektion-Titel ── */
+    .section-titel   { font-size: 1.2rem; margin-top: 4px; margin-bottom: 4px; }
+
+    /* ── LP-Block ── */
+    .lp-numbers      { font-size: 1.2rem; }
+    .lp-bar-track    { height: 6px; }
+
+    /* ── Kampfwerte ── */
+    .kampf-tabelle   { font-size: 0.92rem; margin-bottom: 4px; }
+    .kampf-tabelle thead th { padding: 1px 4px; font-size: 0.78rem; }
+    .kampf-tabelle tbody td { padding: 2px 4px; }
+    .kw-val          { font-size: 1.1rem; }
+
+    /* ── Waffen-Tabelle ── */
+    .waffen-tabelle  { font-size: 0.88rem; margin-bottom: 4px; }
+    .waffen-tabelle thead th { padding: 1px 3px; font-size: 0.75rem; }
+    .waffen-tabelle tbody td { padding: 3px 3px; }
+    .wt-icon         { width: 20px; }
+    .wt-item-img     { width: 18px; height: 18px; }
 
     /* ── Page 2: Ausrüstung ── */
     :root { --slot-size: 42px; --equip-size: 58px; }
 
-    .p2-layout { flex-direction: column; gap: 16px; }
-    .equip-grid { grid-template-columns: repeat(4, var(--equip-size)); gap: 10px; }
-    #rucksack-grid { grid-template-columns: repeat(4, var(--slot-size)); }
+    .p2-layout   { flex-direction: column; gap: 16px; }
+    .equip-grid  { grid-template-columns: repeat(4, var(--equip-size)); gap: 10px; }
+    #rucksack-grid { grid-template-columns: repeat(2, var(--slot-size)); }
+
+    /* ── Char-Sheet: volle Fläche auf Mobile, kein Rotate ── */
+    #char-sheet {
+        top: 1%; left: 1%;
+        width: 98%; height: 97%;
+        transform: none;    /* kein Rotate – spart Platz und verhindert Clipping */
+        padding: 8px 10px 0 10px;
+    }
 
     /* ── Menus / Buttons ── */
     .menu-box { padding: 20px 15px; min-width: min(280px, 90vw); }
     .menu-box h2 { font-size: 1.6rem; }
     .sketch-button { font-size: 1.3rem; }
     #landing-page h1 { font-size: 2.2rem; }
+}
+
+/* ══════════════════════════════════════════════════════
+   D-PAD  –  nur auf Touch-Geräten sichtbar
+   ══════════════════════════════════════════════════════ */
+#dpad {
+    display: none;   /* Standard: ausgeblendet */
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+    left:   calc(env(safe-area-inset-left,   0px) + 18px);
+    z-index: 200;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Nur auf Touch-Geräten (coarse pointer = Finger) einblenden */
+@media (pointer: coarse) {
+    #dpad { display: block; }
+    #dpad.dpad-combat { display: none; }   /* im Kampf verstecken */
+}
+
+#dpad-base {
+    position: relative;
+    width: 112px;
+    height: 112px;
+    border-radius: 50%;
+    /* Papier-/Pergament-Optik passend zum Spielstil */
+    background: radial-gradient(circle at 45% 40%,
+        rgba(70, 52, 28, 0.42) 0%,
+        rgba(28, 18,  8, 0.28) 100%);
+    border: 1.5px solid rgba(210, 185, 140, 0.38);
+    box-shadow:
+        inset 0 0 18px rgba(0, 0, 0, 0.40),
+        0 4px 14px rgba(0, 0, 0, 0.55);
+    touch-action: none;
+    overflow: hidden;
+}
+
+/* Kreuz-Linien via Pseudo-Elemente */
+#dpad-base::before,
+#dpad-base::after {
+    content: '';
+    position: absolute;
+    background: rgba(210, 185, 140, 0.14);
+    pointer-events: none;
+    border-radius: 1px;
+}
+#dpad-base::before { width: 100%; height: 1px; top: 50%; left: 0; transform: translateY(-50%); }
+#dpad-base::after  { width: 1px; height: 100%; top: 0; left: 50%; transform: translateX(-50%); }
+
+/* Kleines Dreieck-Pip pro Richtung (per JS erzeugt) */
+.dpad-pip {
+    position: absolute;
+    width: 0; height: 0;
+    border-left:   4.5px solid transparent;
+    border-right:  4.5px solid transparent;
+    border-bottom: 8px solid rgba(210, 185, 140, 0.42);
+    pointer-events: none;
+    transform-origin: center center;
+}
+
+/* Beweglicher Daumen-Kreis */
+#dpad-thumb {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle at 36% 34%,
+        rgba(220, 195, 150, 0.78),
+        rgba(95,  68,  30, 0.68));
+    border: 1.5px solid rgba(210, 185, 140, 0.65);
+    box-shadow:
+        0 3px 9px rgba(0, 0, 0, 0.60),
+        inset 0 1px 4px rgba(255, 240, 205, 0.22);
+    pointer-events: none;
 }
 
 /* Drag-Feedback: grün = gültiger Slot, rot = ungültig */
@@ -499,3 +1136,108 @@ html, body {
     border: 2px dashed #b01e1e;
     cursor: not-allowed;
 }
+
+/* ══════════════════════════════════════════════════════
+   PICKUP-DIALOG
+   ══════════════════════════════════════════════════════ */
+#pickup-dialog {
+    position: absolute; inset: 0; z-index: 180;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(10,5,2,0.60);
+}
+#pickup-card {
+    background: #e8dfc0;
+    padding: 28px 36px 24px;
+    text-align: center; max-width: 300px; width: 88%;
+    box-shadow: 6px 8px 0 rgba(0,0,0,0.07), 12px 18px 40px rgba(0,0,0,0.55);
+    transform: rotate(0.6deg);
+    position: relative;
+}
+.pickup-item-img { width: 72px; height: 72px; object-fit: contain; margin-bottom: 10px; }
+.pickup-title { font-family:'Kalam',cursive; font-size:1.6rem; font-weight:700; color:#3a1a0a; margin-bottom:6px; }
+.pickup-desc  { font-family:'Kalam',cursive; font-size:1.0rem; color:#7a5c3a; margin-bottom:18px; line-height:1.45; }
+.pickup-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+
+/* ══════════════════════════════════════════════════════
+   RECHTSKLICK-KONTEXTMENÜ
+   ══════════════════════════════════════════════════════ */
+#item-context-menu {
+    position: fixed; z-index: 400;
+    background: #e8dfc0;
+    border: 1.5px solid rgba(80,60,30,0.35);
+    box-shadow: 3px 4px 14px rgba(0,0,0,0.45);
+    border-radius: 3px;
+    min-width: 140px;
+    padding: 4px 0;
+}
+.ctx-btn {
+    display: block; width: 100%;
+    background: none; border: none;
+    font-family: 'Kalam', cursive; font-size: 1.0rem;
+    color: #3a2510; text-align: left;
+    padding: 8px 16px; cursor: pointer;
+}
+.ctx-btn:hover { background: rgba(200,170,80,0.18); }
+.ctx-cancel    { color: #888; }
+
+/* ══════════════════════════════════════════════════════
+   GAME OVER
+   ══════════════════════════════════════════════════════ */
+#gameover-screen {
+    position: absolute; inset: 0;
+    z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(10, 5, 2, 0.78);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+#gameover-card {
+    position: relative;
+    background: #e8dfc0;
+    background-image: radial-gradient(ellipse 80% 70% at 55% 45%,
+        rgba(150,110,50,0.07) 0%, transparent 70%);
+    border: none;
+    padding: 48px 52px 40px;
+    text-align: center;
+    max-width: 340px; width: 90%;
+    box-shadow: 6px 8px 0 rgba(0,0,0,0.08),
+                14px 20px 50px rgba(0,0,0,0.65),
+                0 4px 14px rgba(0,0,0,0.25);
+    transform: rotate(-1.2deg);
+    overflow: hidden;
+}
+
+/* Kaffeefleck-Deko */
+.go-stain {
+    position: absolute; top: -18px; right: -14px;
+    width: 90px; height: 76px; pointer-events: none;
+    background: radial-gradient(ellipse at 45% 50%,
+        rgba(101,67,33,0.35) 0%, rgba(101,67,33,0.14) 50%, transparent 78%);
+    border-radius: 58% 42% 53% 47% / 50% 60% 40% 50%;
+    filter: blur(3px); transform: rotate(18deg);
+}
+
+.go-title {
+    font-family: 'Kalam', cursive;
+    font-size: 3.2rem; font-weight: 700;
+    color: #3a1a0a;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+    /* Handgeschriebener Look: leichter Schatten */
+    text-shadow: 1px 2px 0 rgba(0,0,0,0.10);
+}
+
+.go-subtitle {
+    font-family: 'Kalam', cursive;
+    font-size: 1.05rem; color: #7a5c3a;
+    margin-bottom: 32px; line-height: 1.5;
+}
+
+.go-btn {
+    font-size: 1.2rem;
+    padding: 10px 32px;
+    border-color: #8b4513;
+    color: #5a2d0c;
+}
+.go-btn:hover { background: rgba(139,69,19,0.08); }

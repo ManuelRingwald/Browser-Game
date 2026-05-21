@@ -43,10 +43,88 @@ function updateCamera() {
 
 // ── Initialisierung ───────────────────────────────────────────────────────────
 
+// ── D-Pad (Mobile) ────────────────────────────────────────────────────────────
+
+function initDPad() {
+    const base  = document.getElementById('dpad-base');
+    const thumb = document.getElementById('dpad-thumb');
+    if (!base || !thumb) return;
+
+    // 8 Richtungs-Pips erzeugen (kleine Dreiecke)
+    const R_PIP = 40; // Abstand vom Mittelpunkt
+    for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2 - Math.PI / 2; // Start: oben
+        const px = 56 + Math.cos(angle) * R_PIP;
+        const py = 56 + Math.sin(angle) * R_PIP;
+        const pip = document.createElement('div');
+        pip.className = 'dpad-pip';
+        // Positionierung + Rotation damit Dreieck nach außen zeigt
+        pip.style.cssText =
+            `left:${px}px; top:${py}px;` +
+            `transform:translate(-50%,-50%) rotate(${angle + Math.PI / 2}rad);`;
+        base.appendChild(pip);
+    }
+
+    const MAX_R = 34;   // maximale Auslenkung in px
+    const DEAD  = 6;    // Totzone
+    let activeId = null;
+
+    function apply(clientX, clientY) {
+        const rect = base.getBoundingClientRect();
+        const cx = rect.left + rect.width  / 2;
+        const cy = rect.top  + rect.height / 2;
+        let dx = clientX - cx;
+        let dy = clientY - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > MAX_R) { dx = dx / dist * MAX_R; dy = dy / dist * MAX_R; }
+
+        thumb.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+
+        if (dist > DEAD) {
+            GameState.dpad = { active: true,  dx: dx / MAX_R, dy: dy / MAX_R };
+        } else {
+            GameState.dpad = { active: false, dx: 0, dy: 0 };
+        }
+    }
+
+    function release() {
+        activeId = null;
+        thumb.style.transform = 'translate(-50%, -50%)';
+        GameState.dpad = { active: false, dx: 0, dy: 0 };
+    }
+
+    base.addEventListener('touchstart', e => {
+        e.preventDefault(); e.stopPropagation();
+        if (activeId !== null) return;
+        const t = e.changedTouches[0];
+        activeId = t.identifier;
+        apply(t.clientX, t.clientY);
+    }, { passive: false });
+
+    base.addEventListener('touchmove', e => {
+        e.preventDefault(); e.stopPropagation();
+        for (const t of e.changedTouches) {
+            if (t.identifier === activeId) { apply(t.clientX, t.clientY); break; }
+        }
+    }, { passive: false });
+
+    base.addEventListener('touchend', e => {
+        e.preventDefault(); e.stopPropagation();
+        for (const t of e.changedTouches) {
+            if (t.identifier === activeId) { release(); break; }
+        }
+    }, { passive: false });
+
+    base.addEventListener('touchcancel', () => release(), { passive: false });
+}
+
+// ── Initialisierung ───────────────────────────────────────────────────────────
+
 function initGame() {
     GameState.running = true;
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
+    initDPad();
 
     // ── Touch & Maus: Ziel setzen ──────────────────────────────────────────
     canvas.addEventListener('touchstart', (e) => {
@@ -149,6 +227,96 @@ function initGame() {
         );
     }, { passive: false });
 
+    // ── Weltgegenstand-Hover + Klick ──────────────────────────────────────
+    function worldCoords(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        const z = GameState.zoom;
+        return {
+            wx: (clientX - rect.left) * (canvas.width  / rect.width)  / z + GameState.camera.x,
+            wy: (clientY - rect.top)  * (canvas.height / rect.height) / z + GameState.camera.y,
+        };
+    }
+
+    canvas.addEventListener('mousemove', e => {
+        if (GameState.paused || GameState.combatTriggered) { GameState.hoveredWorldItem = null; return; }
+        const { wx, wy } = worldCoords(e.clientX, e.clientY);
+        const HIT = 20;
+        GameState.hoveredWorldItem = GameState.worldItems.find(
+            i => Math.hypot(wx - i.x, wy - i.y) <= HIT
+        ) || null;
+    });
+
+    function handleWorldItemClick(clientX, clientY) {
+        if (GameState.paused || GameState.combatTriggered) return false;
+        if (GameState.selectingDirection || GameState.combatMoving) return false;
+        const { wx, wy } = worldCoords(clientX, clientY);
+        const HIT = 22;
+        const item = GameState.worldItems.find(i => Math.hypot(wx - i.x, wy - i.y) <= HIT);
+        if (!item) { GameState.worldItemTarget = null; return false; }
+        const p = Entities.player;
+        if (Math.hypot(p.x - item.x, p.y - item.y) <= FELD_PX * 1.5) {
+            openPickupDialog(item);
+        } else {
+            GameState.worldItemTarget = item;
+            GameState.doorTarget      = null; // cancel door walk
+        }
+        return true;
+    }
+
+    canvas.addEventListener('click',    e => { handleWorldItemClick(e.clientX, e.clientY); });
+    canvas.addEventListener('touchend', e => {
+        const t = e.changedTouches[0];
+        if (handleWorldItemClick(t.clientX, t.clientY)) e.preventDefault();
+    }, { passive: false });
+
+    // ── Tür-Hover (Maus) ──────────────────────────────────────────────────
+    canvas.addEventListener('mousemove', e => {
+        if (GameState.paused || GameState.combatTriggered) { GameState.hoveredDoor = null; return; }
+        const rect = canvas.getBoundingClientRect();
+        const z = GameState.zoom;
+        const wx = (e.clientX - rect.left) * (canvas.width  / rect.width)  / z + GameState.camera.x;
+        const wy = (e.clientY - rect.top)  * (canvas.height / rect.height) / z + GameState.camera.y;
+        const M = 14;
+        GameState.hoveredDoor = GameState.doors.find(d => {
+            const r = getDoorInteractRect(d);
+            return wx >= r.x - M && wx <= r.x + r.w + M &&
+                   wy >= r.y - M && wy <= r.y + r.h + M;
+        }) || null;
+    });
+    canvas.addEventListener('mouseleave', () => { GameState.hoveredDoor = null; });
+
+    // ── Tür-Klick (Maus + Touch) ──────────────────────────────────────────
+    function handleDoorClick(clientX, clientY) {
+        if (GameState.paused || GameState.combatTriggered) return false;
+        if (GameState.selectingDirection || GameState.combatMoving) return false;
+        const rect = canvas.getBoundingClientRect();
+        const z = GameState.zoom;
+        const wx = (clientX - rect.left) * (canvas.width  / rect.width)  / z + GameState.camera.x;
+        const wy = (clientY - rect.top)  * (canvas.height / rect.height) / z + GameState.camera.y;
+        const M = 18;
+        const door = GameState.doors.find(d => {
+            const r = getDoorInteractRect(d);
+            return wx >= r.x - M && wx <= r.x + r.w + M &&
+                   wy >= r.y - M && wy <= r.y + r.h + M;
+        });
+        if (!door) { GameState.doorTarget = null; return false; }
+        if (playerNearDoor(Entities.player, door)) {
+            toggleDoor(door);
+            GameState.doorTarget = null;
+        } else {
+            GameState.doorTarget = door;
+        }
+        return true;
+    }
+
+    canvas.addEventListener('click', e => { handleDoorClick(e.clientX, e.clientY); });
+
+    canvas.addEventListener('touchend', e => {
+        if (GameState.combatMoving || GameState.selectingDirection) return;
+        const t = e.changedTouches[0];
+        if (handleDoorClick(t.clientX, t.clientY)) e.preventDefault();
+    }, { passive: false });
+
     requestAnimationFrame(gameLoop);
 }
 
@@ -160,7 +328,8 @@ function gameLoop() {
         updatePlayer();
         updateEnemy();
         checkCombatState();
-        checkDoorProximity();
+        checkDoorApproach();
+        checkWorldItemApproach();
     }
     drawGame();
     requestAnimationFrame(gameLoop);

@@ -12,8 +12,8 @@ function combatTriggerDist() { return Entities.player.viewDistance * 0.80; }
 
 // ── Waffen ────────────────────────────────────────────────────────────────────
 const WEAPONS = {
-    faust:        { name: 'Faustkampf',  n:1, s:4, range:70,  blockbar:true,  ammoKey:null },
-    messer:       { name: 'Messer',       n:1, s:6, range:70,  blockbar:true,  ammoKey:null },
+    faust:        { name: 'Faustkampf',  n:1, s:4, range:90,  blockbar:true,  ammoKey:null },
+    messer:       { name: 'Messer',       n:1, s:6, range:90,  blockbar:true,  ammoKey:null },
     pistole:      { name: 'Pistole',      n:1, s:8, range:500, blockbar:false, ammoKey:'pistole' },
     schrotflinte: { name: 'Schrotflinte', n:2, s:6, range:250, blockbar:false, ammoKey:'schrotflinte' },
 };
@@ -23,6 +23,9 @@ function rollDice(n, s) {
     for (let i = 0; i < n; i++) t += Math.floor(Math.random() * s) + 1;
     return t;
 }
+
+// Zweihandwaffen: beim Ausrüsten in einen Slot wird der andere als Geist gespiegelt
+const TWO_HANDED_WEAPONS = new Set(['schrotflinte']);
 
 // ── Möbel-Kategorien ─────────────────────────────────────────────────────────
 // Schrank und Regal blockieren die Sichtlinie; alle anderen Möbel nicht.
@@ -38,6 +41,12 @@ const DIR_ANGLES = [
      3*Math.PI/4,     // ↙ Südwest
      Math.PI,         // ← West
     -3*Math.PI/4,     // ↖ Nordwest
+];
+
+// ── Geschoss-Schnipsel (klein, unregelmäßig – wird für Pistole & Schrotflinte genutzt) ──
+const BULLET_SCRAP_VERTS = [
+    [-9,-4],[-4,-6],[2,-5],[7,-3],
+    [8, 2],[6, 5],[0, 6],[-6, 4],[-9, 1],
 ];
 
 // ── Spieler-Visuals (einmalig berechnet, kein Flackern) ──────────────────────
