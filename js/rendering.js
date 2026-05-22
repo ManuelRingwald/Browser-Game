@@ -972,6 +972,21 @@ function drawGame() {
             exploredCtx.closePath();
             exploredCtx.fill();
         }
+
+        // Wandrechtecke die im Sichtkegel liegen ebenfalls auf exploredCanvas malen
+        // → Spieler sieht die volle Wanddicke, nicht nur die Außenkante
+        GameState.walls.forEach(wall => {
+            const wcx = wall.x + wall.width  / 2;
+            const wcy = wall.y + wall.height / 2;
+            const dx  = wcx - player.x, dy = wcy - player.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist > player.viewDistance + Math.max(wall.width, wall.height)) return;
+            let diff = Math.atan2(dy, dx) - player.angle;
+            while (diff >  Math.PI) diff -= 2*Math.PI;
+            while (diff < -Math.PI) diff += 2*Math.PI;
+            if (Math.abs(diff) > player.fov / 2 + 0.15) return; // außerhalb Sichtkegel
+            exploredCtx.fillRect(wall.x, wall.y, wall.width, wall.height);
+        });
     }
 
     // Welt-Canvas mit Zoom auf Viewport zeichnen
