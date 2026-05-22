@@ -140,6 +140,9 @@ function updatePlayer() {
     if (Input.d || Input.ArrowRight) moveX += 1;
 
     if (moveX !== 0 || moveY !== 0) {
+        // Tastatur-Bewegung bricht laufende Tür- und Item-Aktionen ab
+        GameState.doorTarget       = null;
+        GameState.worldItemTarget  = null;
         player.angle = Math.atan2(moveY, moveX);
         const nextX = player.x + Math.cos(player.angle) * player.speed;
         const nextY = player.y + Math.sin(player.angle) * player.speed;
@@ -176,7 +179,9 @@ function updatePlayer() {
         }
     }
     else if (GameState.dpad.active && !GameState.combatTriggered) {
-        // D-Pad: analog, hat Vorrang vor Tap-to-move
+        // D-Pad-Bewegung bricht laufende Tür- und Item-Aktionen ab
+        GameState.doorTarget      = null;
+        GameState.worldItemTarget = null;
         player.angle = Math.atan2(GameState.dpad.dy, GameState.dpad.dx);
         const nextX = player.x + Math.cos(player.angle) * player.speed;
         const nextY = player.y + Math.sin(player.angle) * player.speed;

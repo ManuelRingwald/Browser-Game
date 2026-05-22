@@ -321,18 +321,19 @@ function initGame() {
         const wx = (clientX - rect.left) * (canvas.width  / rect.width)  / z + GameState.camera.x;
         const wy = (clientY - rect.top)  * (canvas.height / rect.height) / z + GameState.camera.y;
         const M = 18;
+        // Immer zuerst clearen – jeder Klick bricht laufende Türaktion ab
+        GameState.doorTarget = null;
         const door = GameState.doors.find(d => {
             if (!isDoorExplored(d)) return false;
             const r = getDoorInteractRect(d);
             return wx >= r.x - M && wx <= r.x + r.w + M &&
                    wy >= r.y - M && wy <= r.y + r.h + M;
         });
-        if (!door) { GameState.doorTarget = null; return false; }
+        if (!door) return false;
         if (playerNearDoor(Entities.player, door)) {
             toggleDoor(door);
-            GameState.doorTarget = null;
         } else {
-            GameState.doorTarget = door;
+            GameState.doorTarget = door; // nur neu setzen wenn Tür wirklich getroffen
         }
         return true;
     }
