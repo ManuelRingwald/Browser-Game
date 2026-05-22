@@ -74,8 +74,10 @@ function computeVisibilityPolygon(px, py, angle, fov, viewDist, walls) {
     }
 
     // Pro Kandidaten-Winkel: nächste Wandkollision finden.
-    // EXT = 5px: deckt Skizzenlinie (T/2=4px tief) ab ohne durch Wand zu gehen (T=8px).
-    const EXT = 5;
+    // EXT: wie tief das Sichtfeld in die Wandfläche eindringt.
+    // Höherer Wert = mehr Wandtiefe sichtbar. Wände sind ~28-30px dick,
+    // EXT=20 zeigt ~70% der Wanddicke ohne auf die andere Seite durchzukommen.
+    const EXT = 20;
     const pts = [];
 
     for (const a of candidates) {
