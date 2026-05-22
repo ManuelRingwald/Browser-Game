@@ -526,19 +526,21 @@
             origin:         window.location.origin,
             assetPath,
             container:      '#dice-box-container',
-            gravity:        3,
-            mass:           1,
-            friction:       0.8,
-            restitution:    0.2,
-            angularDamping: 0.4,
-            linearDamping:  0.4,
+            // Visuelles Design
+            theme:          'default',
+            themeColor:     '#2b2b2b',    // Graphit-Schwarz
+            scale:          6,
+            enableShadows:  true,
+            lightIntensity: 0.8,
+            // Physik & Spielgefühl
+            throwForce:     7,
             spinForce:      6,
-            throwForce:     5,
+            gravity:        2.5,
+            mass:           3,
+            friction:       0.9,
+            restitution:    0.3,
             startingHeight: 8,
             settleTimeout:  4000,
-            theme:          'default',
-            themeColor:     '#e8dfc0',
-            scale:          7,
         });
 
         diceBox.init()
