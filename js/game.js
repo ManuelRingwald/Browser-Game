@@ -39,8 +39,9 @@ function updateCamera() {
     const zoom = GameState.zoom;
     const vw   = canvas.width  / zoom;   // sichtbare Weltbreite in Pixeln
     const vh   = canvas.height / zoom;
-    GameState.camera.x = Math.max(0, Math.min(p.x - vw / 2, GameState.worldW - vw));
-    GameState.camera.y = Math.max(0, Math.min(p.y - vh / 2, GameState.worldH - vh));
+    // Math.round: Kamera rastet auf ganze Pixel ein → verhindert Sub-Pixel-Flickern auf Mobile
+    GameState.camera.x = Math.round(Math.max(0, Math.min(p.x - vw / 2, GameState.worldW - vw)));
+    GameState.camera.y = Math.round(Math.max(0, Math.min(p.y - vh / 2, GameState.worldH - vh)));
 }
 
 // ── Initialisierung ───────────────────────────────────────────────────────────

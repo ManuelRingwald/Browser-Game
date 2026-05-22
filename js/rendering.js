@@ -804,8 +804,10 @@ function drawGame() {
     // Welt-Canvas mit Zoom auf Viewport zeichnen
     const zoom = GameState.zoom;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Kein Smoothing: verhindert Blurring/Flickern bei nicht-1:1-Zoom auf Mobile
+    ctx.imageSmoothingEnabled = false;
     ctx.save();
-    ctx.scale(zoom, zoom);   // Zoom anwenden – kleinere Darstellung, mehr Karte sichtbar
+    ctx.scale(zoom, zoom);
     ctx.drawImage(exploredCanvas, -cam.x, -cam.y);
     ctx.globalCompositeOperation = 'source-in';
     ctx.drawImage(wallCanvas, -cam.x, -cam.y);
