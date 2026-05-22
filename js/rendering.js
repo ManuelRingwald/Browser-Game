@@ -1192,21 +1192,19 @@ function drawGame() {
         ctx.scale(zoom, zoom);
         ctx.translate(-cam.x, -cam.y);
 
-        // Bestehende Wände (blau)
-        ctx.strokeStyle = 'rgba(80,160,255,0.75)';
-        ctx.lineWidth   = 2.5 / zoom;
-        ctx.fillStyle   = 'rgba(80,160,255,0.12)';
-        GameState.walls.forEach(w => {
-            ctx.fillRect(w.x, w.y, w.width, w.height);
-            ctx.strokeRect(w.x, w.y, w.width, w.height);
-        });
-
-        // Bestehende Türen (orange)
-        ctx.strokeStyle = 'rgba(255,165,40,0.90)';
-        ctx.fillStyle   = 'rgba(255,165,40,0.20)';
-        GameState.doors.forEach(d => {
-            ctx.fillRect(d.x, d.y, d.w, d.h);
-            ctx.strokeRect(d.x, d.y, d.w, d.h);
+        // Gezeichnete Wände (blau) und Türen (orange) aus coordDrawn
+        GameState.coordDrawn.forEach(item => {
+            const w = item.x2 - item.x1, h = item.y2 - item.y1;
+            if (item.type === 'wall') {
+                ctx.fillStyle   = 'rgba(80,160,255,0.20)';
+                ctx.strokeStyle = 'rgba(80,160,255,0.90)';
+            } else {
+                ctx.fillStyle   = 'rgba(255,165,40,0.25)';
+                ctx.strokeStyle = 'rgba(255,165,40,0.95)';
+            }
+            ctx.lineWidth = 2 / zoom;
+            ctx.fillRect(item.x1, item.y1, w, h);
+            ctx.strokeRect(item.x1, item.y1, w, h);
         });
 
         // Laufende Linie vom P1 zur aktuellen Mausposition

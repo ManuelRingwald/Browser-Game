@@ -51,6 +51,9 @@ const GameState = {
     // Nebel deaktiviert (für Karten-Bearbeitung, Taste N)
     showFullMap: false,
 
+    // Koordinaten-Tool: gezeichnete Wände/Türen (bleiben sichtbar, Taste Z = Undo)
+    coordDrawn: [],
+
     // D-Pad (Mobile)
     dpad: { active: false, dx: 0, dy: 0 },
 

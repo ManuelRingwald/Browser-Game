@@ -43,10 +43,9 @@ function addFurniture(x, y, w, h, type) {
     GameState.furniture.push({ x, y, w, h, type, blockSight: SIGHT_BLOCKING_TYPES.has(type) });
 }
 
-// ── Full_map – Wandlayout abgeleitet aus Pixel-Analyse ───────────────────────
-// Außenwände: x[5%,95%], y[7%,93%]
-// Haupttrennwände: x=40% (vertikal), y=55% (horizontal links), y=63% (horizontal rechts)
-// Spawn: x=11.8%, y=87.3% (Figur unten links im Bild)
+// ── Full_map – Wände werden per Koordinaten-Tool gezeichnet (C/T + Klicks) ───
+// Taste N = Nebel aus, C = Wand, T = Tür, Z = Undo
+// Konsolen-Log am Ende kopieren und einsenden → Code wird eingebaut.
 function buildMansion() {
     GameState.walls     = [];
     GameState.doors     = [];
@@ -54,88 +53,12 @@ function buildMansion() {
     const W = wallCanvas.width, H = wallCanvas.height;
     GameState.worldW = W;
     GameState.worldH = H;
-    const T  = 10;  // Wandstärke
-    const DW = 56;  // Türbreite
-
-    // ── AUSSENWÄNDE ───────────────────────────────────────────────────────
-    addWall(W*.05, H*.07, W*.90, T);              // Nord
-    addWall(W*.05, H*.93, W*.90, T);              // Süd
-    addWall(W*.05, H*.07, T,     H*.86);          // West
-    addWall(W*.95, H*.07, T,     H*.86);          // Ost
-
-    // ── VERTIKALE HAUPTTRENNWAND bei x=40% ────────────────────────────────
-    // Tür oben (y≈25%), Tür unten (y≈72%)
-    addWall(W*.40, H*.07, T, H*.18);              // N-Segment
-    addDoor(W*.40, H*.25, T, DW);                 // Tür 1 (oben)
-    addWall(W*.40, H*.25+DW/H, T, H*.72 - H*.25 - DW/H);
-    addDoor(W*.40, H*.72, T, DW);                 // Tür 2 (unten)
-    addWall(W*.40, H*.72+DW/H, T, H*.93 - H*.72 - DW/H - T);
-
-    // ── SEKUNDÄRE VERTIKALWAND bei x=30% (linke Teilung, nur obere Hälfte) ─
-    // Tür bei y≈35%
-    addWall(W*.30, H*.07, T, H*.28);
-    addDoor(W*.30, H*.35, T, DW);
-    addWall(W*.30, H*.35+DW/H, T, H*.55 - H*.35 - DW/H);
-
-    // ── INTERNE VERTIKALWAND bei x=12.9%, y[59.9%..91.1%] ────────────────
-    addWall(W*0.129, H*0.599, T, H*0.312);
-
-    // ── HORIZONTALWAND bei y=59.9%, x[12.8%..22.6%] ───────────────────────
-    addWall(W*0.128, H*0.599, W*0.098, T);
-
-    // ── TÜR bei x=23.3%, y=58.8% (Breite 4.7%) ────────────────────────────
-    addDoor(W*0.233, H*0.588, W*0.047, T);
-
-    // ── KOORDINATEN-MODUS IMPORT ────────────────────────────────────────────
-    addWall(W*0.285, H*0.601, W*0.106, T);          // H: y=60.1%, x[28.5%..39.1%]
-    addWall(W*0.391, H*0.602, T,       H*0.101);    // V: x=39.1%, y[60.2%..70.3%]
-    addWall(W*0.390, H*0.788, T,       H*0.108);    // V: x=39.0%, y[78.8%..89.6%]
-    addWall(W*0.132, H*0.896, W*0.259, T);          // H: y=89.6%, x[13.2%..39.1%]
-    addDoor(W*0.399, H*0.719, T,       H*0.062);    // Tür V: x=39.9%, y[71.9%..78.1%]
-
-    // ── HORIZONTALE TRENNWAND LINKS bei y=55% (x[5%..30%]) ───────────────
-    // Tür bei x≈17%
-    addWall(W*.05, H*.55, W*.12, T);
-    addDoor(W*.17, H*.55, DW, T);
-    addWall(W*.17+DW/W, H*.55, W*.30 - W*.17 - DW/W - T, T);
-
-    // ── HORIZONTALE TRENNWAND RECHTS bei y=63% (x[40%..95%]) ─────────────
-    // Tür bei x≈65%
-    addWall(W*.40, H*.63, W*.25, T);
-    addDoor(W*.65, H*.63, DW, T);
-    addWall(W*.65+DW/W, H*.63, W*.95 - W*.65 - DW/W - T, T);
 
     // ── SPAWN ─────────────────────────────────────────────────────────────
-    // Figur im Bild bei x≈11.8%, y≈87.3% → unterer linker Bereich
     Entities.player.x = W * 0.253;
     Entities.player.y = H * 0.730;
     Entities.player.angle = -Math.PI / 2;
-
-    // Soldaten in den anderen Bereichen platzieren
-    const e1 = Entities.enemies[0];
-    e1.isDead = false; e1.currentWaypoint = 0; e1.hp = e1.maxHp; e1.ignoreUntil = 0;
-    e1.waypoints = [
-        { x: W * 0.65, y: H * 0.35 }, { x: W * 0.85, y: H * 0.35 },
-        { x: W * 0.85, y: H * 0.50 }, { x: W * 0.65, y: H * 0.50 },
-    ];
-    e1.x = e1.waypoints[0].x; e1.y = e1.waypoints[0].y;
-
-    const e2 = Entities.enemies[1];
-    e2.isDead = false; e2.currentWaypoint = 0; e2.hp = e2.maxHp; e2.ignoreUntil = 0;
-    e2.waypoints = [
-        { x: W * 0.55, y: H * 0.75 }, { x: W * 0.80, y: H * 0.75 },
-        { x: W * 0.80, y: H * 0.85 }, { x: W * 0.55, y: H * 0.85 },
-    ];
-    e2.x = e2.waypoints[0].x; e2.y = e2.waypoints[0].y;
-
-    // ── WELTGEGENSTÄNDE ───────────────────────────────────────────────────
-    if (GameState.worldItems.length === 0) {
-        GameState.worldItems.push({
-            id: 'world_medikit_1', type: 'medikit', label: 'Medikit',
-            img: 'img/icon-medikit.svg', color: 'rgba(180,30,30,0.85)',
-            x: W * 0.22, y: H * 0.35,
-        });
-    }
+    Entities.enemies.forEach(e => { e.isDead = true; }); // beim Zeichnen keine Gegner
 
     renderBlueprint();
 }

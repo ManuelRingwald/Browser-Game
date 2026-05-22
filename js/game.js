@@ -163,6 +163,17 @@ function initGame() {
         if (Input.hasOwnProperty(e.key)) Input[e.key] = true;
         if (Input.hasOwnProperty(e.key.toLowerCase())) Input[e.key.toLowerCase()] = true;
         // C = Wand-Modus, T = Tür-Modus (selbe Taste nochmal = aus)
+        // Z = letztes gezeichnetes Element entfernen (Undo)
+        if ((e.key === 'z' || e.key === 'Z') && !e.ctrlKey && !e.altKey) {
+            const drawn = GameState.coordDrawn;
+            if (drawn.length > 0) {
+                const removed = drawn.pop();
+                console.log(`%c[Z] ENTFERNT: ${removed.line}`, 'color:#e87878;font-weight:bold');
+            } else {
+                console.log('%c[Z] Nichts zum Entfernen', 'color:#888');
+            }
+        }
+
         // N = Nebel-Toggle (Karte komplett sichtbar)
         if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.altKey) {
             GameState.showFullMap = !GameState.showFullMap;
@@ -225,8 +236,12 @@ function initGame() {
             const p1 = GameState._coordPoint1;
             const x1 = Math.min(p1.wx, wx), y1 = Math.min(p1.wy, wy);
             const x2 = Math.max(p1.wx, wx), y2 = Math.max(p1.wy, wy);
-            const fn  = mode === 'wall' ? 'addWall' : 'addDoor';
+            const fn   = mode === 'wall' ? 'addWall' : 'addDoor';
             const line = `${fn}(W*${(x1/W).toFixed(3)}, H*${(y1/H).toFixed(3)}, W*${((x2-x1)/W).toFixed(3)}, H*${((y2-y1)/H).toFixed(3)});`;
+
+            // Sichtbar speichern (bleibt auf Canvas)
+            GameState.coordDrawn.push({ type: mode, x1, y1, x2, y2, line });
+
             console.log(`%c${pfx} Punkt 2: x=${xp}%  y=${yp}%`, `color:#7ed878;font-weight:bold`);
             console.log(`%c→ ${line}`, `color:${col};font-weight:bold`);
             GameState._coordPoint1 = null;
