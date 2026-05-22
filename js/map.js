@@ -14,54 +14,52 @@
 //                         FELD_PX, SIGHT_BLOCKING_TYPES, WEAPONS
 // =============================================================================
 
-// ── Raum-Bild-Module (Gemini-Sketches als visueller Bodenbelag) ───────────────
+// ── Sprite Atlas: Raum-Module (1 Bild, ~1 MB, alle Module drin) ──────────────
 
-const ROOM_IMGS = {};
-(function preloadRoomImages() {
-    const files = {
-        narrow: 'img/Gemini_Generated_Image_1zfw4s1zfw4s1zfw.png', // schmaler Korridor
-        square: 'img/Gemini_Generated_Image_ui886gui886gui88.png',  // quadratischer Raum
-        wide:   'img/Gemini_Generated_Image_uz0jbwuz0jbwuz0j.png',  // breiter Raum (H)
-        t:      'img/Gemini_Generated_Image_37rpna37rpna37rp.png',  // T-Form
-        hub:    'img/Gemini_Generated_Image_uabdzauabdzauabd.png',  // 4-Wege-Hub
-    };
-    Object.entries(files).forEach(([key, src]) => {
-        const img = new Image();
-        img.onload = () => { try { renderBlueprint(); } catch (_) {} };
-        img.src = src;
-        ROOM_IMGS[key] = img;
-    });
-})();
+// Koordinaten im Atlas (erzeugt via Python/Pillow, 512px Breite normalisiert)
+const ROOM_ATLAS_COORDS = {
+    narrow: { x: 0, y:    0, w: 512, h: 285 }, // schmaler Korridor (vertikal)
+    square: { x: 0, y:  285, w: 512, h: 279 }, // quadratischer Raum
+    wide:   { x: 0, y:  564, w: 512, h: 285 }, // breiter Raum (horizontal)
+    t:      { x: 0, y:  849, w: 512, h: 285 }, // T-Kreuzung
+    hub:    { x: 0, y: 1134, w: 512, h: 285 }, // 4-Wege-Hub
+};
 
-// Zeichnet die Raum-Bild-Module auf wallCanvas (vor den Wandlinien)
+const ROOM_ATLAS_IMG = new Image();
+ROOM_ATLAS_IMG.onload = () => { try { renderBlueprint(); } catch (_) {} };
+ROOM_ATLAS_IMG.src = 'img/room_atlas.png';
+
+// Zeichnet einen Atlas-Ausschnitt auf wallCanvas
+function drawRoomModule(type, dx, dy, dw, dh) {
+    if (!ROOM_ATLAS_IMG.complete || !ROOM_ATLAS_IMG.naturalWidth) return;
+    const c = ROOM_ATLAS_COORDS[type];
+    if (!c) return;
+    wallCtx.drawImage(ROOM_ATLAS_IMG, c.x, c.y, c.w, c.h, dx, dy, dw, dh);
+}
+
+// Zeichnet alle Raum-Module als Bodenbelag (vor den Wandlinien)
 function drawRoomImages(W, H) {
-    const T = 6; // leichter Inset damit Wandlinien nicht überlappen
-    // [typ, x1%, y1%, x2%, y2%]
+    const T = 6; // Inset damit Wandlinien nicht überlappen
+    // [modul, x1%, y1%, x2%, y2%]
     const layout = [
-        // Linker Flügel – obere Reihe
         ['narrow', 0.03, 0.15, 0.15, 0.52], // Raum A
         ['square', 0.15, 0.15, 0.27, 0.52], // Raum B
         ['narrow', 0.27, 0.15, 0.38, 0.52], // Raum C
-        // Linker Flügel – untere Reihe
         ['narrow', 0.03, 0.52, 0.15, 0.88], // Raum D
         ['square', 0.15, 0.52, 0.27, 0.88], // Raum E
         ['narrow', 0.27, 0.52, 0.38, 0.88], // Raum F
-        // Zentrum
         ['narrow', 0.43, 0.02, 0.52, 0.15], // Oberer Korridor
         ['t',      0.38, 0.15, 0.55, 0.55], // Eingangshalle
         ['hub',    0.38, 0.55, 0.55, 0.96], // Hauptsaal
-        // Rechter Flügel
         ['wide',   0.55, 0.15, 0.97, 0.42], // Rechter Korridor
         ['square', 0.55, 0.42, 0.75, 0.75], // Raum G
         ['square', 0.75, 0.42, 0.97, 0.75], // Raum H
     ];
 
     wallCtx.save();
-    wallCtx.globalAlpha = 0.90; // leicht transparent damit Wandlinien klar bleiben
+    wallCtx.globalAlpha = 0.88;
     layout.forEach(([type, x1, y1, x2, y2]) => {
-        const img = ROOM_IMGS[type];
-        if (!img || !img.complete || !img.naturalWidth) return;
-        wallCtx.drawImage(img,
+        drawRoomModule(type,
             x1 * W + T, y1 * H + T,
             (x2 - x1) * W - 2 * T,
             (y2 - y1) * H - 2 * T
