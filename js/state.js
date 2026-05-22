@@ -104,24 +104,14 @@ const Entities = {
         angriff: 65, ausweichen: 40, blockwert: 45,
         ammo: { pistole: 12, schrotflinte: 6 },
     },
-    enemies: [
-        {
-            x:0, y:0, radius:9, angle:0, speed:0.8,
-            fov: 60 * Math.PI / 180, viewDistance: 260,
-            waypoints:[], currentWaypoint:0, isDead:false, ignoreUntil:0,
-            hp:8, maxHp:8, angriff:50, ausweichen:30, blockwert:35,
-            waffe:'pistole', ammo:{ pistole:12, schrotflinte:0 }, name:'Soldat',
-            currentAP:0, maxAP:4,
-        },
-        {
-            x:0, y:0, radius:9, angle:0, speed:0.8,
-            fov: 60 * Math.PI / 180, viewDistance: 260,
-            waypoints:[], currentWaypoint:0, isDead:false, ignoreUntil:0,
-            hp:8, maxHp:8, angriff:50, ausweichen:30, blockwert:35,
-            waffe:'pistole', ammo:{ pistole:12, schrotflinte:0 }, name:'Soldat',
-            currentAP:0, maxAP:4,
-        },
-    ],
+    enemies: Array.from({ length: 6 }, () => ({
+        x:0, y:0, radius:9, angle:0, speed:0.8,
+        fov: 60 * Math.PI / 180, viewDistance: 260,
+        waypoints:[], currentWaypoint:0, isDead:false, ignoreUntil:0,
+        hp:8, maxHp:8, angriff:50, ausweichen:30, blockwert:35,
+        waffe:'pistole', ammo:{ pistole:12, schrotflinte:0 }, name:'Soldat',
+        currentAP:0, maxAP:4,
+    })),
 };
 
 // ── Tastatureingabe ───────────────────────────────────────────────────────────
