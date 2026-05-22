@@ -324,27 +324,32 @@ function renderBlueprint() {
     // 1. Raum-Bild-Module als Bodenbelag (unter allen Linien)
     drawRoomImages(W, H);
 
-    // Wände als gefüllte Rechtecke (Grundriss-Stil: solid, mit Tiefe)
+    // Wände: transparente Füllung (Bild bleibt sichtbar) + starker Rand + Tiefenschatten
     GameState.walls.forEach(wall => {
         const { x, y } = wall;
         const w = wall.width, h = wall.height;
 
-        // Schlagschatten (Tiefe-Illusion)
+        // Äußerer Schlagschatten für Tiefe
         wallCtx.save();
-        wallCtx.shadowColor = 'rgba(0,0,0,0.35)';
-        wallCtx.shadowBlur  = 4;
-        wallCtx.shadowOffsetX = 2;
-        wallCtx.shadowOffsetY = 2;
+        wallCtx.shadowColor    = 'rgba(0,0,0,0.55)';
+        wallCtx.shadowBlur     = 8;
+        wallCtx.shadowOffsetX  = 3;
+        wallCtx.shadowOffsetY  = 3;
 
-        // Wandkörper: dunkelgrau, fast schwarz – klassischer Grundrissplan
-        wallCtx.fillStyle = 'rgba(52, 44, 32, 0.92)';
+        // Semi-transparente Füllung: Bild-Wände bleiben erkennbar
+        wallCtx.fillStyle = 'rgba(30, 22, 12, 0.28)';
         wallCtx.fillRect(x, y, w, h);
         wallCtx.restore();
 
-        // Dünne innere Kontur für Zeichnung-Charakter
-        wallCtx.strokeStyle = 'rgba(20, 15, 8, 0.70)';
-        wallCtx.lineWidth = 1;
-        wallCtx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+        // Starker äußerer Rand (gibt Kontur + Tiefe)
+        wallCtx.strokeStyle = 'rgba(18, 12, 4, 0.85)';
+        wallCtx.lineWidth   = 2.5;
+        wallCtx.strokeRect(x, y, w, h);
+
+        // Innerer Highlight-Rand (Licht von oben links = Tiefen-Effekt)
+        wallCtx.strokeStyle = 'rgba(80, 65, 40, 0.30)';
+        wallCtx.lineWidth   = 1;
+        wallCtx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
     });
 
     // ── Geschlossene Türen: gefülltes Panel mit Bleistiftrand + Griff ──────
