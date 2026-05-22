@@ -309,14 +309,24 @@ function checkCombatState() {
         const eSees = canSee(enemy, Entities.player);
         const dist  = Math.hypot(Entities.player.x - enemy.x, Entities.player.y - enemy.y);
 
-        // Kampf erst auslösen wenn nah genug (Spieler sieht Gegner früher als Kampf beginnt)
+        // Kampf erst auslösen wenn nah genug
         if ((pSees || eSees) && dist <= combatTriggerDist()) {
             GameState.paused = true;
             GameState.isTouching = false;
             GameState.combatTriggered = true;
             document.getElementById('dpad')?.classList.add('dpad-combat');
             GameState.combatEnemyFirst = eSees;
-            GameState.combatAmbush     = pSees && !eSees; // Hinterhalt: Spieler sieht, Gegner nicht
+
+            // Hinterhalt: Spieler sieht Gegner UND Gegner sieht Spieler nicht UND
+            // Spieler kommt von hinten (>90° von Feind-Blickrichtung = hinterer Halbkreis)
+            const isFromBehind = (() => {
+                const p = Entities.player;
+                let diff = Math.atan2(p.y - enemy.y, p.x - enemy.x) - enemy.angle;
+                while (diff >  Math.PI) diff -= 2 * Math.PI;
+                while (diff < -Math.PI) diff += 2 * Math.PI;
+                return Math.abs(diff) > Math.PI / 2; // >90° von Blickrichtung = Rücken
+            })();
+            GameState.combatAmbush = pSees && !eSees && isFromBehind;
             GameState.combatPlayerHeard = false;
             GameState.combatTargets = living.filter(e =>
                 canSee(Entities.player, e) || canSee(e, Entities.player));

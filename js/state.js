@@ -98,7 +98,7 @@ const Entities = {
     enemies: [
         {
             x:0, y:0, radius:9, angle:0, speed:0.8,
-            fov: 60 * Math.PI / 180, viewDistance: 200,
+            fov: 60 * Math.PI / 180, viewDistance: 260,
             waypoints:[], currentWaypoint:0, isDead:false, ignoreUntil:0,
             hp:8, maxHp:8, angriff:50, ausweichen:30, blockwert:35,
             waffe:'pistole', ammo:{ pistole:12, schrotflinte:0 }, name:'Soldat',
@@ -106,7 +106,7 @@ const Entities = {
         },
         {
             x:0, y:0, radius:9, angle:0, speed:0.8,
-            fov: 60 * Math.PI / 180, viewDistance: 200,
+            fov: 60 * Math.PI / 180, viewDistance: 260,
             waypoints:[], currentWaypoint:0, isDead:false, ignoreUntil:0,
             hp:8, maxHp:8, angriff:50, ausweichen:30, blockwert:35,
             waffe:'pistole', ammo:{ pistole:12, schrotflinte:0 }, name:'Soldat',
