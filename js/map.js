@@ -198,10 +198,17 @@ function buildMansion() {
         if (typeof updateWeaponStatus === 'function') updateWeaponStatus();
     }, 200);
 
-    // Wände, Spawns und Items kommen aus LDtk (async)
-    GameState.worldItems  = [];
-    GameState.coordDrawn  = [];
-    loadLdtkMap();
+    // Sicherheits-Defaults bis LDtk geladen ist (verhindert sofortigen Kampf)
+    Entities.player.x = W * 0.5;
+    Entities.player.y = H * 0.5;
+    Entities.player.angle = -Math.PI / 2;
+    Entities.enemies.forEach(e => { e.isDead = true; }); // Gegner erst nach LDtk-Load aktivieren
+
+    GameState.worldItems = [];
+    GameState.coordDrawn = [];
+
+    renderBlueprint(); // sofort rendern (Bild sichtbar, Wände kommen async)
+    loadLdtkMap();     // lädt Wände + echte Spawns, ruft renderBlueprint() nochmal
 }
 
 // ── Blueprint-Zeichenroutinen ─────────────────────────────────────────────────
