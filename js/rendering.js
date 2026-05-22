@@ -990,7 +990,7 @@ function drawGame() {
         ctx.drawImage(wallCanvas, -cam.x, -cam.y);
         // Unerkundete Bereiche mit Wandfarbe füllen (destination-over = hinter erkundet)
         ctx.globalCompositeOperation = 'destination-over';
-        ctx.fillStyle = 'rgb(42, 32, 18)';
+        ctx.fillStyle = 'rgb(235, 232, 225)';
         ctx.fillRect(-cam.x, -cam.y, canvas.width / zoom, canvas.height / zoom);
         ctx.globalCompositeOperation = 'source-over';
     }
