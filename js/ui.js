@@ -491,12 +491,13 @@ window.reactAccept = function() {
     if (cb) cb(false);
 };
 
-function animateRoll(elementId, finalValue, callback) {
+// max = Würfel-Maximum (z.B. 8 für W8, 12 für 2W6). Standard: 100 für W100.
+function animateRoll(elementId, finalValue, callback, max = 100) {
     const node = el(elementId);
+    if (!node) { setTimeout(callback, 50); return; }
     let tick = 0;
-    // 16 Ticks × 60ms = ~960ms Animation, dann 550ms Lesepause
     const iv = setInterval(() => {
-        node.innerText = Math.floor(Math.random() * 100) + 1;
+        node.innerText = Math.floor(Math.random() * max) + 1;
         if (++tick >= 16) { clearInterval(iv); node.innerText = finalValue; setTimeout(callback, 550); }
     }, 60);
 }
@@ -1084,7 +1085,7 @@ function resolveCombat(key) {
             if (key === 'schrotflinte' && dist < 80) dmg += 2;
 
             animateRoll('rd2', dmg, () => {
-                if (GameState.combatAmbush) {
+                if (GameState.combatAmbush) {  // max = w.n*w.s → korrekte Würfelwerte
                     GameState.combatAmbush = false;
                     e.hp = Math.max(0, e.hp - dmg);
                     appendCombatLog(`Hinterhalt! Kein Ausweichen möglich.`, 'info');
@@ -1123,7 +1124,7 @@ function resolveCombat(key) {
                     showWeiter();
                     GameState.combatResult = { enemyDied: e.hp <= 0, playerDied: false };
                 });
-            });
+            }, w.n * w.s); // max = Schaden-Würfelbereich (z.B. 8 für W8, 12 für 2W6)
         } else {
             // Verfehlt – Gegenschlag mit distanzabhängiger Waffe
             appendCombatLog(`✗ Verfehlt! (${atkRoll} > ${p.angriff}%)`, 'bad');
@@ -1687,14 +1688,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let draggedItem = null;
 
-    // ── MOUSE drag & drop (Desktop) ───────────────────────
-    document.querySelectorAll('.draggable-item').forEach(item => {
-        item.addEventListener('dragstart', e => {
-            draggedItem = item;
-            e.dataTransfer.setData('text/plain', item.id);
-            setTimeout(() => { item.style.opacity = '0.4'; }, 0);
-        });
-        item.addEventListener('dragend', () => { item.style.opacity = '1'; draggedItem = null; });
+    // ── MOUSE drag & drop (Desktop) – Event Delegation ────
+    // Delegation statt per-Element: funktioniert auch für dynamisch
+    // hinzugefügte Items (Magazin nach Pickup, aufgehobene Gegenstände)
+    document.addEventListener('dragstart', e => {
+        const item = e.target.closest('.draggable-item');
+        if (!item) return;
+        draggedItem = item;
+        e.dataTransfer.setData('text/plain', item.id);
+        setTimeout(() => { item.style.opacity = '0.4'; }, 0);
+    });
+    document.addEventListener('dragend', e => {
+        const item = e.target.closest('.draggable-item');
+        if (!item) return;
+        item.style.opacity = '1';
+        draggedItem = null;
     });
 
     function categoryMatch(zone) {
