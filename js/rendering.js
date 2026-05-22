@@ -499,6 +499,14 @@ function drawWorldItems() {
     const p   = Entities.player;
 
     GameState.worldItems.forEach(item => {
+        // Nur zeigen wenn Bereich erkundet (oder Nebel deaktiviert)
+        if (!GameState.showFullMap && exploredCanvas && exploredCtx) {
+            const cx = Math.min(Math.max(0, Math.floor(item.x)), exploredCanvas.width  - 1);
+            const cy = Math.min(Math.max(0, Math.floor(item.y)), exploredCanvas.height - 1);
+            try { if (exploredCtx.getImageData(cx, cy, 1, 1).data[3] < 80) return; }
+            catch (_) {}
+        }
+
         const isHovered = GameState.hoveredWorldItem === item;
         const near      = Math.hypot(p.x - item.x, p.y - item.y) <= FELD_PX * 1.5;
         const pulse     = 0.55 + 0.45 * Math.abs(Math.sin(now / 500));
