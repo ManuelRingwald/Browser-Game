@@ -29,13 +29,13 @@ function positionTooltip(trigger) {
 
 // Hover-Support (Desktop): mouseenter positioniert + zeigt, mouseleave schließt
 document.addEventListener('mouseover', e => {
-    const trigger = e.target.closest('.tooltip-trigger');
+    const trigger = e.target?.closest?.('.tooltip-trigger');
     if (!trigger) return;
     trigger.classList.add('active');
     positionTooltip(trigger);
 });
 document.addEventListener('mouseout', e => {
-    const trigger = e.target.closest('.tooltip-trigger');
+    const trigger = e.target?.closest?.('.tooltip-trigger');
     if (!trigger) return;
     // Nur schließen wenn Maus wirklich den Trigger verlässt
     if (!trigger.contains(e.relatedTarget)) {
@@ -118,7 +118,7 @@ let swipeActive = false;
 (function() {
     let swipeStartX = 0, swipeStartY = 0;
     charSheet.addEventListener('touchstart', e => {
-        if (e.target.closest('.draggable-item')) { swipeActive = false; return; }
+        if (e.target?.closest?.('.draggable-item')) { swipeActive = false; return; }
         swipeActive = true;
         swipeStartX = e.touches[0].clientX;
         swipeStartY = e.touches[0].clientY;
@@ -1351,7 +1351,7 @@ window.closePickupDialog = function() {
 let _contextTargetItem = null;
 
 document.addEventListener('contextmenu', e => {
-    const item = e.target.closest('.draggable-item, .consumable-item');
+    const item = e.target?.closest?.('.draggable-item, .consumable-item');
     if (!item) return;
     const inInventory = item.closest('#rucksack-grid, #slot-rechteHand, #slot-linkeHand');
     if (!inInventory) return;
@@ -1364,7 +1364,7 @@ document.addEventListener('contextmenu', e => {
 });
 
 document.addEventListener('click', e => {
-    if (!e.target.closest('#item-context-menu')) closeContextMenu();
+    if (!e.target?.closest?.('#item-context-menu')) closeContextMenu();
 });
 
 window.closeContextMenu = function() {
@@ -1407,7 +1407,7 @@ window.executeDropItem = function() {
     if (box) {
         // Alle Inventar-Items beobachten (auch nachträglich eingefügte)
         document.addEventListener('mouseenter', e => {
-            const item = e.target.closest('.inv-icon');
+            const item = e.target?.closest?.('.inv-icon');
             if (!item || !box) return;
             const info = _getItemInfo(item);
             if (!info) return;
@@ -1418,11 +1418,11 @@ window.executeDropItem = function() {
             _positionInfoBox(e);
         }, true);
         document.addEventListener('mousemove', e => {
-            if (!e.target.closest('.inv-icon') || box.style.display === 'none') return;
+            if (!e.target?.closest?.('.inv-icon') || box.style.display === 'none') return;
             _positionInfoBox(e);
         }, true);
         document.addEventListener('mouseleave', e => {
-            if (!e.target.closest('.inv-icon')) return;
+            if (!e.target?.closest?.('.inv-icon')) return;
             box.style.display = 'none';
         }, true);
     }
@@ -1710,14 +1710,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Delegation statt per-Element: funktioniert auch für dynamisch
     // hinzugefügte Items (Magazin nach Pickup, aufgehobene Gegenstände)
     document.addEventListener('dragstart', e => {
-        const item = e.target.closest('.draggable-item');
+        const item = e.target?.closest?.('.draggable-item');
         if (!item) return;
         draggedItem = item;
         e.dataTransfer.setData('text/plain', item.id);
         setTimeout(() => { item.style.opacity = '0.4'; }, 0);
     });
     document.addEventListener('dragend', e => {
-        const item = e.target.closest('.draggable-item');
+        const item = e.target?.closest?.('.draggable-item');
         if (!item) return;
         item.style.opacity = '1';
         draggedItem = null;
@@ -1757,7 +1757,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(ghost);
 
     function touchStart(e) {
-        const item = e.target.closest('.draggable-item');
+        const item = e.target?.closest?.('.draggable-item');
         if (!item) return;
         e.preventDefault();
         swipeActive = false;          // disable swipe while dragging
