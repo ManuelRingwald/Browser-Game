@@ -320,24 +320,27 @@ function renderBlueprint() {
     // 1. Raum-Bild-Module als Bodenbelag (unter allen Linien)
     drawRoomImages(W, H);
 
-    // Wände als einzelne handgezeichnete Linien (Mittellinie des Wandrechtecks)
-    wallCtx.strokeStyle = 'rgba(45, 40, 35, 0.88)';
-    wallCtx.lineWidth = 1.8;
-    wallCtx.lineCap = 'round';
-    wallCtx.lineJoin = 'round';
-
+    // Wände als gefüllte Rechtecke (Grundriss-Stil: solid, mit Tiefe)
     GameState.walls.forEach(wall => {
-        let x1, y1, x2, y2;
-        if (wall.width >= wall.height) {
-            const cy = wall.y + wall.height / 2;
-            x1 = wall.x - wall.height / 2;  y1 = cy;
-            x2 = wall.x + wall.width + wall.height / 2; y2 = cy;
-        } else {
-            const cx = wall.x + wall.width / 2;
-            x1 = cx; y1 = wall.y - wall.width / 2;
-            x2 = cx; y2 = wall.y + wall.height + wall.width / 2;
-        }
-        drawSketchLine(wallCtx, x1, y1, x2, y2);
+        const { x, y } = wall;
+        const w = wall.width, h = wall.height;
+
+        // Schlagschatten (Tiefe-Illusion)
+        wallCtx.save();
+        wallCtx.shadowColor = 'rgba(0,0,0,0.35)';
+        wallCtx.shadowBlur  = 4;
+        wallCtx.shadowOffsetX = 2;
+        wallCtx.shadowOffsetY = 2;
+
+        // Wandkörper: dunkelgrau, fast schwarz – klassischer Grundrissplan
+        wallCtx.fillStyle = 'rgba(52, 44, 32, 0.92)';
+        wallCtx.fillRect(x, y, w, h);
+        wallCtx.restore();
+
+        // Dünne innere Kontur für Zeichnung-Charakter
+        wallCtx.strokeStyle = 'rgba(20, 15, 8, 0.70)';
+        wallCtx.lineWidth = 1;
+        wallCtx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
     });
 
     // ── Geschlossene Türen: gefülltes Panel mit Bleistiftrand + Griff ──────
