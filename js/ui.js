@@ -1261,11 +1261,20 @@ window.executePickup = function() {
     img.className = 'inv-icon';
 
     if (item.type === 'medikit') {
-        const uid = 'medikit-item-' + Date.now();
-        img.id    = uid;
-        img.className += ' consumable-item';
+        img.id        = 'medikit-item-' + Date.now();
+        img.className += ' draggable-item consumable-item';
+        img.draggable  = true;
+        img.dataset.category = 'consumable';
         img.setAttribute('onclick', 'openMedikitMenu()');
         img.title = 'Medikit – heilt 6 LP';
+    } else if (item.type === 'magazin') {
+        img.id        = 'magazin-' + Date.now();
+        img.className += ' draggable-item consumable-item';
+        img.draggable  = true;
+        img.dataset.category = 'consumable';
+        img.dataset.ammo     = item.ammo ?? 0;
+        img.setAttribute('onclick', `openMagazinMenu(this)`);
+        img.title = `${item.label}`;
     } else if (item.weaponKey) {
         img.id    = item.weaponKey + '-skizze';
         img.className += ' draggable-item';
@@ -1415,6 +1424,17 @@ window.executeDropItem = function() {
                            '<div class="iib-special">Nur außerhalb des Kampfes nutzbar</div>',
             };
         }
+        if (img.id && img.id.includes('magazin')) {
+            const ammo = img.dataset?.ammo ?? '?';
+            const cur  = Entities.player?.ammo?.pistole ?? 0;
+            return {
+                name: `Magazin`,
+                type: 'Munition · Pistole',
+                statsHtml: `<div class="iib-stat"><span class="iib-key">Schuss</span><span class="iib-val">${ammo}</span></div>` +
+                           `<div class="iib-stat"><span class="iib-key">Pistole jetzt</span><span class="iib-val">${cur}/12</span></div>` +
+                           '<div class="iib-special">Nur außerhalb des Kampfes nachladen</div>',
+            };
+        }
         return null;
     }
 }
@@ -1478,6 +1498,47 @@ window.executeDropItem = function() {
         td.addEventListener('mouseleave', () => { if (box) box.style.display = 'none'; });
     });
 }
+
+// ── Magazin ───────────────────────────────────────────────────────────────────
+
+let _magazinItem = null; // aktuell geöffnetes Magazin-Element
+
+window.openMagazinMenu = function(imgEl) {
+    if (GameState.combatTriggered) {
+        if (imgEl) { imgEl.style.filter = 'grayscale(1)'; setTimeout(() => imgEl.style.filter = '', 600); }
+        return;
+    }
+    _magazinItem = imgEl;
+    const ammo = parseInt(imgEl?.dataset.ammo ?? 0, 10);
+    const p = Entities.player;
+    const current = p.ammo.pistole;
+    const max = 12;
+    const desc = current >= max
+        ? `Pistole bereits voll (${current}/${max} Schuss). Magazin nicht nötig.`
+        : `${ammo} Schuss verfügbar. Pistole hat noch ${current}/${max} Schuss.`;
+    document.getElementById('magazin-desc').textContent = desc;
+    const btn = document.querySelector('#magazin-menu .sketch-button');
+    if (btn) btn.disabled = current >= max;
+    document.getElementById('magazin-menu').style.display = 'block';
+};
+
+window.useMagazin = function() {
+    if (!_magazinItem) return;
+    const ammo = parseInt(_magazinItem.dataset.ammo ?? 0, 10);
+    const p = Entities.player;
+    p.ammo.pistole = Math.min(12, p.ammo.pistole + ammo);
+    // Ammo-Anzeige auf Seite 1 aktualisieren
+    const el2 = document.getElementById('cs-ammo-pistole');
+    if (el2) el2.textContent = p.ammo.pistole;
+    _magazinItem.remove();
+    _magazinItem = null;
+    document.getElementById('magazin-menu').style.display = 'none';
+};
+
+window.closeMagazinMenu = function() {
+    _magazinItem = null;
+    document.getElementById('magazin-menu').style.display = 'none';
+};
 
 // ── Medikit ───────────────────────────────────────────────────────────────────
 
@@ -1566,7 +1627,8 @@ window.resetGame = function() {
     if (medikitSlot && !medikitSlot.querySelector('#medikit-item')) {
         const img = document.createElement('img');
         img.src = 'img/icon-medikit.svg'; img.alt = 'Medikit'; img.id = 'medikit-item';
-        img.className = 'inv-icon consumable-item';
+        img.className = 'inv-icon draggable-item consumable-item';
+        img.draggable = true; img.dataset.category = 'consumable';
         img.setAttribute('onclick', 'openMedikitMenu()');
         img.title = 'Medikit – heilt 6 LP';
         medikitSlot.appendChild(img);

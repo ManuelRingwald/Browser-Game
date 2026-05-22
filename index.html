@@ -318,7 +318,7 @@
                                         <img src="img/icon-schrotflinte.svg" alt="Schrotflinte" id="schrotflinte-skizze" class="inv-icon draggable-item" draggable="true" data-category="waffe" data-weapon="schrotflinte">
                                     </div>
                                     <div class="rucksack-slot medikit-slot" id="medikit-slot">
-                                        <img src="img/icon-medikit.svg" alt="Medikit" id="medikit-item" class="inv-icon consumable-item" onclick="openMedikitMenu()" title="Medikit – heilt 6 LP">
+                                        <img src="img/icon-medikit.svg" alt="Medikit" id="medikit-item" class="inv-icon draggable-item consumable-item" draggable="true" data-category="consumable" onclick="openMedikitMenu()" title="Medikit – heilt 6 LP">
                                     </div>
                                     <div class="rucksack-slot drop-zone"></div>
                                     <div class="rucksack-slot drop-zone"></div>
@@ -474,6 +474,14 @@
         <div class="iib-type"></div>
         <div class="iib-divider"></div>
         <div class="iib-stats"></div>
+    </div>
+
+    <!-- Magazin-Popup -->
+    <div id="magazin-menu" class="menu-box" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:150; text-align:center;">
+        <h2 style="font-size:1.6rem; margin-bottom:8px;">Magazin</h2>
+        <p id="magazin-desc" style="font-size:1.1rem; margin-bottom:18px; color:#555;"></p>
+        <button class="sketch-button" onclick="useMagazin()">Einlegen</button>
+        <button class="sketch-button" onclick="closeMagazinMenu()" style="border-color:#555;color:#555;">Abbrechen</button>
     </div>
 
     <!-- Medikit-Popup -->

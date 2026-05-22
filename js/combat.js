@@ -116,6 +116,22 @@ function killEnemy(enemy) {
         wallCtx.lineTo(enemy.x + Math.cos(i) * r, enemy.y + Math.sin(i) * r);
     }
     wallCtx.fill();
+    // Magazin fallen lassen (verbleibende Pistolen-Munition des Feindes)
+    const remainingAmmo = enemy.ammo?.pistole ?? 0;
+    if (remainingAmmo > 0) {
+        const offset = 18;
+        GameState.worldItems.push({
+            id:    'mag_' + Date.now(),
+            type:  'magazin',
+            label: `Magazin (${remainingAmmo} Schuss)`,
+            img:   'img/icon-magazin.svg',
+            color: 'rgba(60,80,160,0.85)',
+            ammo:  remainingAmmo,
+            x: enemy.x + (Math.random() - 0.5) * offset,
+            y: enemy.y + (Math.random() - 0.5) * offset,
+        });
+    }
+
     // Kampf beenden wenn alle tot
     if (Entities.enemies.every(e => e.isDead)) {
         GameState.enemySeen         = false;
