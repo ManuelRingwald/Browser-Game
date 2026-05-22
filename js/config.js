@@ -7,8 +7,8 @@
 // Alle Raum- und Entfernungsberechnungen verwenden diese Konstanten.
 // Mobile und Desktop haben IMMER die gleiche Spielwelt – nur der sichtbare
 // Ausschnitt (Kamera + Zoom) unterscheidet sich.
-const WORLD_W = 3600;
-const WORLD_H = 2400;
+const WORLD_W = 2400;
+const WORLD_H = 1600;
 
 // ── Raster & Aktionspunkte ────────────────────────────────────────────────────
 const FELD_PX = 60;                  // Pixel pro Rasterfeld (Weltkoordinaten)
