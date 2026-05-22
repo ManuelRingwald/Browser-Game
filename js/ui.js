@@ -1236,7 +1236,9 @@ window.openPickupDialog = function(item) {
     const freeSlot = getRucksackFreeSlot();
     const canPickup = !!freeSlot;
     el('pickup-desc').textContent = canPickup
-        ? (item.type === 'medikit' ? 'Heilt 6 LP wenn verwendet.' : 'Waffe aufnehmen.')
+        ? (item.type === 'medikit'  ? 'Heilt 6 LP wenn verwendet.'
+         : item.type === 'magazin'  ? `${item.ammo} Schuss für die Pistole.`
+         : 'Waffe aufnehmen.')
         : '⚠ Rucksack ist voll!';
     const btn = el('pickup-btn-take');
     btn.disabled = !canPickup;
