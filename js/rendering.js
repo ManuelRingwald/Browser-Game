@@ -893,84 +893,122 @@ function drawDiceAnimations() {
 
         // Schatten
         ctx.save();
-        ctx.translate(4, 5);
-        ctx.globalAlpha = alpha * 0.32;
-        _drawDieFace(d.shape, r + 2);
+        ctx.translate(5, 7);
+        ctx.globalAlpha = alpha * 0.28;
+        _drawDieFace(d.shape, r + 3);
         ctx.fillStyle = '#000'; ctx.fill();
         ctx.restore();
 
-        // Würfelkörper
-        ctx.fillStyle   = 'rgba(238,226,196,0.97)';
-        ctx.strokeStyle = 'rgba(52,36,14,0.92)';
-        ctx.lineWidth   = Math.max(2.2, r * 0.08);
-        ctx.lineJoin    = 'miter';  // scharfe Ecken
-        ctx.lineCap     = 'square';
-        _drawDieFace(d.shape, r);
-        ctx.fill(); ctx.stroke();
-
-        // Innerer Highlight
-        ctx.save();
-        ctx.clip();
-        ctx.fillStyle = 'rgba(255,250,230,0.28)';
-        ctx.fillRect(-r, -r, r * 2, r * 0.45);
-        ctx.restore();
-
-        // Text & Augen — immer aufrecht
+        // 3D-Würfel zeichnen (Text/Augen immer aufrecht)
         ctx.rotate(-rot);
-
-        if (d.shape === 'square' && d.curValue >= 1 && d.curValue <= 6 && !rolling) {
-            // W6: echtes Augen-Muster
-            const pips = _D6_PIPS[d.curValue] || [];
-            ctx.fillStyle = 'rgba(38,24,8,0.92)';
-            pips.forEach(([px, py]) => {
-                ctx.beginPath();
-                ctx.arc(px * r, py * r, r * 0.11, 0, Math.PI * 2);
-                ctx.fill();
-            });
-            // Typ-Label klein oben
-            ctx.font      = `700 ${Math.round(r * 0.30)}px 'Kalam'`;
-            ctx.fillStyle = 'rgba(95,68,32,0.60)';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText(d.label, 0, -r * 0.80);
-        } else {
-            // Alle anderen Würfel: Typ oben, Zahl groß mittig
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.font      = `700 ${Math.round(r * 0.38)}px 'Kalam'`;
-            ctx.fillStyle = 'rgba(95,68,32,0.68)';
-            ctx.fillText(d.label, 0, -r * 0.62);
-            ctx.font      = `700 ${Math.round(r * (d.sides >= 100 ? 0.55 : 0.70))}px 'Kalam'`;
-            ctx.fillStyle = 'rgba(32,20,6,0.95)';
-            ctx.fillText(String(d.curValue), 0, r * 0.12);
-        }
+        _draw3DDie(d.shape, r, d.curValue, d.label, rolling);
 
         ctx.restore();
     });
 }
 
-// Würfelform – scharfe Ecken, kein roundRect
+// Isometrischer 3D-Würfel (für W6/W4/W8/W100)
+function _draw3DDie(shape, r, value, label, isRolling) {
+    const s = r * 0.48; // Seitenlänge der Hauptfläche
+
+    if (shape === 'square') {
+        // ── W6: Isometrischer Kubus ──────────────────────────────────────
+        // Draufsicht: obere Fläche (heller)
+        const tx = s * 0.55, ty = s * 0.32; // Offset für Tiefe
+        // Obere Fläche (Draufsicht)
+        ctx.beginPath();
+        ctx.moveTo(0, -s - ty);
+        ctx.lineTo(s, -ty); ctx.lineTo(s, s - ty);
+        ctx.lineTo(0, s); ctx.lineTo(-s, s - ty);
+        ctx.lineTo(-s, -ty); ctx.closePath();
+
+        // Linke Seite (dunkler)
+        ctx.save();
+        ctx.fillStyle = 'rgba(185,165,128,0.96)';
+        ctx.beginPath();
+        ctx.moveTo(-s, -ty); ctx.lineTo(0, s - ty + ty);
+        ctx.lineTo(0, s); ctx.lineTo(-s, s - ty); ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(52,36,14,0.85)'; ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        // Rechte Seite (noch dunkler)
+        ctx.fillStyle = 'rgba(165,145,108,0.96)';
+        ctx.beginPath();
+        ctx.moveTo(s, -ty); ctx.lineTo(s, s - ty);
+        ctx.lineTo(0, s); ctx.lineTo(0, s - ty + ty); ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        ctx.restore();
+
+        // Obere Fläche (hells)
+        ctx.fillStyle = 'rgba(238,226,196,0.98)';
+        ctx.beginPath();
+        ctx.moveTo(0, -s - ty);
+        ctx.lineTo(s, -ty); ctx.lineTo(0, s - 2*ty);
+        ctx.lineTo(-s, -ty); ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(52,36,14,0.92)'; ctx.lineWidth = 2.0;
+        ctx.stroke();
+
+        // Vordere Fläche (front)
+        ctx.fillStyle = 'rgba(232,218,188,0.97)';
+        ctx.beginPath();
+        ctx.moveTo(-s, -ty); ctx.lineTo(s, -ty);
+        ctx.lineTo(s, s - ty); ctx.lineTo(0, s);
+        ctx.lineTo(-s, s - ty); ctx.closePath();
+        ctx.fill(); ctx.stroke();
+
+        // Augen auf Vorderfläche
+        if (!isRolling && value >= 1 && value <= 6) {
+            const pips = _D6_PIPS[value] || [];
+            const fx = 0, fy = s * 0.05; // Mitte der Vorderfläche
+            ctx.fillStyle = 'rgba(38,24,8,0.90)';
+            pips.forEach(([px, py]) => {
+                ctx.beginPath();
+                ctx.arc(fx + px * s * 0.62, fy + py * s * 0.62, s * 0.10, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        } else {
+            ctx.font = `700 ${Math.round(s * 0.70)}px 'Kalam'`;
+            ctx.fillStyle = 'rgba(38,24,8,0.92)';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(String(value), 0, s * 0.15);
+        }
+
+    } else {
+        // ── Nicht-W6: flache Form mit Zahl ──────────────────────────────
+        _drawDieFace(shape, r);
+        ctx.fillStyle   = 'rgba(235,220,188,0.97)';
+        ctx.strokeStyle = 'rgba(52,36,14,0.90)';
+        ctx.lineWidth   = 2.2; ctx.lineJoin = 'miter';
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,248,228,0.25)';
+        ctx.fillRect(-r, -r, r*2, r*0.4);
+
+        // Label + Zahl
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font      = `700 ${Math.round(r * 0.34)}px 'Kalam'`;
+        ctx.fillStyle = 'rgba(95,68,32,0.65)';
+        ctx.fillText(label, 0, -r * 0.58);
+        ctx.font      = `700 ${Math.round(r * (label.length > 2 ? 0.52 : 0.68))}px 'Kalam'`;
+        ctx.fillStyle = 'rgba(32,20,6,0.95)';
+        ctx.fillText(String(value), 0, r * 0.12);
+    }
+}
+
 function _drawDieFace(shape, r) {
     ctx.beginPath();
     if (shape === 'circle') {
-        // W100: Kreis mit kleinen Kerben für Percentile-Optik
         ctx.arc(0, 0, r, 0, Math.PI * 2);
     } else if (shape === 'triangle') {
-        // W4: gleichseitiges Dreieck
-        ctx.moveTo(0, -r);
-        ctx.lineTo( r * 0.866,  r * 0.5);
-        ctx.lineTo(-r * 0.866,  r * 0.5);
-        ctx.closePath();
+        ctx.moveTo(0, -r); ctx.lineTo(r*0.866, r*0.5); ctx.lineTo(-r*0.866, r*0.5); ctx.closePath();
     } else if (shape === 'diamond') {
-        // W8: achteckig (Oktagon)
-        const s = 0.414; // tan(22.5°)
-        ctx.moveTo(0, -r);
-        ctx.lineTo( r*s, -r);  ctx.lineTo( r, -r*s);
-        ctx.lineTo( r,  r*s);  ctx.lineTo( r*s,  r);
-        ctx.lineTo(-r*s,  r);  ctx.lineTo(-r, r*s);
-        ctx.lineTo(-r, -r*s);  ctx.lineTo(-r*s, -r);
-        ctx.closePath();
+        const s = 0.414;
+        ctx.moveTo(0,-r); ctx.lineTo(r*s,-r); ctx.lineTo(r,-r*s); ctx.lineTo(r,r*s);
+        ctx.lineTo(r*s,r); ctx.lineTo(-r*s,r); ctx.lineTo(-r,r*s); ctx.lineTo(-r,-r*s);
+        ctx.lineTo(-r*s,-r); ctx.closePath();
     } else {
-        // W6: scharfes Quadrat (kein roundRect)
-        ctx.rect(-r, -r, r * 2, r * 2);
+        ctx.rect(-r, -r, r*2, r*2);
     }
 }
 
@@ -1009,7 +1047,10 @@ function drawGame() {
     if (GameState.showFullMap) {
         ctx.drawImage(wallCanvas, -cam.x, -cam.y);
     } else {
+        // Weiche Nebelkante: exploredCanvas leicht geblurrt → Übergang verwischt
+        ctx.filter = 'blur(14px)';
         ctx.drawImage(exploredCanvas, -cam.x, -cam.y);
+        ctx.filter = 'none';
         ctx.globalCompositeOperation = 'source-in';
         ctx.drawImage(wallCanvas, -cam.x, -cam.y);
         // Unerkundete Bereiche füllen: Screen-Space Reset damit der gesamte Canvas abgedeckt wird
