@@ -829,132 +829,148 @@ function drawSneakEffects(player) {
 }
 
 // ── Würfel-Animationen (Screen-Space) ─────────────────────────────────────────
+
+// Augen-Positionen für W6 (in Einheiten von r, jeweils [x,y])
+const _D6_PIPS = {
+    1: [[0, 0]],
+    2: [[-0.32,-0.32],[0.32, 0.32]],
+    3: [[-0.32,-0.32],[0, 0],[0.32, 0.32]],
+    4: [[-0.32,-0.32],[0.32,-0.32],[-0.32,0.32],[0.32, 0.32]],
+    5: [[-0.32,-0.32],[0.32,-0.32],[0,0],[-0.32,0.32],[0.32, 0.32]],
+    6: [[-0.32,-0.32],[0.32,-0.32],[-0.32,0],[0.32,0],[-0.32,0.32],[0.32,0.32]],
+};
+
 function drawDiceAnimations() {
     const now = performance.now();
     GameState.diceAnims = GameState.diceAnims.filter(d => now - d.startTime < d.duration);
     if (!GameState.diceAnims.length) return;
 
     const W = canvas.width, H = canvas.height;
-    const dieSize = Math.round(Math.min(W, H) * 0.09 + 22); // ~54px auf Desktop
-    // Landeplatz: Mitte unten, über der Battle-Box
+    const r = Math.round(Math.min(W, H) * 0.05 + 22); // Radius ~50px
     const landX = W * 0.5;
-    const landY = H - dieSize * 2.4;
+    const landY = H - r * 2.8;
 
     GameState.diceAnims.forEach(d => {
-        const t   = Math.min(1, (now - d.startTime) / d.duration);
-        const r   = dieSize * 0.5;
+        const t = Math.min(1, (now - d.startTime) / d.duration);
 
-        // Phasen: 0–0.55 rollen, 0.55–0.75 landen, 0.75–0.92 halten, 0.92–1 faden
+        // Phasen: rollen 0–0.55 | landen 0.55–0.72 | halten 0.72–0.90 | faden 0.90–1
         const rolling = t < 0.55;
-        const landing = t >= 0.55 && t < 0.75;
-        const holding = t >= 0.75 && t < 0.92;
-        const fading  = t >= 0.92;
+        const landing = t >= 0.55 && t < 0.72;
+        const fading  = t >= 0.90;
 
-        // Zufallswert während Rollen, Endwert beim Landen
         if (rolling) {
-            if (Math.random() < 0.25) // nicht jeden Frame aktualisieren (unruhiger Look)
+            if (Math.random() < 0.18)
                 d.curValue = Math.floor(Math.random() * d.sides) + 1;
         } else {
             d.curValue = d.finalValue;
         }
 
-        // Position
-        let x, y, rot, scl = 1;
+        let x, y, rot = 0, scl = 1;
         if (rolling) {
-            const p = t / 0.55;
-            const ease = 1 - Math.pow(1 - p, 2.5);
-            x   = -r * 2 + ease * (landX + r * 2); // rollt von links
-            y   = landY + Math.sin(p * Math.PI * 2) * dieSize * 0.35;
-            rot = p * Math.PI * 5; // dreht sich ~2.5× beim Rollen
+            const p    = t / 0.55;
+            const ease = 1 - Math.pow(1 - p, 2.2);
+            x   = -r * 3 + ease * (landX + r * 3);
+            y   = landY + Math.sin(p * Math.PI * 3) * r * 0.5;
+            rot = p * Math.PI * 6;
         } else if (landing) {
-            const p   = (t - 0.55) / 0.20;
-            const bob = Math.sin(p * Math.PI) * dieSize * 0.28 * (1 - p);
-            x   = landX; y = landY - bob;
-            rot = (Math.PI * 5) + p * 0.4;
-            scl = 1 + Math.sin(p * Math.PI) * 0.08; // leichtes "Aufprall"-Skalieren
+            const p   = (t - 0.55) / 0.17;
+            const bob = Math.sin(p * Math.PI) * r * 0.3 * (1 - p * 0.8);
+            x = landX; y = landY - bob;
+            rot = Math.PI * 6 + p * 0.3;
+            scl = 1 + Math.sin(p * Math.PI) * 0.10;
         } else {
             x = landX; y = landY;
-            rot = Math.PI * 5 + 0.4;
+            rot = Math.PI * 6 + 0.3;
         }
 
-        const alpha = fading ? 1 - (t - 0.92) / 0.08 : 1;
+        const alpha = fading ? Math.max(0, 1 - (t - 0.90) / 0.10) : 1;
 
         ctx.save();
-        ctx.globalAlpha = Math.max(0, alpha);
+        ctx.globalAlpha = alpha;
         ctx.translate(x, y);
         ctx.rotate(rot);
         ctx.scale(scl, scl);
 
         // Schatten
         ctx.save();
-        ctx.translate(3, 4);
-        ctx.globalAlpha = alpha * 0.28;
-        _drawDieShape(d.shape, r + 2);
-        ctx.fillStyle = 'rgba(0,0,0,1)'; ctx.fill();
+        ctx.translate(4, 5);
+        ctx.globalAlpha = alpha * 0.32;
+        _drawDieFace(d.shape, r + 2);
+        ctx.fillStyle = '#000'; ctx.fill();
         ctx.restore();
 
-        // Würfel-Körper
-        ctx.fillStyle   = 'rgba(232,218,182,0.96)';
-        ctx.strokeStyle = 'rgba(58,40,18,0.88)';
-        ctx.lineWidth   = Math.max(1.8, r * 0.09);
-        ctx.lineJoin    = 'round';
-        _drawDieShape(d.shape, r);
+        // Würfelkörper
+        ctx.fillStyle   = 'rgba(238,226,196,0.97)';
+        ctx.strokeStyle = 'rgba(52,36,14,0.92)';
+        ctx.lineWidth   = Math.max(2.2, r * 0.08);
+        ctx.lineJoin    = 'miter';  // scharfe Ecken
+        ctx.lineCap     = 'square';
+        _drawDieFace(d.shape, r);
         ctx.fill(); ctx.stroke();
 
-        // Innerer Glanz
+        // Innerer Highlight
         ctx.save();
         ctx.clip();
-        ctx.fillStyle = 'rgba(255,245,220,0.22)';
-        ctx.beginPath();
-        ctx.ellipse(-r * 0.25, -r * 0.3, r * 0.55, r * 0.38, -0.4, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = 'rgba(255,250,230,0.28)';
+        ctx.fillRect(-r, -r, r * 2, r * 0.45);
         ctx.restore();
 
-        // Würfeltyp (klein oben)
-        ctx.rotate(-rot); // Text immer aufrecht
-        ctx.textAlign    = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.font         = `700 ${Math.round(r * 0.44)}px 'Kalam'`;
-        ctx.fillStyle    = 'rgba(95,68,32,0.72)';
-        ctx.fillText(d.label, 0, -r * 0.52);
+        // Text & Augen — immer aufrecht
+        ctx.rotate(-rot);
 
-        // Würfelwert (groß mittig)
-        const valStr = String(d.curValue).padStart(d.sides >= 10 ? 2 : 1, ' ');
-        ctx.font      = `700 ${Math.round(r * (d.sides >= 100 ? 0.62 : 0.78))}px 'Kalam'`;
-        ctx.fillStyle = 'rgba(35,22,8,0.94)';
-        ctx.fillText(valStr.trim(), 0, r * 0.12);
+        if (d.shape === 'square' && d.curValue >= 1 && d.curValue <= 6 && !rolling) {
+            // W6: echtes Augen-Muster
+            const pips = _D6_PIPS[d.curValue] || [];
+            ctx.fillStyle = 'rgba(38,24,8,0.92)';
+            pips.forEach(([px, py]) => {
+                ctx.beginPath();
+                ctx.arc(px * r, py * r, r * 0.11, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            // Typ-Label klein oben
+            ctx.font      = `700 ${Math.round(r * 0.30)}px 'Kalam'`;
+            ctx.fillStyle = 'rgba(95,68,32,0.60)';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(d.label, 0, -r * 0.80);
+        } else {
+            // Alle anderen Würfel: Typ oben, Zahl groß mittig
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.font      = `700 ${Math.round(r * 0.38)}px 'Kalam'`;
+            ctx.fillStyle = 'rgba(95,68,32,0.68)';
+            ctx.fillText(d.label, 0, -r * 0.62);
+            ctx.font      = `700 ${Math.round(r * (d.sides >= 100 ? 0.55 : 0.70))}px 'Kalam'`;
+            ctx.fillStyle = 'rgba(32,20,6,0.95)';
+            ctx.fillText(String(d.curValue), 0, r * 0.12);
+        }
 
         ctx.restore();
     });
 }
 
-// Zeichnet die Würfelform (ohne fill/stroke — wird vom Aufrufer gesetzt)
-function _drawDieShape(shape, r) {
+// Würfelform – scharfe Ecken, kein roundRect
+function _drawDieFace(shape, r) {
     ctx.beginPath();
     if (shape === 'circle') {
+        // W100: Kreis mit kleinen Kerben für Percentile-Optik
         ctx.arc(0, 0, r, 0, Math.PI * 2);
     } else if (shape === 'triangle') {
+        // W4: gleichseitiges Dreieck
         ctx.moveTo(0, -r);
-        ctx.lineTo(r * 0.87, r * 0.5);
-        ctx.lineTo(-r * 0.87, r * 0.5);
+        ctx.lineTo( r * 0.866,  r * 0.5);
+        ctx.lineTo(-r * 0.866,  r * 0.5);
         ctx.closePath();
     } else if (shape === 'diamond') {
+        // W8: achteckig (Oktagon)
+        const s = 0.414; // tan(22.5°)
         ctx.moveTo(0, -r);
-        ctx.lineTo(r * 0.72, -r * 0.35);
-        ctx.lineTo(r * 0.72, r * 0.35);
-        ctx.lineTo(0, r);
-        ctx.lineTo(-r * 0.72, r * 0.35);
-        ctx.lineTo(-r * 0.72, -r * 0.35);
+        ctx.lineTo( r*s, -r);  ctx.lineTo( r, -r*s);
+        ctx.lineTo( r,  r*s);  ctx.lineTo( r*s,  r);
+        ctx.lineTo(-r*s,  r);  ctx.lineTo(-r, r*s);
+        ctx.lineTo(-r, -r*s);  ctx.lineTo(-r*s, -r);
         ctx.closePath();
     } else {
-        // square mit abgerundeten Ecken
-        const cr = r * 0.22;
-        ctx.moveTo(-r + cr, -r);
-        ctx.arcTo(r, -r, r, r, cr);
-        ctx.arcTo(r, r, -r, r, cr);
-        ctx.arcTo(-r, r, -r, -r, cr);
-        ctx.arcTo(-r, -r, r, -r, cr);
-        ctx.closePath();
+        // W6: scharfes Quadrat (kein roundRect)
+        ctx.rect(-r, -r, r * 2, r * 2);
     }
 }
 

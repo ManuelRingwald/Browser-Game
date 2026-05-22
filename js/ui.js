@@ -500,11 +500,11 @@ function spawnDiceAnim(max, finalValue) {
               :               { label:'W100', shape:'circle'   };
     GameState.diceAnims.push({
         ...cfg,
-        sides:      max,
+        sides:      max === 12 ? 6 : max,  // 2W6: Augenmuster bis 6 zeigen
         curValue:   Math.floor(Math.random() * max) + 1,
         finalValue,
         startTime:  performance.now(),
-        duration:   1650,  // deckt animateRoll-Laufzeit ab
+        duration:   2600,  // langsamer: mehr Zeit zum Lesen
     });
 }
 
