@@ -16,13 +16,12 @@
 
 // ── Sprite Atlas: Raum-Module (1 Bild, ~1 MB, alle Module drin) ──────────────
 
-// Koordinaten im Atlas (erzeugt via Python/Pillow, 512px Breite normalisiert)
+// Koordinaten im Atlas (erzeugt via Python/Pillow, 512px Breite)
+// Quell-Module: Module_Floor.png, Module_Rectangle_Room.png, Module_Square-Room.png
 const ROOM_ATLAS_COORDS = {
-    narrow: { x: 0, y:    0, w: 512, h: 285 }, // schmaler Korridor (vertikal)
-    square: { x: 0, y:  285, w: 512, h: 279 }, // quadratischer Raum
-    wide:   { x: 0, y:  564, w: 512, h: 285 }, // breiter Raum (horizontal)
-    t:      { x: 0, y:  849, w: 512, h: 285 }, // T-Kreuzung
-    hub:    { x: 0, y: 1134, w: 512, h: 285 }, // 4-Wege-Hub
+    floor:  { x: 0, y:    0, w: 512, h: 1633 }, // hoher Korridor / Portrait-Raum
+    rect:   { x: 0, y: 1633, w: 512, h:  288 }, // breiter Landscape-Raum
+    square: { x: 0, y: 1921, w: 512, h:  507 }, // quadratischer Raum
 };
 
 const ROOM_ATLAS_IMG = new Image();
@@ -41,17 +40,21 @@ function drawRoomModule(type, dx, dy, dw, dh) {
 function drawRoomImages(W, H) {
     const T = 6; // Inset damit Wandlinien nicht überlappen
     // [modul, x1%, y1%, x2%, y2%]
+    // Modul-Wahl nach Raumverhältnis:
+    // floor  = Portrait  (höher als breit, linker Flügel + Zentralhallen)
+    // rect   = Landscape (breiter als hoch, rechter Korridor)
+    // square = Quadrat   (rechte Einzelräume, oberer Korridor)
     const layout = [
-        ['narrow', 0.03, 0.15, 0.15, 0.52], // Raum A
-        ['square', 0.15, 0.15, 0.27, 0.52], // Raum B
-        ['narrow', 0.27, 0.15, 0.38, 0.52], // Raum C
-        ['narrow', 0.03, 0.52, 0.15, 0.88], // Raum D
-        ['square', 0.15, 0.52, 0.27, 0.88], // Raum E
-        ['narrow', 0.27, 0.52, 0.38, 0.88], // Raum F
-        ['narrow', 0.43, 0.02, 0.52, 0.15], // Oberer Korridor
-        ['t',      0.38, 0.15, 0.55, 0.55], // Eingangshalle
-        ['hub',    0.38, 0.55, 0.55, 0.96], // Hauptsaal
-        ['wide',   0.55, 0.15, 0.97, 0.42], // Rechter Korridor
+        ['floor',  0.03, 0.15, 0.15, 0.52], // Raum A
+        ['floor',  0.15, 0.15, 0.27, 0.52], // Raum B
+        ['floor',  0.27, 0.15, 0.38, 0.52], // Raum C
+        ['floor',  0.03, 0.52, 0.15, 0.88], // Raum D
+        ['floor',  0.15, 0.52, 0.27, 0.88], // Raum E
+        ['floor',  0.27, 0.52, 0.38, 0.88], // Raum F
+        ['square', 0.43, 0.02, 0.52, 0.15], // Oberer Korridor
+        ['floor',  0.38, 0.15, 0.55, 0.55], // Eingangshalle
+        ['floor',  0.38, 0.55, 0.55, 0.96], // Hauptsaal
+        ['rect',   0.55, 0.15, 0.97, 0.42], // Rechter Korridor
         ['square', 0.55, 0.42, 0.75, 0.75], // Raum G
         ['square', 0.75, 0.42, 0.97, 0.75], // Raum H
     ];
