@@ -55,77 +55,27 @@ function playerNearDoor(player, door) {
 }
 
 // Tür öffnen/schließen und wallCanvas neu zeichnen.
-// ── Audio-Kontext (lazy-init nach erster Nutzerinteraktion) ──────────────────
-let _audioCtx = null;
-function getAudioCtx() {
-    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    return _audioCtx;
-}
-
-// Tür-Geräusch: Knarzen beim Öffnen, kurzes Klacken beim Schließen
-function playDoorSound(opening) {
-    try {
-        const ctx = getAudioCtx();
-        if (ctx.state === 'suspended') ctx.resume();
-
-        if (opening) {
-            // Öffnen: tiefes Holzknarzen (Frequenz-Sweep nach unten)
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            const dist = ctx.createWaveShaper();
-
-            // Verzerrungs-Kurve für Knarr-Charakter
-            const curve = new Float32Array(256);
-            for (let i = 0; i < 256; i++) {
-                const x = (i * 2) / 256 - 1;
-                curve[i] = (Math.PI + 200) * x / (Math.PI + 200 * Math.abs(x));
-            }
-            dist.curve = curve;
-
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(280, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.35);
-
-            gain.gain.setValueAtTime(0.18, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.42);
-
-            osc.connect(dist); dist.connect(gain); gain.connect(ctx.destination);
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 0.45);
-        } else {
-            // Schließen: kurzes Klack + kleines Knarzen
-            const osc  = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(160, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(90, ctx.currentTime + 0.12);
-
-            gain.gain.setValueAtTime(0.14, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
-
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 0.20);
-
-            // Einrast-Klick kurz danach
-            const click = ctx.createOscillator();
-            const cGain = ctx.createGain();
-            click.type = 'sine';
-            click.frequency.setValueAtTime(380, ctx.currentTime + 0.14);
-            cGain.gain.setValueAtTime(0.10, ctx.currentTime + 0.14);
-            cGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
-            click.connect(cGain); cGain.connect(ctx.destination);
-            click.start(ctx.currentTime + 0.14);
-            click.stop(ctx.currentTime + 0.23);
-        }
-    } catch (_) { /* Audio nicht verfügbar */ }
-}
-
 function toggleDoor(door) {
-    const wasOpen = door.open;
-    door.open = !door.open;
-    playDoorSound(!wasOpen); // !wasOpen = gerade geöffnet
+    const opening = !door.open;
+    door.open = opening;
+
+    // Visuelles Tür-Geräusch – Texteffekt an Türposition (analog zu "tap... tap...")
+    const cx = door.x + door.w / 2;
+    const cy = door.y + door.h / 2;
+    // Mehrere Varianten, damit es nicht immer gleich ist
+    const openTexts  = ['Krrrrr...', 'Knaarrr...', 'Krr... krr...', 'Knarrrz...'];
+    const closeTexts = ['Klonk.', 'Wumm.', 'Klack!', 'Bämm.'];
+    const variants   = opening ? openTexts : closeTexts;
+    const text       = variants[Math.floor(Math.random() * variants.length)];
+
+    GameState.doorSounds.push({
+        x: cx, y: cy,
+        text,
+        opening,
+        startTime: performance.now(),
+        duration:  opening ? 1600 : 1100,   // Knarzen länger als Klonk
+    });
+
     renderBlueprint();
 }
 

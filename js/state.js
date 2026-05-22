@@ -54,6 +54,9 @@ const GameState = {
     // Fliegende Geschoss-Schnipsel
     projectiles: [],
 
+    // Visuelle Tür-Geräusch-Texte (analog zu "tap... tap...")
+    doorSounds: [],  // [{ x, y, text, startTime, duration }]
+
     // Sicht & Kampf-Auslösung
     enemySeen: false,
     combatTriggered: false,

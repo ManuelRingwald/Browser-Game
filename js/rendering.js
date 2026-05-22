@@ -576,6 +576,49 @@ function _drawItemBadge(item, label, alpha, extraY = 0) {
     ctx.restore();
 }
 
+// ── Visuelle Tür-Geräusch-Texte (analog zu "tap... tap...") ─────────────────
+function drawDoorSounds() {
+    const now = performance.now();
+    GameState.doorSounds = GameState.doorSounds.filter(s => now - s.startTime < s.duration);
+
+    GameState.doorSounds.forEach(s => {
+        const raw  = (now - s.startTime) / s.duration;  // 0→1
+        // Einblenden schnell (0–15%), halten, dann ausblenden (80–100%)
+        let alpha;
+        if      (raw < 0.15) alpha = raw / 0.15;
+        else if (raw < 0.80) alpha = 1;
+        else                 alpha = 1 - (raw - 0.80) / 0.20;
+
+        // Leichtes Schweben nach oben während des Fade-outs
+        const yOff = -raw * 18;
+
+        const wobble = Math.sin(now / 160 + s.x) * 0.06;
+
+        ctx.save();
+        ctx.translate(s.x, s.y + yOff);
+        ctx.rotate(wobble);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Knarzen: dunkles Braun, schräge Schrift, größer
+        // Klonk: etwas kleiner, mehr Nachdruck
+        if (s.opening) {
+            ctx.font = "italic 700 20px 'Kalam'";
+            ctx.fillStyle = `rgba(90,58,22,${alpha * 0.88})`;
+        } else {
+            ctx.font = "700 18px 'Kalam'";
+            ctx.fillStyle = `rgba(60,40,15,${alpha * 0.82})`;
+        }
+
+        // Leichter Schatten für Lesbarkeit
+        ctx.shadowColor = `rgba(240,225,190,${alpha * 0.6})`;
+        ctx.shadowBlur  = 4;
+        ctx.fillText(s.text, 0, 0);
+        ctx.shadowBlur = 0;
+        ctx.restore();
+    });
+}
+
 // ── Tür-Hover-Highlight + Mobile-Proximity-Indikator (World-Space) ───────────
 function drawDoorHighlight() {
     if (GameState.combatTriggered) return;
@@ -844,9 +887,10 @@ function drawGame() {
     ctx.setLineDash([]);
     ctx.restore();
 
-    // Weltgegenstände + Tür-Hover
+    // Weltgegenstände + Tür-Hover + Tür-Geräusch-Texte
     drawWorldItems();
     drawDoorHighlight();
+    drawDoorSounds();
 
     // Alle lebenden Gegner zeichnen
     Entities.enemies.forEach(enemy => {
