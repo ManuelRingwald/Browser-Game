@@ -195,23 +195,23 @@ html, body {
     bottom: 16px;
     left: 50%;
     transform: translateX(-50%);
-    min-width: 200px;
-    max-width: 290px;
+    min-width: 220px;
+    max-width: 320px;
     background: rgba(14, 9, 5, 0.93);
     border: 2px solid rgba(200, 172, 118, 0.65);
     border-radius: 3px;
-    padding: 8px 12px 10px;
+    padding: 10px 14px 12px;
     color: #f0e8d0;
     font-family: 'Kalam', cursive;
     display: none;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
     z-index: 30;
     box-shadow: 4px 4px 0 rgba(0,0,0,0.45), 0 0 24px rgba(0,0,0,0.5);
 }
 .battle-box-result {
-    max-width: 320px;
-    min-width: 220px;
+    max-width: 380px;
+    min-width: 260px;
 }
 
 /* Mobile: Volle Breite am unteren Rand */
@@ -276,18 +276,55 @@ html, body {
 .battle-btn:disabled { opacity: 0.28; cursor: default; }
 .battle-stat { font-size: 0.88rem; color: #a09070; margin-left: 4px; } /* sekundär */
 
-/* Kampf-Log: gleiche Größe wie Buttons */
+/* ── Kampf-Log ─────────────────────────────────────────────────────── */
 #combat-log {
     font-size: 1.0rem;
     font-family: 'Kalam', cursive;
-    font-style: normal;
     color: #e0d4b8;
-    line-height: 1.5;
-    margin-bottom: 6px;
+    line-height: 1.55;
+    margin-bottom: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    /* Scrollbar im Spielstil */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(200,172,118,0.35) transparent;
 }
+#combat-log::-webkit-scrollbar { width: 4px; }
+#combat-log::-webkit-scrollbar-track { background: transparent; }
+#combat-log::-webkit-scrollbar-thumb { background: rgba(200,172,118,0.35); border-radius: 2px; }
+
+/* Jede Log-Zeile als eigenes Element */
+.log-entry {
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(200,172,118,0.08);
+    animation: logSlideIn 0.18s ease;
+}
+.log-entry:last-child { border-bottom: none; }
+
+@keyframes logSlideIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Log-Typen */
+.log-phase  { color: #ffe890; font-weight: 700; font-size: 0.88rem;
+              border-bottom: 1px solid rgba(200,172,118,0.28) !important;
+              margin-bottom: 2px; padding-bottom: 4px; }
+.log-player { color: #d4c898; }
+.log-enemy  { color: #e8b898; }
+.log-info   { color: #c8b890; font-size: 0.92rem; }
+.log-good   { color: #7ed878; font-weight: 700; }
+.log-bad    { color: #e87878; font-weight: 700; }
+.log-neutral { color: #b8c8d8; }
+
 .success-text { color: #78d878; font-weight: 700; }
 .fail-text    { color: #e87878; font-weight: 700; }
-.rolling-number { display: inline-block; min-width: 26px; text-align: center; }
+.rolling-number {
+    display: inline-block; min-width: 28px; text-align: center;
+    color: #ffe890; font-weight: 700;
+    border-bottom: 1px dashed rgba(255,232,144,0.5);
+}
 
 #gameCanvas {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;

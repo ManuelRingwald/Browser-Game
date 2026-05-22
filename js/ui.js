@@ -406,11 +406,21 @@ function updateWeaponStatus() {
 function el(id) { return document.getElementById(id); }
 function showResultMenu() { el('combat-result').style.display = 'flex'; el('btn-weiter').style.display = 'none'; el('react-section').style.display = 'none'; }
 function showWeiter()     { el('btn-weiter').style.display = 'block'; }
-function setCombatLog(html)    { el('combat-log').innerHTML = html; }
-function appendCombatLog(html) {
+
+// Hängt eine Log-Zeile als eigenes div mit Typ-Klasse an + scrollt nach unten
+function appendCombatLog(html, type = 'info') {
     const log = el('combat-log');
-    if (log.innerHTML) log.innerHTML += '<br>';
-    log.innerHTML += html;
+    const entry = document.createElement('div');
+    entry.className = `log-entry log-${type}`;
+    entry.innerHTML = html;
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+}
+
+// Setzt Log komplett neu (löscht alle Zeilen)
+function setCombatLog(html, type = 'info') {
+    el('combat-log').innerHTML = '';
+    if (html) appendCombatLog(html, type);
 }
 
 // ── Ausweichen als Reaktion auf Feind-Angriff ────────────────────────────
@@ -478,10 +488,11 @@ window.reactAccept = function() {
 function animateRoll(elementId, finalValue, callback) {
     const node = el(elementId);
     let tick = 0;
+    // 16 Ticks × 60ms = ~960ms Animation, dann 550ms Lesepause
     const iv = setInterval(() => {
         node.innerText = Math.floor(Math.random() * 100) + 1;
-        if (++tick >= 14) { clearInterval(iv); node.innerText = finalValue; setTimeout(callback, 350); }
-    }, 55);
+        if (++tick >= 16) { clearInterval(iv); node.innerText = finalValue; setTimeout(callback, 550); }
+    }, 60);
 }
 
 // AP-Kosten Referenz (gespiegelt aus game.js-Konstante)
@@ -735,7 +746,7 @@ window.processEnemyTurnUI = function() {
     if (living.length === 0) { startPlayerTurn(); return; }
 
     showResultMenu();
-    setCombatLog('');
+    setCombatLog('— Feind-Zug —', 'phase');
     Anim.clear();
     startEnemyTurnReset();
     let ei = 0;
@@ -744,7 +755,7 @@ window.processEnemyTurnUI = function() {
         const stillEngaged = (GameState.combatTargets||[]).filter(e=>!e.isDead)
             .some(e => canSeeInCombat(Entities.player, e) || canSeeInCombat(e, Entities.player));
         if (!stillEngaged) {
-            appendCombatLog('<span style="color:#c8b890;">Sichtkontakt verloren – Kampf beendet.</span>');
+            appendCombatLog('Sichtkontakt verloren — Kampf beendet.', 'info');
             showWeiter();
             GameState.combatResult = { enemyDied:false, playerDied:false, contactLost:true };
             return;
@@ -778,7 +789,7 @@ window.processEnemyTurnUI = function() {
             while (rotDelta >  Math.PI) rotDelta -= 2 * Math.PI;
             while (rotDelta < -Math.PI) rotDelta += 2 * Math.PI;
             if (Math.abs(rotDelta) > 0.15) {
-                appendCombatLog(`<span style="color:#c8b890;">${enemy.name} dreht sich...</span>`);
+                appendCombatLog(`${enemy.name} dreht sich...`, 'info');
                 Anim.push({
                     duration: 200,
                     onUpdate(_, e) { enemy.angle = lerpAngle(rotStart, rotTarget, e); }
@@ -796,8 +807,8 @@ window.processEnemyTurnUI = function() {
                 duration: 350,
                 onStart() {
                     const res = enemyExecuteMove(enemy);
-                    const prefix = plan.type === 'chase' ? `${enemy.name} sucht Sichtkontakt... ` : '';
-                    appendCombatLog(`<span style="color:#c8b890;">${prefix}${res.text}</span>`);
+                    const prefix = plan.type === 'chase' ? `Sucht Sichtkontakt — ` : '';
+                    appendCombatLog(`${prefix}${res.text}`, 'info');
                 },
                 onComplete() { enemyDoAction(enemy, remaining, false); }
             });
@@ -805,12 +816,12 @@ window.processEnemyTurnUI = function() {
             Anim.push({
                 duration: 50,
                 onStart() {
-                    appendCombatLog(`<span style="color:#ffe890;">${enemy.name} greift mit ${plan.weapon.name} an!</span>`);
+                    appendCombatLog(`${enemy.name} greift an · ${plan.weapon.name}`, 'enemy');
                 },
                 onComplete() {
                     showDodgeReaction(enemy, (tryDodge) => {
                         const res = enemyExecuteAttack(enemy, tryDodge, plan.weaponKey);
-                        appendCombatLog(`<span class="${res.type==='hit'?'fail-text':'success-text'}">${res.text}</span>`);
+                        appendCombatLog(res.text, res.type === 'hit' ? 'bad' : 'good');
 
                         // Ausweich-Animation: Spieler tritt kurz zur Seite
                         if (res.dodged) {
@@ -1057,91 +1068,79 @@ function resolveCombat(key) {
         spawnProjectiles(p.x, p.y, e.x, e.y, key);
     }
 
-    const atkRoll = Math.floor(Math.random() * 100) + 1;
-    const verb = w.ammoKey ? 'Schießt' : 'Schlägt zu';
+    const atkRoll  = Math.floor(Math.random() * 100) + 1;
+    const verb     = w.ammoKey ? 'Schuss' : 'Schlag';
     showResultMenu();
-    setCombatLog(`<b>${w.name}</b> – ${verb} (Trefferchance ${p.angriff}%):<br><span id="rd1" class="rolling-number">--</span>`);
+    setCombatLog(`— Dein Angriff —`, 'phase');
+    appendCombatLog(`${w.name} · Wurf: <span id="rd1" class="rolling-number">--</span> (Chance ${p.angriff}%)`, 'player');
 
     animateRoll('rd1', atkRoll, () => {
         if (atkRoll <= p.angriff) {
-            // Treffer – Schaden würfeln
+            appendCombatLog(`✓ Treffer! (${atkRoll} ≤ ${p.angriff}%) · Schaden: <span id="rd2" class="rolling-number">--</span>`, 'good');
             let dmg = rollDice(w.n, w.s);
             if (key === 'schrotflinte' && dist < 80) dmg += 2;
-            setCombatLog(
-                `<b>${w.name}</b> – ${verb}: ${atkRoll} ≤ ${p.angriff}% → <span class="success-text">Treffer!</span><br>` +
-                `Schaden: <span id="rd2" class="rolling-number">--</span>`
-            );
+
             animateRoll('rd2', dmg, () => {
-                // Hinterhalt: kein Ausweich-/Blockwurf für den Feind
                 if (GameState.combatAmbush) {
-                    GameState.combatAmbush = false; // Hinterhalt endet nach erstem Treffer
+                    GameState.combatAmbush = false;
                     e.hp = Math.max(0, e.hp - dmg);
-                    setCombatLog(
-                        `<b>${w.name}</b> – ${verb}: <span class="success-text">Hinterhalt-Treffer! ${dmg} Schaden (kein Ausweichen)</span><br>` +
-                        `Feind: <b>${e.hp}/${e.maxHp} LP</b>` +
-                        (e.hp <= 0 ? `<br><span class="success-text"><b>Feind ausgeschaltet!</b></span>` : '')
-                    );
+                    appendCombatLog(`Hinterhalt! Kein Ausweichen möglich.`, 'info');
+                    appendCombatLog(e.hp <= 0
+                        ? `Feind ausgeschaltet!`
+                        : `Feind: ${e.hp} / ${e.maxHp} LP`, e.hp <= 0 ? 'good' : 'neutral');
                     showWeiter();
                     GameState.combatResult = { enemyDied: e.hp <= 0, playerDied: false };
                     return;
                 }
-                // Normaler Verteidigungswurf
+
                 const dodgeRoll = Math.floor(Math.random() * 100) + 1;
-                setCombatLog(
-                    `<b>${w.name}</b>: <span class="success-text">Treffer! ${dmg} Schaden</span><br>` +
-                    `Feind weicht aus (${e.ausweichen}%): <span id="rd3" class="rolling-number">--</span>`
-                );
+                const defLabel  = w.blockbar ? `Blocken (${e.blockwert}%)` : `Ausweichen (${e.ausweichen}%)`;
+                appendCombatLog(`${e.name} versucht ${w.blockbar ? 'zu blocken' : 'auszuweichen'} · Wurf: <span id="rd3" class="rolling-number">--</span>`, 'enemy');
+
                 animateRoll('rd3', dodgeRoll, () => {
                     let finalDmg = dmg;
-                    let log = `<b>${w.name}</b>: <span class="success-text">Treffer! ${dmg} Schaden</span><br>`;
+                    const defVal = w.blockbar ? e.blockwert : e.ausweichen;
 
-                    // Feind nutzt NUR eine Verteidigung: Ausweichen (Fernkampf) ODER Blocken (Nahkampf)
-                    if (w.blockbar) {
-                        // Nahkampf: Feind blockt
-                        if (dodgeRoll <= e.blockwert) {
-                            finalDmg = Math.max(1, Math.floor(finalDmg / 2));
-                            log += `Blocken (${e.blockwert}%): ${dodgeRoll} → <span class="success-text">Erfolg!</span> Schaden halbiert → ${finalDmg}<br>`;
-                        } else {
-                            log += `Blocken (${e.blockwert}%): ${dodgeRoll} → <span class="fail-text">Fehlschlag!</span><br>`;
-                        }
+                    if (w.blockbar && dodgeRoll <= e.blockwert) {
+                        finalDmg = Math.max(1, Math.floor(finalDmg / 2));
+                        appendCombatLog(`✓ Block! (${dodgeRoll} ≤ ${e.blockwert}%) · Schaden halbiert → ${finalDmg}`, 'good');
+                    } else if (!w.blockbar && dodgeRoll <= e.ausweichen) {
+                        finalDmg = 0;
+                        appendCombatLog(`✓ Ausgewichen! (${dodgeRoll} ≤ ${e.ausweichen}%) · Kein Schaden`, 'good');
                     } else {
-                        // Fernkampf: Feind weicht aus
-                        if (dodgeRoll <= e.ausweichen) {
-                            finalDmg = 0;
-                            log += `Ausweichen (${e.ausweichen}%): ${dodgeRoll} → <span class="success-text">Erfolg!</span> Kein Schaden<br>`;
-                        } else {
-                            log += `Ausweichen (${e.ausweichen}%): ${dodgeRoll} → <span class="fail-text">Fehlschlag!</span><br>`;
-                        }
+                        appendCombatLog(`✗ ${w.blockbar ? 'Block' : 'Ausweichen'} scheitert (${dodgeRoll} > ${defVal}%)`, 'bad');
                     }
 
                     if (finalDmg > 0) {
                         e.hp = Math.max(0, e.hp - finalDmg);
-                        log += `<br>Feind: <b>${e.hp} / ${e.maxHp} LP</b>`;
+                        appendCombatLog(e.hp <= 0
+                            ? `Feind ausgeschaltet! (war ${e.maxHp} LP)`
+                            : `Feind: ${e.hp} / ${e.maxHp} LP`, e.hp <= 0 ? 'good' : 'neutral');
                     }
-                    if (e.hp <= 0) log += `<br><span class="success-text"><b>Feind ausgeschaltet!</b></span>`;
-
-                    setCombatLog(log); showWeiter();
+                    showWeiter();
                     GameState.combatResult = { enemyDied: e.hp <= 0, playerDied: false };
                 });
             });
         } else {
-            // Verfehlt – Feind greift zurück
-            const eW = WEAPONS[e.waffe];
+            // Verfehlt
+            appendCombatLog(`✗ Verfehlt! (${atkRoll} > ${p.angriff}%)`, 'bad');
+            const eW   = WEAPONS[e.waffe];
             const eRoll = Math.floor(Math.random() * 100) + 1;
-            let log = `<b>${w.name}</b> – ${verb}: ${atkRoll} > ${p.angriff}% → <span class="fail-text">Verfehlt!</span><br><br>`;
+            appendCombatLog(`— Gegenschlag —`, 'phase');
+            appendCombatLog(`${e.name} · ${eW.name} · Wurf: ${eRoll} (Chance ${e.angriff}%)`, 'enemy');
 
             if (eRoll <= e.angriff) {
-                const eDmg = rollDice(eW.n, eW.s);
+                const eDmg  = rollDice(eW.n, eW.s);
                 const dRoll = Math.floor(Math.random() * 100) + 1;
-                log += `Feind greift zurück (${e.angriff}%): Wurf ${eRoll} → <span class="fail-text">Treffer! ${eDmg} Schaden</span><br>`;
+                appendCombatLog(`✗ Treffer! ${eDmg} Schaden · Dein Ausweichen: ${dRoll} vs. ${p.ausweichen}%`, 'bad');
                 if (dRoll <= p.ausweichen) {
-                    log += `Ausweichen (${p.ausweichen}%): Wurf ${dRoll} → <span class="success-text">Erfolg!</span> Kein Schaden`;
+                    appendCombatLog(`✓ Ausgewichen! Kein Schaden`, 'good');
                 } else {
                     p.hp = Math.max(0, p.hp - eDmg);
-                    log += `Ausweichen (${p.ausweichen}%): Wurf ${dRoll} → <span class="fail-text">Fehlschlag!</span><br>Du: <b>${p.hp} / ${p.maxHp} LP</b>`;
+                    appendCombatLog(`✗ Ausweichen scheitert · Du: ${p.hp} / ${p.maxHp} LP`, 'bad');
                 }
             } else {
-                log += `Feind greift zurück (${e.angriff}%): Wurf ${eRoll} → <span class="success-text">Auch verfehlt!</span>`;
+                appendCombatLog(`✓ Auch verfehlt! (${eRoll} > ${e.angriff}%)`, 'good');
             }
             if (p.hp <= 0) log += `<br><span class="fail-text"><b>Du wurdest besiegt!</b></span>`;
             setCombatLog(log); showWeiter();
