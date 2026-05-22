@@ -518,12 +518,13 @@
     <script type="module">
         import DiceBox from './lib/dice-box/dice-box.es.min.js';
 
-        // dice-box erwartet assetPath → themes/ und ammo/ direkt darunter
-        // Unsere Struktur: lib/dice-box/assets/themes/ und lib/dice-box/assets/ammo/
-        const base = new URL('./lib/dice-box/assets/', document.baseURI).href;
+        // Worker baut URL als: origin + assetPath + "ammo/ammo.wasm.wasm"
+        // → assetPath muss Pfad ohne Domain sein, origin separat
+        const assetPath = new URL('./lib/dice-box/assets/', document.baseURI).pathname;
 
         const diceBox = new DiceBox({
-            assetPath:      base,
+            origin:         window.location.origin,
+            assetPath,
             container:      '#dice-box-container',
             gravity:        3,
             mass:           1,
