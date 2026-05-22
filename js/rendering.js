@@ -1176,4 +1176,37 @@ function drawGame() {
     ctx.textBaseline = 'top';
     ctx.fillText(`Pistole: ${p.ammo.pistole}  Schrot: ${p.ammo.schrotflinte}`, bx, by + bh + 3);
     ctx.restore();
+
+    // ── Koordinaten-Modus HUD (oben rechts) ──────────────────────────────────
+    if (GameState.coordMode) {
+        const m  = GameState._coordMouse || { wx: 0, wy: 0 };
+        const W  = GameState.worldW || 1800, H = GameState.worldH || 1200;
+        const xp = (m.wx / W * 100).toFixed(1);
+        const yp = (m.wy / H * 100).toFixed(1);
+        const p1 = GameState._coordPoint1;
+
+        ctx.save();
+        ctx.font = "bold 13px monospace";
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+
+        // Hintergrund-Pill
+        const label = p1
+            ? `[2] ENDPUNKT  x=${xp}%  y=${yp}%`
+            : `[C] COORD  x=${xp}%  y=${yp}%`;
+        const tw = ctx.measureText(label).width;
+        ctx.fillStyle = 'rgba(14,9,5,0.88)';
+        ctx.fillRect(canvas.width - tw - 22, 6, tw + 16, 22);
+        ctx.fillStyle = p1 ? '#e87878' : '#ffe890';
+        ctx.fillText(label, canvas.width - 10, 10);
+
+        // Punkt-1-Marker
+        if (p1) {
+            ctx.fillStyle = 'rgba(126,216,120,0.9)';
+            ctx.font = "bold 11px monospace";
+            ctx.textAlign = 'right';
+            ctx.fillText(`P1: x=${p1.xp}%  y=${p1.yp}%`, canvas.width - 10, 32);
+        }
+        ctx.restore();
+    }
 }

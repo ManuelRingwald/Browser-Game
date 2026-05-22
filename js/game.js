@@ -162,10 +162,69 @@ function initGame() {
     window.addEventListener('keydown', (e) => {
         if (Input.hasOwnProperty(e.key)) Input[e.key] = true;
         if (Input.hasOwnProperty(e.key.toLowerCase())) Input[e.key.toLowerCase()] = true;
+        // C = Koordinaten-Modus toggle
+        if ((e.key === 'c' || e.key === 'C') && !e.ctrlKey && !e.altKey) {
+            GameState.coordMode = !GameState.coordMode;
+            GameState._coordPoint1 = null;
+            console.log(`%c[COORD] Koordinaten-Modus ${GameState.coordMode ? 'AN' : 'AUS'}`,
+                'color:#ffe890;font-weight:bold');
+            if (GameState.coordMode)
+                console.log('%c[COORD] Klick 1 = Startpunkt, Klick 2 = Endpunkt → addWall() Ausgabe',
+                    'color:#c8b890');
+        }
     });
     window.addEventListener('keyup', (e) => {
         if (Input.hasOwnProperty(e.key)) Input[e.key] = false;
         if (Input.hasOwnProperty(e.key.toLowerCase())) Input[e.key.toLowerCase()] = false;
+    });
+
+    // ── Koordinaten-Modus: Mausposition tracken ───────────────────────────
+    GameState.coordMode   = false;
+    GameState._coordMouse = { wx: 0, wy: 0 };
+    GameState._coordPoint1 = null;
+
+    canvas.addEventListener('mousemove', e => {
+        if (!GameState.coordMode) return;
+        const rect = canvas.getBoundingClientRect();
+        const z = GameState.zoom;
+        GameState._coordMouse = {
+            wx: (e.clientX - rect.left) * (canvas.width  / rect.width)  / z + GameState.camera.x,
+            wy: (e.clientY - rect.top)  * (canvas.height / rect.height) / z + GameState.camera.y,
+        };
+    });
+
+    canvas.addEventListener('click', e => {
+        if (!GameState.coordMode) return;
+        const rect = canvas.getBoundingClientRect();
+        const z = GameState.zoom;
+        const wx = (e.clientX - rect.left) * (canvas.width  / rect.width)  / z + GameState.camera.x;
+        const wy = (e.clientY - rect.top)  * (canvas.height / rect.height) / z + GameState.camera.y;
+        const W = GameState.worldW || 1800, H = GameState.worldH || 1200;
+        const xp = (wx / W * 100).toFixed(1), yp = (wy / H * 100).toFixed(1);
+
+        if (!GameState._coordPoint1) {
+            // Erster Klick: Startpunkt merken
+            GameState._coordPoint1 = { wx, wy, xp, yp };
+            console.log(`%c[COORD] Punkt 1: x=${xp}%  y=${yp}%  (${Math.round(wx)}px, ${Math.round(wy)}px)`,
+                'color:#7ed878;font-weight:bold');
+            console.log('%c         Jetzt Endpunkt klicken...', 'color:#c8b890');
+        } else {
+            // Zweiter Klick: Wand-Zeile ausgeben
+            const p1 = GameState._coordPoint1;
+            const x1 = Math.min(p1.wx, wx), y1 = Math.min(p1.wy, wy);
+            const x2 = Math.max(p1.wx, wx), y2 = Math.max(p1.wy, wy);
+            const pw = ((x2 - x1) / W * 100).toFixed(1);
+            const ph = ((y2 - y1) / H * 100).toFixed(1);
+            const x1p = (x1 / W * 100).toFixed(1), y1p = (y1 / H * 100).toFixed(1);
+
+            const wallLine  = `addWall(W*${(x1/W).toFixed(3)}, H*${(y1/H).toFixed(3)}, W*${((x2-x1)/W).toFixed(3)}, H*${((y2-y1)/H).toFixed(3)});`;
+            const doorLine  = `addDoor(W*${(x1/W).toFixed(3)}, H*${(y1/H).toFixed(3)}, W*${((x2-x1)/W).toFixed(3)}, H*${((y2-y1)/H).toFixed(3)});`;
+            console.log(`%c[COORD] Punkt 2: x=${xp}%  y=${yp}%`, 'color:#7ed878;font-weight:bold');
+            console.log(`%c         Breite: ${pw}%  Höhe: ${ph}%`, 'color:#c8b890');
+            console.log(`%c→ WAND: ${wallLine}`, 'color:#ffe890;font-weight:bold');
+            console.log(`%c→ TÜR:  ${doorLine}`, 'color:#e87878');
+            GameState._coordPoint1 = null; // Reset für nächste Wand
+        }
     });
 
     // ── Richtungswahl nach Bewegung (Maus) ────────────────────────────────
