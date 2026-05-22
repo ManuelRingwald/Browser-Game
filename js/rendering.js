@@ -1177,6 +1177,56 @@ function drawGame() {
     ctx.fillText(`Pistole: ${p.ammo.pistole}  Schrot: ${p.ammo.schrotflinte}`, bx, by + bh + 3);
     ctx.restore();
 
+    // ── Koordinaten-Modus: Live-Vorschau ─────────────────────────────────────
+    if (GameState.coordMode) {
+        const zoom = GameState.zoom;
+        const cam  = GameState.camera;
+
+        // Alle bereits gesetzten Kollisionswände anzeigen
+        ctx.save();
+        ctx.scale(zoom, zoom);
+        ctx.translate(-cam.x, -cam.y);
+
+        // Bestehende Wände (blau)
+        ctx.strokeStyle = 'rgba(80,160,255,0.75)';
+        ctx.lineWidth   = 2.5 / zoom;
+        ctx.fillStyle   = 'rgba(80,160,255,0.12)';
+        GameState.walls.forEach(w => {
+            ctx.fillRect(w.x, w.y, w.width, w.height);
+            ctx.strokeRect(w.x, w.y, w.width, w.height);
+        });
+
+        // Bestehende Türen (orange)
+        ctx.strokeStyle = 'rgba(255,165,40,0.90)';
+        ctx.fillStyle   = 'rgba(255,165,40,0.20)';
+        GameState.doors.forEach(d => {
+            ctx.fillRect(d.x, d.y, d.w, d.h);
+            ctx.strokeRect(d.x, d.y, d.w, d.h);
+        });
+
+        // Laufende Linie vom P1 zur aktuellen Mausposition
+        const p1  = GameState._coordPoint1;
+        const m   = GameState._coordMouse;
+        if (p1 && m) {
+            const isWall = GameState.coordMode === 'wall';
+            ctx.setLineDash([6, 4]);
+            ctx.strokeStyle = isWall ? 'rgba(255,232,144,0.90)' : 'rgba(232,120,120,0.90)';
+            ctx.lineWidth   = 2 / zoom;
+            ctx.strokeRect(
+                Math.min(p1.wx, m.wx), Math.min(p1.wy, m.wy),
+                Math.abs(m.wx - p1.wx), Math.abs(m.wy - p1.wy)
+            );
+            ctx.setLineDash([]);
+            // Startpunkt-Marker
+            ctx.fillStyle = '#7ed878';
+            ctx.beginPath();
+            ctx.arc(p1.wx, p1.wy, 5 / zoom, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.restore();
+    }
+
     // ── Koordinaten-Modus HUD (oben rechts) ──────────────────────────────────
     if (GameState.coordMode) {
         const m  = GameState._coordMouse || { wx: 0, wy: 0 };
@@ -1191,13 +1241,16 @@ function drawGame() {
         ctx.textBaseline = 'top';
 
         // Hintergrund-Pill
+        const mode  = GameState.coordMode;
+        const modeLabel = mode === 'wall' ? '[C] WAND' : '[T] TÜR ';
+        const modeCol   = mode === 'wall' ? '#ffe890' : '#e87878';
         const label = p1
-            ? `[2] ENDPUNKT  x=${xp}%  y=${yp}%`
-            : `[C] COORD  x=${xp}%  y=${yp}%`;
+            ? `${modeLabel}  P2-Klick  x=${xp}%  y=${yp}%`
+            : `${modeLabel}  x=${xp}%  y=${yp}%`;
         const tw = ctx.measureText(label).width;
         ctx.fillStyle = 'rgba(14,9,5,0.88)';
         ctx.fillRect(canvas.width - tw - 22, 6, tw + 16, 22);
-        ctx.fillStyle = p1 ? '#e87878' : '#ffe890';
+        ctx.fillStyle = p1 ? '#7ed878' : modeCol;
         ctx.fillText(label, canvas.width - 10, 10);
 
         // Punkt-1-Marker
