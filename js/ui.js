@@ -1122,9 +1122,18 @@ function resolveCombat(key) {
                 });
             });
         } else {
-            // Verfehlt
+            // Verfehlt – Gegenschlag mit distanzabhängiger Waffe
             appendCombatLog(`✗ Verfehlt! (${atkRoll} > ${p.angriff}%)`, 'bad');
-            const eW   = WEAPONS[e.waffe];
+
+            // Feind wählt Waffe anhand Distanz:
+            // Im Nahkampf (≤ Faustkampf-Reichweite) → Faust, sonst Primärwaffe
+            const primaryW   = WEAPONS[e.waffe];
+            const fistW      = WEAPONS.faust;
+            const minRanged  = primaryW.ammoKey ? FELD_PX * 1.5 : 0;
+            const hasAmmo    = !primaryW.ammoKey || (e.ammo?.[primaryW.ammoKey] ?? 0) > 0;
+            const canUsePrimary = dist >= minRanged && dist <= primaryW.range && hasAmmo;
+            const eW         = canUsePrimary ? primaryW : fistW;
+
             const eRoll = Math.floor(Math.random() * 100) + 1;
             appendCombatLog(`— Gegenschlag —`, 'phase');
             appendCombatLog(`${e.name} · ${eW.name} · Wurf: ${eRoll} (Chance ${e.angriff}%)`, 'enemy');
@@ -1142,8 +1151,7 @@ function resolveCombat(key) {
             } else {
                 appendCombatLog(`✓ Auch verfehlt! (${eRoll} > ${e.angriff}%)`, 'good');
             }
-            if (p.hp <= 0) log += `<br><span class="fail-text"><b>Du wurdest besiegt!</b></span>`;
-            setCombatLog(log); showWeiter();
+            showWeiter();
             GameState.combatResult = { enemyDied: false, playerDied: p.hp <= 0 };
         }
     });
