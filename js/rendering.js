@@ -983,12 +983,15 @@ function drawGame() {
     ctx.scale(zoom, zoom);
 
     if (GameState.showFullMap) {
-        // Kein Nebel: wallCanvas direkt zeichnen (für Karten-Bearbeitung)
         ctx.drawImage(wallCanvas, -cam.x, -cam.y);
     } else {
         ctx.drawImage(exploredCanvas, -cam.x, -cam.y);
         ctx.globalCompositeOperation = 'source-in';
         ctx.drawImage(wallCanvas, -cam.x, -cam.y);
+        // Unerkundete Bereiche mit Wandfarbe füllen (destination-over = hinter erkundet)
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.fillStyle = 'rgb(42, 32, 18)';
+        ctx.fillRect(-cam.x, -cam.y, canvas.width / zoom, canvas.height / zoom);
         ctx.globalCompositeOperation = 'source-over';
     }
 
