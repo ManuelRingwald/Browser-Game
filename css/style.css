@@ -72,10 +72,8 @@ html, body {
 /* Bleistift: vertikal, leicht schräg (Radiergummi unten, Spitze oben) */
 #game-pencil {
     position: absolute;
-    /* Spitze zeigt nach oben-links, Radiergummi unten-rechts */
-    bottom: 18px;
+    bottom: 60px;   /* höher gesetzt damit er sichtbar bleibt */
     right: 22px;
-    /* ~83° von horizontal = fast senkrecht, leicht nach links geneigt */
     transform: rotate(-83deg);
     transform-origin: right bottom;
     opacity: 0.84;
@@ -100,13 +98,43 @@ html, body {
 
 /* Charakterbogen-Icon: kleines Menü-Symbol oben-links, über der LP-Anzeige */
 #charBtn {
-    position: absolute; top: 8px; left: 10px; z-index: 15; display: none;
-    font-family: 'Kalam', cursive; font-size: 0.88rem; font-weight: 700; color: rgba(55,40,22,0.82);
-    background: rgba(235, 225, 200, 0.70); border: 1.5px solid rgba(75,55,30,0.40);
-    border-radius: 3px; padding: 2px 8px; cursor: pointer; line-height: 1.4; min-height: 0;
-    box-shadow: 1px 1px 4px rgba(0,0,0,0.15);
+    position: absolute; top: 10px; left: 12px; z-index: 15; display: none;
+    font-family: 'Kalam', cursive; font-size: 0.82rem; font-weight: 700;
+    color: rgba(55,40,22,0.80);
+    background: rgba(240, 232, 210, 0.72);
+    /* Leicht unregelmäßiger Rand – wirkt handgezeichnet */
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 5px 10px 5px 8px;
+    /* Sketch-Rahmen via SVG-ähnlichem box-shadow-Trick */
+    box-shadow:
+        0 0 0 1.5px rgba(60,42,22,0.50),
+        1px 1px 0 1.5px rgba(60,42,22,0.18),
+        2px 2px 5px rgba(0,0,0,0.18);
+    border-radius: 2px 4px 3px 2px;
+    display: none; /* JS setzt display:flex wenn sichtbar */
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
 }
-#charBtn:hover { background: rgba(235, 225, 200, 0.95); }
+#charBtn:hover {
+    background: rgba(248, 240, 218, 0.90);
+    box-shadow:
+        0 0 0 1.5px rgba(60,42,22,0.65),
+        1px 1px 0 1.5px rgba(60,42,22,0.25),
+        2px 3px 8px rgba(0,0,0,0.25);
+}
+#charBtn:active { transform: translate(1px, 1px); box-shadow: 0 0 0 1.5px rgba(60,42,22,0.55); }
+
+.charbtn-icon {
+    width: 18px; height: 14px;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+.charbtn-label {
+    vertical-align: middle;
+}
 
 .menu-box {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);

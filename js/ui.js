@@ -63,7 +63,7 @@ document.addEventListener('keydown', e => {
     if ((e.key === 'i' || e.key === 'I') && !e.ctrlKey && !e.altKey && !e.metaKey) {
         if (charSheet.style.display === 'flex') {
             closeCharSheet();
-        } else if (charBtn.style.display === 'block') {
+        } else if (charBtn.style.display !== 'none') {
             charBtn.click();
         }
     }
@@ -79,7 +79,7 @@ startBtn.addEventListener('click', () => {
     setTimeout(() => {
         landingPage.style.display = 'none';
         document.getElementById('gameCanvas').style.display = 'block';
-        charBtn.style.display = 'block';
+        charBtn.style.display = 'flex';
         document.getElementById('gameCanvas').getBoundingClientRect();
 
         // Startet die Engine (definiert in game.js)
@@ -104,7 +104,8 @@ charBtn.addEventListener('click', () => {
     document.getElementById('cs-ammo-pistole').textContent = p.ammo.pistole;
     document.getElementById('cs-ammo-schrot').textContent  = p.ammo.schrotflinte;
     updateWeaponStatus();
-    charBtn.style.display = 'none';   // Profil-Button verstecken während Bogen offen
+    charBtn.style.display = 'none';
+    document.getElementById('dpad')?.classList.add('dpad-combat'); // D-Pad beim Profil ausblenden
     charSheet.style.display = 'flex';
     // Minimap beim Öffnen zeichnen (leicht verzögert damit Layout gesetzt ist)
     requestAnimationFrame(() => requestAnimationFrame(updateMinimap));
@@ -134,7 +135,8 @@ let swipeActive = false;
 
 window.closeCharSheet = function() {
     charSheet.style.display = 'none';
-    charBtn.style.display = 'block';  // Profil-Button wieder einblenden
+    charBtn.style.display = 'flex';
+    document.getElementById('dpad')?.classList.remove('dpad-combat'); // D-Pad wieder einblenden
     GameState.paused = false;
 };
 
