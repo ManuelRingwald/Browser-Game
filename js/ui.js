@@ -1128,34 +1128,64 @@ function resolveCombat(key) {
             // Verfehlt – Gegenschlag mit distanzabhängiger Waffe
             appendCombatLog(`✗ Verfehlt! (${atkRoll} > ${p.angriff}%)`, 'bad');
 
-            // Feind wählt Waffe anhand Distanz:
-            // Im Nahkampf (≤ Faustkampf-Reichweite) → Faust, sonst Primärwaffe
-            const primaryW   = WEAPONS[e.waffe];
-            const fistW      = WEAPONS.faust;
-            const minRanged  = primaryW.ammoKey ? FELD_PX * 1.5 : 0;
-            const hasAmmo    = !primaryW.ammoKey || (e.ammo?.[primaryW.ammoKey] ?? 0) > 0;
+            // Waffenwahl (Distanz)
+            const primaryW      = WEAPONS[e.waffe];
+            const fistW         = WEAPONS.faust;
+            const minRanged     = primaryW.ammoKey ? FELD_PX * 1.5 : 0;
+            const hasAmmo       = !primaryW.ammoKey || (e.ammo?.[primaryW.ammoKey] ?? 0) > 0;
             const canUsePrimary = dist >= minRanged && dist <= primaryW.range && hasAmmo;
-            const eW         = canUsePrimary ? primaryW : fistW;
+            const eW            = canUsePrimary ? primaryW : fistW;
+            const eWKey         = canUsePrimary ? e.waffe : 'faust';
 
-            const eRoll = Math.floor(Math.random() * 100) + 1;
-            appendCombatLog(`— Gegenschlag —`, 'phase');
-            appendCombatLog(`${e.name} · ${eW.name} · Wurf: ${eRoll} (Chance ${e.angriff}%)`, 'enemy');
-
-            if (eRoll <= e.angriff) {
-                const eDmg  = rollDice(eW.n, eW.s);
-                const dRoll = Math.floor(Math.random() * 100) + 1;
-                appendCombatLog(`✗ Treffer! ${eDmg} Schaden · Dein Ausweichen: ${dRoll} vs. ${p.ausweichen}%`, 'bad');
-                if (dRoll <= p.ausweichen) {
-                    appendCombatLog(`✓ Ausgewichen! Kein Schaden`, 'good');
-                } else {
-                    p.hp = Math.max(0, p.hp - eDmg);
-                    appendCombatLog(`✗ Ausweichen scheitert · Du: ${p.hp} / ${p.maxHp} LP`, 'bad');
-                }
-            } else {
-                appendCombatLog(`✓ Auch verfehlt! (${eRoll} > ${e.angriff}%)`, 'good');
+            // Ergebnis vorab berechnen (für Schuss-Overshoot)
+            const eRoll       = Math.floor(Math.random() * 100) + 1;
+            const enemyHits   = eRoll <= e.angriff;
+            let   eDmg = 0, dRoll = 0, dodgeSuccess = false;
+            if (enemyHits) {
+                eDmg         = rollDice(eW.n, eW.s);
+                dRoll        = Math.floor(Math.random() * 100) + 1;
+                dodgeSuccess = dRoll <= p.ausweichen;
             }
-            showWeiter();
-            GameState.combatResult = { enemyDied: false, playerDied: p.hp <= 0 };
+
+            // Schuss-Animation sofort spawnen (Projektil fliegt während Würfel läuft)
+            if (eW.ammoKey && e.ammo) {
+                e.ammo[eWKey] = Math.max(0, (e.ammo[eWKey] ?? 0) - 1);
+                spawnProjectiles(e.x, e.y, p.x, p.y, eWKey,
+                    /* overshoot */ !enemyHits || dodgeSuccess);
+            }
+
+            // Pacing: kurze Pause → Gegenschlag-Header → Würfel-Animation
+            Anim.push({ duration: 380 }); // Pause nach "Verfehlt!"
+            Anim.push({
+                duration: 50,
+                onStart() { appendCombatLog(`— Gegenschlag —`, 'phase'); }
+            });
+            Anim.push({ duration: 320 });
+            Anim.push({
+                duration: 50,
+                onStart() {
+                    appendCombatLog(
+                        `${e.name} · ${eW.name} · Wurf: <span id="rd-counter" class="rolling-number">--</span> (Chance ${e.angriff}%)`,
+                        'enemy');
+                },
+                onComplete() {
+                    animateRoll('rd-counter', eRoll, () => {
+                        if (enemyHits) {
+                            appendCombatLog(`✗ Treffer! ${eDmg} Schaden · Ausweichen: ${dRoll} vs. ${p.ausweichen}%`, 'bad');
+                            if (dodgeSuccess) {
+                                appendCombatLog(`✓ Ausgewichen! Kein Schaden`, 'good');
+                            } else {
+                                p.hp = Math.max(0, p.hp - eDmg);
+                                appendCombatLog(`✗ Ausweichen scheitert · Du: ${p.hp} / ${p.maxHp} LP`, 'bad');
+                            }
+                        } else {
+                            appendCombatLog(`✓ Auch verfehlt! (${eRoll} > ${e.angriff}%)`, 'good');
+                        }
+                        showWeiter();
+                        GameState.combatResult = { enemyDied: false, playerDied: p.hp <= 0 };
+                    });
+                }
+            });
         }
     });
 }
