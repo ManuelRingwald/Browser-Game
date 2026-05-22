@@ -367,13 +367,26 @@ function initGame() {
 
     // Prüft ob eine Tür im erkundeten Bereich liegt (exploredCanvas)
     function isDoorExplored(door) {
-        if (GameState.showFullMap) return true; // Nebel aus → alle Türen erreichbar
+        if (GameState.showFullMap) return true;
+        // Physisch nah → immer zugänglich (Spieler steht direkt davor, auch wenn Nebel nur Rand zeigt)
+        if (playerNearDoor(Entities.player, door)) return true;
         if (!exploredCtx || !exploredCanvas) return true;
-        const r   = getDoorInteractRect(door);
-        const cx  = Math.min(Math.max(0, Math.floor(r.x + r.w / 2)), exploredCanvas.width  - 1);
-        const cy  = Math.min(Math.max(0, Math.floor(r.y + r.h / 2)), exploredCanvas.height - 1);
-        try { return exploredCtx.getImageData(cx, cy, 1, 1).data[3] > 80; }
-        catch (_) { return true; }
+        // Mehrere Punkte der Tür prüfen (nicht nur Mitte – Türen sind oft sehr dünn)
+        const r = getDoorInteractRect(door);
+        const points = [
+            [r.x + r.w * 0.5, r.y + r.h * 0.5],  // Mitte
+            [r.x + r.w * 0.2, r.y + r.h * 0.5],  // Links-Mitte
+            [r.x + r.w * 0.8, r.y + r.h * 0.5],  // Rechts-Mitte
+            [r.x + r.w * 0.5, r.y + r.h * 0.2],  // Oben-Mitte
+            [r.x + r.w * 0.5, r.y + r.h * 0.8],  // Unten-Mitte
+        ];
+        try {
+            return points.some(([px, py]) => {
+                const cx = Math.min(Math.max(0, Math.floor(px)), exploredCanvas.width  - 1);
+                const cy = Math.min(Math.max(0, Math.floor(py)), exploredCanvas.height - 1);
+                return exploredCtx.getImageData(cx, cy, 1, 1).data[3] > 80;
+            });
+        } catch (_) { return true; }
     }
 
     // ── Tür-Hover (Maus) ──────────────────────────────────────────────────

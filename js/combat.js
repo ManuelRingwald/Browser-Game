@@ -29,7 +29,7 @@
 
 // ── Tür-Interaktion ───────────────────────────────────────────────────────────
 
-const DOOR_INTERACT_RANGE = FELD_PX * 1.6; // ~96 px
+const DOOR_INTERACT_RANGE = FELD_PX * 2.2; // ~132 px (großzügiger für dünne Türen)
 
 // Gibt das Rect zurück, das für Hover/Klick relevant ist:
 // geschlossen → originales Rect; offen → Türblatt-Position.
