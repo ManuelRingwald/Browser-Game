@@ -977,14 +977,19 @@ function drawGame() {
     // Welt-Canvas mit Zoom auf Viewport zeichnen
     const zoom = GameState.zoom;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Kein Smoothing: verhindert Blurring/Flickern bei nicht-1:1-Zoom auf Mobile
     ctx.imageSmoothingEnabled = false;
     ctx.save();
     ctx.scale(zoom, zoom);
-    ctx.drawImage(exploredCanvas, -cam.x, -cam.y);
-    ctx.globalCompositeOperation = 'source-in';
-    ctx.drawImage(wallCanvas, -cam.x, -cam.y);
-    ctx.globalCompositeOperation = 'source-over';
+
+    if (GameState.showFullMap) {
+        // Kein Nebel: wallCanvas direkt zeichnen (für Karten-Bearbeitung)
+        ctx.drawImage(wallCanvas, -cam.x, -cam.y);
+    } else {
+        ctx.drawImage(exploredCanvas, -cam.x, -cam.y);
+        ctx.globalCompositeOperation = 'source-in';
+        ctx.drawImage(wallCanvas, -cam.x, -cam.y);
+        ctx.globalCompositeOperation = 'source-over';
+    }
 
     // Alle Weltobjekte mit Kamera-Offset zeichnen
     ctx.save();

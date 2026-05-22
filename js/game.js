@@ -163,6 +163,13 @@ function initGame() {
         if (Input.hasOwnProperty(e.key)) Input[e.key] = true;
         if (Input.hasOwnProperty(e.key.toLowerCase())) Input[e.key.toLowerCase()] = true;
         // C = Wand-Modus, T = Tür-Modus (selbe Taste nochmal = aus)
+        // N = Nebel-Toggle (Karte komplett sichtbar)
+        if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.altKey) {
+            GameState.showFullMap = !GameState.showFullMap;
+            console.log(`%c[N] Nebel ${GameState.showFullMap ? 'AUS – Karte komplett sichtbar' : 'AN'}`,
+                'color:#c8b890;font-weight:bold');
+        }
+
         if (!e.ctrlKey && !e.altKey) {
             const isWall = e.key === 'c' || e.key === 'C';
             const isDoor = e.key === 't' || e.key === 'T';

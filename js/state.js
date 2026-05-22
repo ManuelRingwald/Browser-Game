@@ -48,6 +48,9 @@ const GameState = {
     // Ausweich-Malus durch Blickrichtung (0 = vorne / -20 = Seite / -999 = Rücken)
     dodgeFacingMod: 0,
 
+    // Nebel deaktiviert (für Karten-Bearbeitung, Taste N)
+    showFullMap: false,
+
     // D-Pad (Mobile)
     dpad: { active: false, dx: 0, dy: 0 },
 
