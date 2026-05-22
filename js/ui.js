@@ -500,8 +500,8 @@ function spawnDiceAnim(max, finalValue) {
                    : max === 12 ? '2d6'
                    :              '1d100';
 
-    if (window._diceBox) {
-        // 3D-Würfel über dice-box – Ergebnis wird ignoriert, wir nutzen finalValue
+    if (window._diceBoxReady && window._diceBox) {
+        // 3D-Würfel über dice-box – rein visuell, finalValue kommt aus Spiellogik
         window._diceBox.roll(notation).catch(() => {});
         return;
     }

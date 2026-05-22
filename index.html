@@ -517,28 +517,35 @@
     <div id="dice-box-container"></div>
     <script type="module">
         import DiceBox from './lib/dice-box/dice-box.es.min.js';
+
+        // Relativer Pfad für GitHub Pages (Repo im Unterverzeichnis)
+        const base = new URL('./lib/dice-box/', document.baseURI).href;
+
         const diceBox = new DiceBox({
-            assetPath:   '/lib/dice-box/',
-            container:   '#dice-box-container',
-            gravity:     3,
-            mass:        1,
-            friction:    0.8,
-            restitution: 0.2,
+            assetPath:      base,
+            container:      '#dice-box-container',
+            gravity:        3,
+            mass:           1,
+            friction:       0.8,
+            restitution:    0.2,
             angularDamping: 0.4,
             linearDamping:  0.4,
-            spinForce:   6,
-            throwForce:  5,
+            spinForce:      6,
+            throwForce:     5,
             startingHeight: 8,
             settleTimeout:  4000,
-            theme:       'default',
-            themeColor:  '#e8dfc0',  // Pergament-Ton passend zum Spiel
-            scale:       7,
+            theme:          'default',
+            themeColor:     '#e8dfc0',
+            scale:          7,
         });
 
-        diceBox.init().then(() => {
-            window._diceBox = diceBox;
-            console.log('[DiceBox] Bereit');
-        }).catch(e => console.warn('[DiceBox] Init fehlgeschlagen:', e));
+        diceBox.init()
+            .then(() => {
+                window._diceBox = diceBox;
+                window._diceBoxReady = true;
+                console.log('[DiceBox] Bereit –', base);
+            })
+            .catch(e => console.warn('[DiceBox] Init fehlgeschlagen:', e));
     </script>
 </body>
 </html>
