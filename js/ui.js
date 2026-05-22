@@ -405,11 +405,15 @@ function updateWeaponStatus() {
 // Hilfsfunktionen
 function el(id) { return document.getElementById(id); }
 function showResultMenu() { el('combat-result').style.display = 'flex'; el('btn-weiter').style.display = 'none'; el('react-section').style.display = 'none'; }
-function showWeiter()     { el('btn-weiter').style.display = 'block'; }
+function showWeiter() {
+    const btn = el('btn-weiter');
+    if (btn) btn.style.display = 'block';
+}
 
 // Hängt eine Log-Zeile als eigenes div mit Typ-Klasse an + scrollt nach unten
 function appendCombatLog(html, type = 'info') {
     const log = el('combat-log');
+    if (!log) return;  // Safety: Element nicht gefunden → keine Exception
     const entry = document.createElement('div');
     entry.className = `log-entry log-${type}`;
     entry.innerHTML = html;
@@ -419,7 +423,9 @@ function appendCombatLog(html, type = 'info') {
 
 // Setzt Log komplett neu (löscht alle Zeilen)
 function setCombatLog(html, type = 'info') {
-    el('combat-log').innerHTML = '';
+    const log = el('combat-log');
+    if (!log) return;
+    log.innerHTML = '';
     if (html) appendCombatLog(html, type);
 }
 
@@ -677,42 +683,39 @@ window.combatSneak = function() {
             });
         } else {
             // ── Fehlschlag: Feind bemerkt Spieler ───────────────────────────
-            setCombatLog(`<span class="fail-text">Entdeckt! (${roll} > ${sneakChance}%)</span>`);
+            setCombatLog('— Anschleichen fehlgeschlagen —', 'phase');
+            appendCombatLog(`✗ Entdeckt! (${roll} > ${sneakChance}%)`, 'bad');
 
-            // Dreht sich der Feind bereits zum Spieler? (Hinterhalt → wahrscheinlich nicht)
             const rotStart  = e.angle;
             const rotTarget = Math.atan2(p.y - e.y, p.x - e.x);
             let rotDelta = rotTarget - rotStart;
             while (rotDelta >  Math.PI) rotDelta -= 2 * Math.PI;
             while (rotDelta < -Math.PI) rotDelta += 2 * Math.PI;
 
+            // doAttack hängt NUR an, löscht nichts – Drehungs-Eintrag bleibt sichtbar
             const doAttack = () => {
                 const eW    = WEAPONS[e.waffe];
                 const eRoll = Math.floor(Math.random() * 100) + 1;
-                let log = `<span class="fail-text">Entdeckt! (${roll} > ${sneakChance}%)</span><br>`;
-                log += `${e.name} reagiert – ${eW.name} (${e.angriff}%): Wurf ${eRoll}<br>`;
+                appendCombatLog(`${e.name} reagiert · ${eW.name} · Wurf: ${eRoll} (Chance ${e.angriff}%)`, 'enemy');
                 if (eRoll <= e.angriff) {
                     const eDmg = rollDice(eW.n, eW.s);
                     p.hp = Math.max(0, p.hp - eDmg);
-                    log += `<span class="fail-text">Treffer! ${eDmg} Schaden.</span> Du: <b>${p.hp}/${p.maxHp} LP</b>`;
+                    appendCombatLog(`✗ Treffer! ${eDmg} Schaden · Du: ${p.hp}/${p.maxHp} LP`, 'bad');
                 } else {
-                    log += `<span class="success-text">${e.name} verfehlt!</span>`;
+                    appendCombatLog(`✓ ${e.name} verfehlt!`, 'good');
                 }
-                setCombatLog(log);
                 showWeiter();
                 GameState.combatResult = { enemyDied: false, playerDied: p.hp <= 0 };
             };
 
             if (Math.abs(rotDelta) > 0.15) {
-                // Feind muss sich erst umdrehen
-                appendCombatLog(`<br><span style="color:#c8b890;">${e.name} dreht sich um…</span>`);
+                appendCombatLog(`${e.name} dreht sich um…`, 'info');
                 Anim.push({
                     duration: 380,
                     onUpdate(_, t) { e.angle = lerpAngle(rotStart, rotTarget, t); },
                     onComplete: doAttack,
                 });
             } else {
-                // Bereits ausgerichtet – sofort Gegenangriff
                 e.angle = rotTarget;
                 doAttack();
             }
