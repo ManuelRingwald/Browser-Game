@@ -43,9 +43,78 @@ function addFurniture(x, y, w, h, type) {
     GameState.furniture.push({ x, y, w, h, type, blockSight: SIGHT_BLOCKING_TYPES.has(type) });
 }
 
-// ── Full_map – Wände werden per Koordinaten-Tool gezeichnet (C/T + Klicks) ───
-// Taste N = Nebel aus, C = Wand, T = Tür, Z = Undo
-// Konsolen-Log am Ende kopieren und einsenden → Code wird eingebaut.
+// ── LDtk-Karte laden und in Spielwelt übersetzen ─────────────────────────────
+async function loadLdtkMap() {
+    const W = wallCanvas.width, H = wallCanvas.height;
+
+    try {
+        const res  = await fetch('spencer_mansion.ldtk');
+        const data = await res.json();
+        const level = data.levels[0];
+
+        // Collision-Layer → Wände (horizontal zusammengeführt)
+        const colLayer = level.layerInstances.find(l => l.__identifier === 'Collision');
+        if (colLayer) {
+            const gs  = colLayer.__gridSize;
+            const cw  = colLayer.__cWid;
+            const ch  = colLayer.__cHei;
+            const csv = colLayer.intGridCsv;
+
+            for (let r = 0; r < ch; r++) {
+                let c = 0;
+                while (c < cw) {
+                    const v = csv[r * cw + c];
+                    if (!v) { c++; continue; }
+                    const start = c;
+                    while (c < cw && csv[r * cw + c] === v) c++;
+                    const x = start * gs, y = r * gs, w = (c - start) * gs;
+                    if (v === 1) addWall(x, y, w, gs);
+                    else if (v === 2) addDoor(x, y, w, gs);
+                }
+            }
+        }
+
+        // Entities-Layer → Spieler, Gegner, Items
+        const entLayer = level.layerInstances.find(l => l.__identifier === 'Entities');
+        if (entLayer) {
+            let ei = 0;
+            for (const e of entLayer.entityInstances) {
+                const [px, py] = e.px;
+                if (e.__identifier === 'PlayerSpawn') {
+                    Entities.player.x     = px;
+                    Entities.player.y     = py;
+                    Entities.player.angle = -Math.PI / 2;
+                } else if (e.__identifier === 'Enemy' && ei < Entities.enemies.length) {
+                    const en = Entities.enemies[ei++];
+                    en.isDead = false; en.hp = en.maxHp; en.ignoreUntil = 0;
+                    en.currentWaypoint = 0; en.x = px; en.y = py;
+                    // Einfache Patrouille: 2 Punkte horizontal
+                    const swing = 180;
+                    en.waypoints = [
+                        { x: px, y: py },
+                        { x: Math.min(W - gs, px + swing), y: py },
+                    ];
+                } else if (e.__identifier === 'Medikit') {
+                    GameState.worldItems.push({
+                        id: `mk_${px}_${py}`, type: 'medikit', label: 'Medikit',
+                        img: 'img/icon-medikit.svg', color: 'rgba(180,30,30,0.85)',
+                        x: px, y: py,
+                    });
+                }
+            }
+            // Überzählige Gegner deaktivieren
+            for (; ei < Entities.enemies.length; ei++) Entities.enemies[ei].isDead = true;
+        }
+
+        console.log('[LDtk] Karte geladen');
+    } catch (err) {
+        console.warn('[LDtk] Fehler beim Laden:', err);
+    }
+
+    renderBlueprint();
+}
+
+// ── Karten-Aufbau ─────────────────────────────────────────────────────────────
 function buildMansion() {
     GameState.walls     = [];
     GameState.doors     = [];
@@ -118,41 +187,7 @@ function buildMansion() {
     addDoor(W*0.227, H*0.580, W*0.057, H*0.011);
     addDoor(W*0.401, H*0.715, W*0.008, H*0.079);
 
-    // ── SPAWN ─────────────────────────────────────────────────────────────
-    Entities.player.x = W * 0.253;
-    Entities.player.y = H * 0.730;
-    Entities.player.angle = -Math.PI / 2;
-
-    // ── 6 SOLDATEN – verteilt über die gesamte Karte ─────────────────────
-    const soldatenSetup = [
-        // [Patrol-Punkte], Startwinkel
-        { pts: [[0.120, 0.160],[0.200, 0.160],[0.200, 0.250],[0.120, 0.250]], angle: 0 },
-        { pts: [[0.140, 0.380],[0.210, 0.380],[0.210, 0.480],[0.140, 0.480]], angle: Math.PI },
-        { pts: [[0.340, 0.130],[0.390, 0.130],[0.390, 0.300],[0.340, 0.300]], angle: Math.PI/2 },
-        { pts: [[0.580, 0.120],[0.620, 0.120],[0.620, 0.260],[0.580, 0.260]], angle: 0 },
-        { pts: [[0.700, 0.330],[0.800, 0.330],[0.800, 0.420],[0.700, 0.420]], angle: -Math.PI/2 },
-        { pts: [[0.650, 0.720],[0.850, 0.720],[0.850, 0.880],[0.650, 0.880]], angle: Math.PI },
-    ];
-    Entities.enemies.forEach((e, i) => {
-        const s = soldatenSetup[i];
-        e.isDead = false; e.hp = e.maxHp; e.ignoreUntil = 0;
-        e.currentWaypoint = 0; e.angle = s.angle;
-        e.ammo = { pistole: 12, schrotflinte: 0 };
-        e.waypoints = s.pts.map(([px, py]) => ({ x: W * px, y: H * py }));
-        e.x = e.waypoints[0].x; e.y = e.waypoints[0].y;
-    });
-
-    // ── 3 MEDIKITS in verschiedenen Räumen ────────────────────────────────
-    GameState.worldItems = [
-        { id:'mk1', type:'medikit', label:'Medikit', img:'img/icon-medikit.svg',
-          color:'rgba(180,30,30,0.85)', x: W*0.165, y: H*0.200 },
-        { id:'mk2', type:'medikit', label:'Medikit', img:'img/icon-medikit.svg',
-          color:'rgba(180,30,30,0.85)', x: W*0.600, y: H*0.180 },
-        { id:'mk3', type:'medikit', label:'Medikit', img:'img/icon-medikit.svg',
-          color:'rgba(180,30,30,0.85)', x: W*0.750, y: H*0.800 },
-    ];
-
-    // ── AUSRÜSTUNG: Messer rechts, Pistole links (per DOM nach Ladezeit) ──
+    // ── AUSRÜSTUNG: Messer rechts, Pistole links ──────────────────────────
     setTimeout(() => {
         const knife  = document.getElementById('messer-skizze');
         const pistol = document.getElementById('pistole-skizze');
@@ -163,7 +198,10 @@ function buildMansion() {
         if (typeof updateWeaponStatus === 'function') updateWeaponStatus();
     }, 200);
 
-    renderBlueprint();
+    // Wände, Spawns und Items kommen aus LDtk (async)
+    GameState.worldItems  = [];
+    GameState.coordDrawn  = [];
+    loadLdtkMap();
 }
 
 // ── Blueprint-Zeichenroutinen ─────────────────────────────────────────────────
