@@ -988,10 +988,13 @@ function drawGame() {
         ctx.drawImage(exploredCanvas, -cam.x, -cam.y);
         ctx.globalCompositeOperation = 'source-in';
         ctx.drawImage(wallCanvas, -cam.x, -cam.y);
-        // Unerkundete Bereiche mit Wandfarbe füllen (destination-over = hinter erkundet)
+        // Unerkundete Bereiche füllen: Screen-Space Reset damit der gesamte Canvas abgedeckt wird
         ctx.globalCompositeOperation = 'destination-over';
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // Zoom & Kamera zurücksetzen → Screen-Koordinaten
         ctx.fillStyle = 'rgb(235, 232, 225)';
-        ctx.fillRect(-cam.x, -cam.y, canvas.width / zoom, canvas.height / zoom);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
         ctx.globalCompositeOperation = 'source-over';
     }
 
