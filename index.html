@@ -38,8 +38,10 @@
                 <line x1="10.5" y1="7"   x2="14" y2="7.5" stroke-width="0.9" stroke-opacity="0.6"/>
                 <line x1="10.5" y1="9.5" x2="14" y2="10"  stroke-width="0.9" stroke-opacity="0.6"/>
             </svg>
-            <span class="charbtn-label">Profil</span>
         </button>
+
+        <!-- Overlay: Klick außerhalb des Bogens schließt ihn -->
+        <div id="charsheet-overlay" onclick="closeCharSheet()"></div>
 
         <div id="char-sheet">
 
@@ -79,6 +81,9 @@
                 </svg>
 
             <div class="char-page active" id="char-page-1">
+
+                <!-- X-Schließen-Button oben rechts -->
+                <button class="charsheet-close-x" onclick="closeCharSheet()" title="Schließen (I)">✕</button>
 
                 <!-- ── KOPFZEILE ─────────────────────────────────── -->
                 <header class="header-section">
@@ -402,36 +407,34 @@
             <!-- Bleistift (vertikal, leicht schräg) -->
             <svg id="game-pencil" xmlns="http://www.w3.org/2000/svg"
                  width="280" height="22" viewBox="0 0 280 22">
-                <!-- Radiergummi: gedämpftes Rosa -->
+                <!-- Radiergummi -->
                 <rect x="1" y="5.5" width="20" height="11" rx="2.5"
                       fill="#c9968e" stroke="#a07060" stroke-width="0.8"/>
-                <!-- Metallring (Ferrule): matte Silber -->
+                <!-- Metallring (Ferrule) -->
                 <rect x="21" y="5.5" width="11" height="11"
-                      fill="#a8a8a0" stroke="#888" stroke-width="0.6"/>
-                <line x1="24.5" y1="5.5" x2="24.5" y2="16.5" stroke="#ccc" stroke-width="0.5"/>
-                <line x1="28"   y1="5.5" x2="28"   y2="16.5" stroke="#ccc" stroke-width="0.5"/>
-                <!-- Schaft Highlight (Faber-Castell dunkelgrün) -->
-                <rect x="32" y="5.5" width="214" height="3.5"
-                      fill="#3e7a35"/>
-                <!-- Schaft Mitte -->
+                      fill="#b8b8b2" stroke="#999" stroke-width="0.6"/>
+                <line x1="24.5" y1="5.5" x2="24.5" y2="16.5" stroke="#ddd" stroke-width="0.5"/>
+                <line x1="28"   y1="5.5" x2="28"   y2="16.5" stroke="#ddd" stroke-width="0.5"/>
+                <!-- Grauer Schaft – Highlight -->
+                <rect x="32" y="5.5" width="214" height="3.5" fill="#b0b0b0"/>
+                <!-- Grauer Schaft – Mitte -->
                 <rect x="32" y="5.5" width="214" height="11"
-                      fill="#2d5e25" stroke="rgba(0,0,0,0.18)" stroke-width="0.5"/>
-                <!-- Schaft Schatten -->
-                <rect x="32" y="13" width="214" height="3.5"
-                      fill="#1e3f18"/>
-                <!-- Prägung (Gold) -->
+                      fill="#8c8c8c" stroke="rgba(0,0,0,0.15)" stroke-width="0.5"/>
+                <!-- Grauer Schaft – Schatten -->
+                <rect x="32" y="13" width="214" height="3.5" fill="#686868"/>
+                <!-- Prägung (helles Silber) -->
                 <text x="140" y="13.2" text-anchor="middle" font-size="5.8"
-                      fill="rgba(220,185,70,0.72)" font-family="Georgia, serif"
+                      fill="rgba(200,200,200,0.70)" font-family="Georgia, serif"
                       font-style="italic" letter-spacing="2.2">SPENCER  ✦  No. 2</text>
                 <!-- Holz-Konus -->
-                <path d="M246 5.5 L246 16.5 L275 11 Z" fill="#c49858"/>
-                <line x1="246" y1="8"  x2="268" y2="11"
-                      stroke="rgba(120,80,30,0.4)" stroke-width="0.7"/>
-                <line x1="246" y1="14" x2="268" y2="11"
-                      stroke="rgba(120,80,30,0.4)" stroke-width="0.7"/>
-                <!-- Mine -->
-                <ellipse cx="276.5" cy="11" rx="3" ry="2.2" fill="#222"/>
-                <ellipse cx="275.8" cy="10.1" rx="0.9" ry="0.6" fill="#555"/>
+                <path d="M246 5.5 L246 16.5 L275 11 Z" fill="#c8a870"/>
+                <line x1="246" y1="8"  x2="269" y2="11"
+                      stroke="rgba(120,85,35,0.38)" stroke-width="0.7"/>
+                <line x1="246" y1="14" x2="269" y2="11"
+                      stroke="rgba(120,85,35,0.38)" stroke-width="0.7"/>
+                <!-- Mine: spitzes Dreieck statt runder Ellipse -->
+                <polygon points="274.5,9.8 274.5,12.2 279.5,11" fill="#252525"/>
+                <polygon points="275.5,10.5 275.5,11.5 278.5,11" fill="#505050"/>
             </svg>
         </div>
     </div>

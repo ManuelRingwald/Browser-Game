@@ -105,7 +105,8 @@ charBtn.addEventListener('click', () => {
     document.getElementById('cs-ammo-schrot').textContent  = p.ammo.schrotflinte;
     updateWeaponStatus();
     charBtn.style.display = 'none';
-    document.getElementById('dpad')?.classList.add('dpad-combat'); // D-Pad beim Profil ausblenden
+    document.getElementById('dpad')?.classList.add('dpad-combat');
+    document.getElementById('charsheet-overlay').style.display = 'block';
     charSheet.style.display = 'flex';
     // Minimap beim Öffnen zeichnen (leicht verzögert damit Layout gesetzt ist)
     requestAnimationFrame(() => requestAnimationFrame(updateMinimap));
@@ -136,7 +137,8 @@ let swipeActive = false;
 window.closeCharSheet = function() {
     charSheet.style.display = 'none';
     charBtn.style.display = 'flex';
-    document.getElementById('dpad')?.classList.remove('dpad-combat'); // D-Pad wieder einblenden
+    document.getElementById('dpad')?.classList.remove('dpad-combat');
+    document.getElementById('charsheet-overlay').style.display = 'none';
     GameState.paused = false;
 };
 
