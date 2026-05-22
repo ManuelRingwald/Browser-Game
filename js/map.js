@@ -77,6 +77,15 @@ function buildMansion() {
     addDoor(W*.30, H*.35, T, DW);
     addWall(W*.30, H*.35+DW/H, T, H*.55 - H*.35 - DW/H);
 
+    // ── INTERNE VERTIKALWAND bei x=12.9%, y[59.9%..91.1%] ────────────────
+    addWall(W*0.129, H*0.599, T, H*0.312);
+
+    // ── HORIZONTALWAND bei y=59.9%, x[12.8%..22.6%] ───────────────────────
+    addWall(W*0.128, H*0.599, W*0.098, T);
+
+    // ── TÜR bei x=23.3%, y=58.8% (Breite 4.7%) ────────────────────────────
+    addDoor(W*0.233, H*0.588, W*0.047, T);
+
     // ── HORIZONTALE TRENNWAND LINKS bei y=55% (x[5%..30%]) ───────────────
     // Tür bei x≈17%
     addWall(W*.05, H*.55, W*.12, T);
