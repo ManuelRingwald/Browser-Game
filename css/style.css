@@ -1434,3 +1434,13 @@ html, body {
     color: #5a2d0c;
 }
 .go-btn:hover { background: rgba(139,69,19,0.08); }
+/* Dice Box Overlay */
+#dice-box-container {
+    position: absolute;
+    inset: 0;
+    z-index: 90;
+    pointer-events: none;
+}
+#dice-box-container canvas {
+    pointer-events: none;
+}

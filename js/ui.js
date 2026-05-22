@@ -491,20 +491,34 @@ window.reactAccept = function() {
     if (cb) cb(false);
 };
 
-// Erzeugt eine visuelle Würfelanimation auf dem Spielfeld
+// Erzeugt eine visuelle Würfelanimation via dice-box (3D) oder Canvas-Fallback
 function spawnDiceAnim(max, finalValue) {
-    const cfg = max === 4   ? { label:'W4',   shape:'triangle' }
-              : max === 6   ? { label:'W6',   shape:'square'   }
-              : max === 8   ? { label:'W8',   shape:'diamond'  }
-              : max === 12  ? { label:'2W6',  shape:'square'   }
-              :               { label:'W100', shape:'circle'   };
+    // dice-box Notation: 1d6, 1d8, 1d100, 2d6 etc.
+    const notation = max === 4  ? '1d4'
+                   : max === 6  ? '1d6'
+                   : max === 8  ? '1d8'
+                   : max === 12 ? '2d6'
+                   :              '1d100';
+
+    if (window._diceBox) {
+        // 3D-Würfel über dice-box – Ergebnis wird ignoriert, wir nutzen finalValue
+        window._diceBox.roll(notation).catch(() => {});
+        return;
+    }
+
+    // Fallback: eigene Canvas-Animation
+    const cfg = max === 4  ? { label:'W4',  shape:'triangle' }
+              : max === 8  ? { label:'W8',  shape:'diamond'  }
+              : max === 12 ? { label:'2W6', shape:'square'   }
+              : max === 6  ? { label:'W6',  shape:'square'   }
+              :              { label:'W100',shape:'circle'   };
     GameState.diceAnims.push({
         ...cfg,
-        sides:      max === 12 ? 6 : max,  // 2W6: Augenmuster bis 6 zeigen
-        curValue:   Math.floor(Math.random() * max) + 1,
+        sides: max === 12 ? 6 : max,
+        curValue: Math.floor(Math.random() * max) + 1,
         finalValue,
-        startTime:  performance.now(),
-        duration:   2600,  // langsamer: mehr Zeit zum Lesen
+        startTime: performance.now(),
+        duration:  2600,
     });
 }
 

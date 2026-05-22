@@ -7,6 +7,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="lib/dice-box/style.css">
 </head>
 <body>
 
@@ -511,5 +512,33 @@
     <script src="js/rendering.js"></script>
     <script src="js/game.js"></script>
     <script src="js/ui.js"></script>
+
+    <!-- Dice Box: 3D-Würfel (lokal eingebunden) -->
+    <div id="dice-box-container"></div>
+    <script type="module">
+        import DiceBox from './lib/dice-box/dice-box.es.min.js';
+        const diceBox = new DiceBox({
+            assetPath:   '/lib/dice-box/',
+            container:   '#dice-box-container',
+            gravity:     3,
+            mass:        1,
+            friction:    0.8,
+            restitution: 0.2,
+            angularDamping: 0.4,
+            linearDamping:  0.4,
+            spinForce:   6,
+            throwForce:  5,
+            startingHeight: 8,
+            settleTimeout:  4000,
+            theme:       'default',
+            themeColor:  '#e8dfc0',  // Pergament-Ton passend zum Spiel
+            scale:       7,
+        });
+
+        diceBox.init().then(() => {
+            window._diceBox = diceBox;
+            console.log('[DiceBox] Bereit');
+        }).catch(e => console.warn('[DiceBox] Init fehlgeschlagen:', e));
+    </script>
 </body>
 </html>
