@@ -518,8 +518,9 @@
     <script type="module">
         import DiceBox from './lib/dice-box/dice-box.es.min.js';
 
-        // Relativer Pfad für GitHub Pages (Repo im Unterverzeichnis)
-        const base = new URL('./lib/dice-box/', document.baseURI).href;
+        // dice-box erwartet assetPath → themes/ und ammo/ direkt darunter
+        // Unsere Struktur: lib/dice-box/assets/themes/ und lib/dice-box/assets/ammo/
+        const base = new URL('./lib/dice-box/assets/', document.baseURI).href;
 
         const diceBox = new DiceBox({
             assetPath:      base,
