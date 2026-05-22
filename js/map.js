@@ -14,6 +14,63 @@
 //                         FELD_PX, SIGHT_BLOCKING_TYPES, WEAPONS
 // =============================================================================
 
+// ── Raum-Bild-Module (Gemini-Sketches als visueller Bodenbelag) ───────────────
+
+const ROOM_IMGS = {};
+(function preloadRoomImages() {
+    const files = {
+        narrow: 'img/Gemini_Generated_Image_1zfw4s1zfw4s1zfw.png', // schmaler Korridor
+        square: 'img/Gemini_Generated_Image_ui886gui886gui88.png',  // quadratischer Raum
+        wide:   'img/Gemini_Generated_Image_uz0jbwuz0jbwuz0j.png',  // breiter Raum (H)
+        t:      'img/Gemini_Generated_Image_37rpna37rpna37rp.png',  // T-Form
+        hub:    'img/Gemini_Generated_Image_uabdzauabdzauabd.png',  // 4-Wege-Hub
+    };
+    Object.entries(files).forEach(([key, src]) => {
+        const img = new Image();
+        img.onload = () => { try { renderBlueprint(); } catch (_) {} };
+        img.src = src;
+        ROOM_IMGS[key] = img;
+    });
+})();
+
+// Zeichnet die Raum-Bild-Module auf wallCanvas (vor den Wandlinien)
+function drawRoomImages(W, H) {
+    const T = 6; // leichter Inset damit Wandlinien nicht überlappen
+    // [typ, x1%, y1%, x2%, y2%]
+    const layout = [
+        // Linker Flügel – obere Reihe
+        ['narrow', 0.03, 0.15, 0.15, 0.52], // Raum A
+        ['square', 0.15, 0.15, 0.27, 0.52], // Raum B
+        ['narrow', 0.27, 0.15, 0.38, 0.52], // Raum C
+        // Linker Flügel – untere Reihe
+        ['narrow', 0.03, 0.52, 0.15, 0.88], // Raum D
+        ['square', 0.15, 0.52, 0.27, 0.88], // Raum E
+        ['narrow', 0.27, 0.52, 0.38, 0.88], // Raum F
+        // Zentrum
+        ['narrow', 0.43, 0.02, 0.52, 0.15], // Oberer Korridor
+        ['t',      0.38, 0.15, 0.55, 0.55], // Eingangshalle
+        ['hub',    0.38, 0.55, 0.55, 0.96], // Hauptsaal
+        // Rechter Flügel
+        ['wide',   0.55, 0.15, 0.97, 0.42], // Rechter Korridor
+        ['square', 0.55, 0.42, 0.75, 0.75], // Raum G
+        ['square', 0.75, 0.42, 0.97, 0.75], // Raum H
+    ];
+
+    wallCtx.save();
+    wallCtx.globalAlpha = 0.90; // leicht transparent damit Wandlinien klar bleiben
+    layout.forEach(([type, x1, y1, x2, y2]) => {
+        const img = ROOM_IMGS[type];
+        if (!img || !img.complete || !img.naturalWidth) return;
+        wallCtx.drawImage(img,
+            x1 * W + T, y1 * H + T,
+            (x2 - x1) * W - 2 * T,
+            (y2 - y1) * H - 2 * T
+        );
+    });
+    wallCtx.globalAlpha = 1;
+    wallCtx.restore();
+}
+
 // ── Geometrie-Helfer ──────────────────────────────────────────────────────────
 
 function addWall(x, y, w, h) { GameState.walls.push({ x, y, width: w, height: h }); }
@@ -413,10 +470,14 @@ function drawFurniture(item) {
     wallCtx.restore();
 }
 
-// Rendert den kompletten Blueprint (Wände, Türen, Möbel, Kompass) auf wallCanvas.
+// Rendert den kompletten Blueprint auf wallCanvas.
+// Reihenfolge: Raum-Bilder → Wände → Türen → Möbel → Kompass
 function renderBlueprint() {
     const W = wallCanvas.width, H = wallCanvas.height;
     wallCtx.clearRect(0, 0, W, H);
+
+    // 1. Raum-Bild-Module als Bodenbelag (unter allen Linien)
+    drawRoomImages(W, H);
 
     // Wände als einzelne handgezeichnete Linien (Mittellinie des Wandrechtecks)
     wallCtx.strokeStyle = 'rgba(45, 40, 35, 0.88)';
