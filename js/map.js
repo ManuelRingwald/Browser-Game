@@ -183,10 +183,8 @@ function buildMansion() {
     addFurniture(W*.889, H*.552, W*.025, H*.065, 'cabinet'); // Schrank E
     addFurniture(W*.802, H*.582, W*.030, H*.030, 'plant');   // Pflanze
 
-    // ── SKALIERUNG & SPAWN ─────────────────────────────────────────────────
-    const scale = Math.min(W, H) / 600;
-    Entities.player.viewDistance = Math.round(160 * scale);
-    Entities.enemies.forEach(e => { e.viewDistance = Math.round(140 * scale); });
+    // ── SPAWN ─────────────────────────────────────────────────────────────
+    // viewDistance kommt aus state.js (feste Feldanzahl, nicht viewport-abhängig)
 
     Entities.player.x = W * 0.465;
     Entities.player.y = H * 0.75;

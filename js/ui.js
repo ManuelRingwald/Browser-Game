@@ -1405,6 +1405,47 @@ window.executeDropItem = function() {
     }
 }
 
+// ── Hover item-info-box auf Kampfwerten ANG / AUS / BLK ──────────────────────
+{
+    const box = document.getElementById('item-info-box');
+    const statDefs = {
+        angriff:    () => {
+            const v = Entities.player.angriff;
+            return { name: 'Angriff (ANG)', type: 'Kampfwert',
+                statsHtml: `<div class="iib-stat"><span class="iib-key">Wert</span><span class="iib-val">${v}%</span></div>` +
+                           `<div class="iib-special">W100 ≤ ${v} = Treffer</div>` };
+        },
+        ausweichen: () => {
+            const v = Entities.player.ausweichen;
+            return { name: 'Ausweichen (AUS)', type: 'Kampfwert',
+                statsHtml: `<div class="iib-stat"><span class="iib-key">Wert</span><span class="iib-val">${v}%</span></div>` +
+                           `<div class="iib-stat"><span class="iib-key">Aktion-Bonus</span><span class="iib-val">+20%</span></div>` +
+                           `<div class="iib-special">W100 ≤ Wert = kein Schaden</div>` };
+        },
+        blockwert:  () => {
+            const v = Entities.player.blockwert;
+            return { name: 'Blocken (BLK)', type: 'Kampfwert',
+                statsHtml: `<div class="iib-stat"><span class="iib-key">Wert</span><span class="iib-val">${v}%</span></div>` +
+                           `<div class="iib-special">Nur Nahkampf · W100 ≤ Wert = Schaden ½<br>Nicht gegen Schusswaffen</div>` };
+        },
+    };
+    document.querySelectorAll('.cs-stat-trigger[data-stat]').forEach(td => {
+        td.addEventListener('mouseenter', e => {
+            if (!box) return;
+            const fn = statDefs[td.dataset.stat];
+            const info = fn ? fn() : null;
+            if (!info) return;
+            box.querySelector('.iib-name').textContent = info.name;
+            box.querySelector('.iib-type').textContent = info.type;
+            box.querySelector('.iib-stats').innerHTML  = info.statsHtml;
+            box.style.display = 'block';
+            _positionInfoBox(e);
+        });
+        td.addEventListener('mousemove', _positionInfoBox);
+        td.addEventListener('mouseleave', () => { if (box) box.style.display = 'none'; });
+    });
+}
+
 // ── Hover item-info-box auf Waffennamen (Seite 1, gleicher Stil wie Seite 2) ──
 {
     const box = document.getElementById('item-info-box');

@@ -73,11 +73,7 @@
                 </header>
 
                 <!-- ── LEBENSPUNKTE ──────────────────────────────── -->
-                <h3 class="section-titel">
-                    <span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Lebenspunkte (LP)
-                        <span class="tooltip-info"><strong>Lebenspunkte (LP)</strong><br>Zeigen an, wie viel Schaden du noch überstehen kannst. Fallen sie auf&nbsp;0, bist du besiegt.<br><br>Im Kampf: Schaden des Feindes wird von deinen LP abgezogen, sofern Ausweichen und Blocken fehlschlagen.</span>
-                    </span>
-                </h3>
+                <h3 class="section-titel">Lebenspunkte (LP)</h3>
                 <div class="lp-section">
                     <div class="lp-numbers"><span id="cs-lp-cur">12</span> / <span id="cs-lp-max">12</span></div>
                     <div class="lp-bar-track"><div class="lp-bar-fill" id="cs-lp-bar"></div></div>
@@ -95,23 +91,17 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">ANG
-                                <span class="tooltip-info"><strong>Angriff (ANG)</strong><br>Beim Angriff würfelst du W100 (1–100). Liegt das Ergebnis <em>kleiner oder gleich</em> diesem Wert, triffst du.<br><br>Würfelergebnis ≤ ANG → Treffer!</span>
-                            </span></td>
+                            <td class="cs-stat-trigger" data-stat="angriff">ANG</td>
                             <td class="kw-val">65</td>
                             <td class="kw-desc">Trefferchance</td>
                         </tr>
                         <tr>
-                            <td><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">AUS
-                                <span class="tooltip-info"><strong>Ausweichen (AUS)</strong><br>Wenn ein Feind trifft, würfelst du W100. Liegt das Ergebnis ≤ AUS, weichst du erfolgreich aus und nimmst keinen Schaden.<br><br>Beim Ausweichen als Aktion: +20% Bonus.</span>
-                            </span></td>
+                            <td class="cs-stat-trigger" data-stat="ausweichen">AUS</td>
                             <td class="kw-val">40</td>
                             <td class="kw-desc">Ausweichen</td>
                         </tr>
                         <tr>
-                            <td><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">BLK
-                                <span class="tooltip-info"><strong>Blocken (BLK)</strong><br>Nur im Nahkampf. Schlägt das Ausweichen fehl, kannst du noch blocken. Erfolg = Schaden wird halbiert.<br><br>Blocken ist nicht möglich gegen Schusswaffen.</span>
-                            </span></td>
+                            <td class="cs-stat-trigger" data-stat="blockwert">BLK</td>
                             <td class="kw-val">45</td>
                             <td class="kw-desc">Schaden halbieren (Nah)</td>
                         </tr>
@@ -128,10 +118,10 @@
                     <thead>
                         <tr>
                             <th colspan="2">Waffe</th>
-                            <th><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Schd.<span class="tooltip-info">1W4=1–4 · 1W6=1–6 · 1W8=1–8 · 2W6=2–12</span></span></th>
+                            <th>Schd.</th>
                             <th>Rw.</th>
                             <th>Mun.</th>
-                            <th><span class="tooltip-trigger" onclick="toggleTooltip(event,this)">Slot<span class="tooltip-info">Zeigt wo die Waffe liegt.<br>Nur ausgerüstete Waffen (Hand-Slot) sind im Kampf verfügbar.</span></span></th>
+                            <th>Slot</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -330,6 +320,8 @@
                 </div>
                 <button class="sketch-button" onclick="closeCharSheet()">Zurück zum Spiel</button>
             </div>
+            <!-- Schließen-Button immer sichtbar (auch auf breiten Screens ohne page-nav) -->
+            <button id="charsheet-close-btn" class="sketch-button" onclick="closeCharSheet()">✕ Zurück zum Spiel</button>
         </div>
 
         <!-- Spieler-Zug (AP-basiert) -->
@@ -380,6 +372,48 @@
         <canvas id="gameCanvas"></canvas>
         <canvas id="wallCanvas"></canvas>
         <canvas id="exploredCanvas"></canvas>
+
+        <!-- Papier-Dekorationen (pointer-events: none, über Canvas) -->
+        <div id="paper-decor" aria-hidden="true">
+            <!-- Angeknickte Ecke unten rechts -->
+            <div class="paper-fold fold-br"></div>
+            <!-- Angeknickte Ecke oben links (kleiner) -->
+            <div class="paper-fold fold-tl"></div>
+            <!-- Bleistift (vertikal, leicht schräg) -->
+            <svg id="game-pencil" xmlns="http://www.w3.org/2000/svg"
+                 width="280" height="22" viewBox="0 0 280 22">
+                <!-- Radiergummi: gedämpftes Rosa -->
+                <rect x="1" y="5.5" width="20" height="11" rx="2.5"
+                      fill="#c9968e" stroke="#a07060" stroke-width="0.8"/>
+                <!-- Metallring (Ferrule): matte Silber -->
+                <rect x="21" y="5.5" width="11" height="11"
+                      fill="#a8a8a0" stroke="#888" stroke-width="0.6"/>
+                <line x1="24.5" y1="5.5" x2="24.5" y2="16.5" stroke="#ccc" stroke-width="0.5"/>
+                <line x1="28"   y1="5.5" x2="28"   y2="16.5" stroke="#ccc" stroke-width="0.5"/>
+                <!-- Schaft Highlight (Faber-Castell dunkelgrün) -->
+                <rect x="32" y="5.5" width="214" height="3.5"
+                      fill="#3e7a35"/>
+                <!-- Schaft Mitte -->
+                <rect x="32" y="5.5" width="214" height="11"
+                      fill="#2d5e25" stroke="rgba(0,0,0,0.18)" stroke-width="0.5"/>
+                <!-- Schaft Schatten -->
+                <rect x="32" y="13" width="214" height="3.5"
+                      fill="#1e3f18"/>
+                <!-- Prägung (Gold) -->
+                <text x="140" y="13.2" text-anchor="middle" font-size="5.8"
+                      fill="rgba(220,185,70,0.72)" font-family="Georgia, serif"
+                      font-style="italic" letter-spacing="2.2">SPENCER  ✦  No. 2</text>
+                <!-- Holz-Konus -->
+                <path d="M246 5.5 L246 16.5 L275 11 Z" fill="#c49858"/>
+                <line x1="246" y1="8"  x2="268" y2="11"
+                      stroke="rgba(120,80,30,0.4)" stroke-width="0.7"/>
+                <line x1="246" y1="14" x2="268" y2="11"
+                      stroke="rgba(120,80,30,0.4)" stroke-width="0.7"/>
+                <!-- Mine -->
+                <ellipse cx="276.5" cy="11" rx="3" ry="2.2" fill="#222"/>
+                <ellipse cx="275.8" cy="10.1" rx="0.9" ry="0.6" fill="#555"/>
+            </svg>
+        </div>
     </div>
 
     <!-- Mobile D-Pad (nur auf Touch-Geräten sichtbar via CSS) -->

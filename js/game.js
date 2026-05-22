@@ -17,9 +17,11 @@ function resizeCanvas() {
     const paper = document.getElementById('paper');
     canvas.width  = paper.clientWidth;
     canvas.height = paper.clientHeight;
-    // Welt = 2× Viewport; wallCanvas/exploredCanvas in Weltgröße
-    wallCanvas.width  = exploredCanvas.width  = canvas.width  * 2;
-    wallCanvas.height = exploredCanvas.height = canvas.height * 2;
+    // Weltgröße IMMER fest – unabhängig vom Viewport.
+    // Mobile sieht weniger, scrollt mehr; Desktop sieht mehr.
+    // Räume, Felder und Reichweiten sind auf allen Geräten identisch.
+    wallCanvas.width  = exploredCanvas.width  = WORLD_W;
+    wallCanvas.height = exploredCanvas.height = WORLD_H;
     buildMansion();
 }
 
@@ -126,14 +128,27 @@ function initGame() {
     window.addEventListener('resize', resizeCanvas);
     initDPad();
 
+    // Auf Touch-Geräten übernimmt das D-Pad die Bewegung → kein tap-to-move
+    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+
     // ── Touch & Maus: Ziel setzen ──────────────────────────────────────────
     canvas.addEventListener('touchstart', (e) => {
-        if (!GameState.paused) { GameState.isTouching = true; updateTarget(e.touches[0].clientX, e.touches[0].clientY); }
+        if (GameState.paused) return;
+        if (!isTouchDevice) {
+            GameState.isTouching = true;
+            updateTarget(e.touches[0].clientX, e.touches[0].clientY);
+        }
+        // Auf Touch-Geräten: kein isTouching (D-Pad bewegt), aber preventDefault
+        // damit der Canvas nicht scrollt (wichtig für Touch-Interaktionen)
     }, { passive: false });
     canvas.addEventListener('touchmove', (e) => {
-        if (!GameState.paused) { e.preventDefault(); updateTarget(e.touches[0].clientX, e.touches[0].clientY); }
+        if (GameState.paused) return;
+        e.preventDefault();
+        if (!isTouchDevice) updateTarget(e.touches[0].clientX, e.touches[0].clientY);
     }, { passive: false });
-    canvas.addEventListener('touchend', () => GameState.isTouching = false);
+    canvas.addEventListener('touchend', () => {
+        if (!isTouchDevice) GameState.isTouching = false;
+    });
     canvas.addEventListener('mousedown', (e) => {
         if (!GameState.paused) { GameState.isTouching = true; updateTarget(e.clientX, e.clientY); }
     });
@@ -269,6 +284,16 @@ function initGame() {
         if (handleWorldItemClick(t.clientX, t.clientY)) e.preventDefault();
     }, { passive: false });
 
+    // Prüft ob eine Tür im erkundeten Bereich liegt (exploredCanvas)
+    function isDoorExplored(door) {
+        if (!exploredCtx || !exploredCanvas) return true;
+        const r   = getDoorInteractRect(door);
+        const cx  = Math.min(Math.max(0, Math.floor(r.x + r.w / 2)), exploredCanvas.width  - 1);
+        const cy  = Math.min(Math.max(0, Math.floor(r.y + r.h / 2)), exploredCanvas.height - 1);
+        try { return exploredCtx.getImageData(cx, cy, 1, 1).data[3] > 80; }
+        catch (_) { return true; }
+    }
+
     // ── Tür-Hover (Maus) ──────────────────────────────────────────────────
     canvas.addEventListener('mousemove', e => {
         if (GameState.paused || GameState.combatTriggered) { GameState.hoveredDoor = null; return; }
@@ -278,6 +303,7 @@ function initGame() {
         const wy = (e.clientY - rect.top)  * (canvas.height / rect.height) / z + GameState.camera.y;
         const M = 14;
         GameState.hoveredDoor = GameState.doors.find(d => {
+            if (!isDoorExplored(d)) return false;
             const r = getDoorInteractRect(d);
             return wx >= r.x - M && wx <= r.x + r.w + M &&
                    wy >= r.y - M && wy <= r.y + r.h + M;
@@ -295,6 +321,7 @@ function initGame() {
         const wy = (clientY - rect.top)  * (canvas.height / rect.height) / z + GameState.camera.y;
         const M = 18;
         const door = GameState.doors.find(d => {
+            if (!isDoorExplored(d)) return false;
             const r = getDoorInteractRect(d);
             return wx >= r.x - M && wx <= r.x + r.w + M &&
                    wy >= r.y - M && wy <= r.y + r.h + M;

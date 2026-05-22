@@ -3,6 +3,13 @@
 // Wird zuerst geladen; alle anderen Dateien können auf diese Konstanten zugreifen.
 // =============================================================================
 
+// ── Feste Weltgröße (unabhängig vom Viewport) ─────────────────────────────────
+// Alle Raum- und Entfernungsberechnungen verwenden diese Konstanten.
+// Mobile und Desktop haben IMMER die gleiche Spielwelt – nur der sichtbare
+// Ausschnitt (Kamera + Zoom) unterscheidet sich.
+const WORLD_W = 1800;
+const WORLD_H = 1200;
+
 // ── Raster & Aktionspunkte ────────────────────────────────────────────────────
 const FELD_PX = 60;                  // Pixel pro Rasterfeld (Weltkoordinaten)
 const AP_KOSTEN = { angriff: 2, bewegen: 1, ausweichen: 1, nachladen: 1 };

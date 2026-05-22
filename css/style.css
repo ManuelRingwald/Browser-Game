@@ -13,8 +13,73 @@ html, body {
 #paper {
     position: relative; width: 95%; height: 94%; background-color: #f0ebd8;
     background-image: url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSdub2lzZSc+PGZlVHVyYnVsZW5jZSB0eXBlPSdmcmFjdGFsTm9pc2UnIGJhc2VGcmVxdWVuY3k9JzAuOCcgbnVtT2N0YXZlcz0nNCcgc3RpdGNoVGlsZXM9J3N0aXRjaCcvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPScxMDAlJyBoZWlnaHQ9JzEwMCUnIGZpbHRlcj0ndXJsKCNub2lzZScpJyBvcGFjaXR5PScwLjA1Jy8+PC9zdmc+');
-    border-radius: 4px; box-shadow: 2px 10px 25px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(0,0,0,0.05);
+    /* Leicht unregelmäßige Ecken – echteres Papier-Gefühl */
+    border-radius: 3px 5px 2px 4px;
+    box-shadow: 2px 10px 25px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(0,0,0,0.05);
     overflow: hidden;
+}
+
+/* ── Papier-Dekorationen (Bleistift, angeknickte Ecken) ──────────────── */
+#paper-decor {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 8;           /* über gameCanvas (z-index 5) */
+}
+
+/* Angeknickte Ecke unten rechts */
+.paper-fold.fold-br {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 52px; height: 52px;
+    /* Dreieck-Clip ergibt die Falt-Form */
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    background: linear-gradient(
+        225deg,
+        #c8b485 0%,        /* Unterseite der gefalteten Ecke */
+        #d4c090 35%,       /* Übergangsbereich */
+        #e8d8b0 50%,       /* Knick-Kante */
+        transparent 51%
+    );
+    /* Schatten unter der gefalteten Ecke */
+    box-shadow: -3px -3px 8px rgba(0,0,0,0.22);
+}
+/* Helle Linie = Knickkante */
+.paper-fold.fold-br::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 100%; height: 100%;
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    background: linear-gradient(225deg, transparent 48%, rgba(255,245,220,0.55) 49%, transparent 51%);
+}
+
+/* Angeknickte Ecke oben links (dezenter) */
+.paper-fold.fold-tl {
+    position: absolute;
+    top: 0; left: 0;
+    width: 32px; height: 32px;
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+    background: linear-gradient(
+        45deg,
+        #c0aa78 0%,
+        #d4c090 40%,
+        transparent 55%
+    );
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.18);
+}
+
+/* Bleistift: vertikal, leicht schräg (Radiergummi unten, Spitze oben) */
+#game-pencil {
+    position: absolute;
+    /* Spitze zeigt nach oben-links, Radiergummi unten-rechts */
+    bottom: 18px;
+    right: 22px;
+    /* ~83° von horizontal = fast senkrecht, leicht nach links geneigt */
+    transform: rotate(-83deg);
+    transform-origin: right bottom;
+    opacity: 0.84;
+    filter: drop-shadow(2px 2px 6px rgba(0,0,0,0.38));
 }
 
 #landing-page {
@@ -157,7 +222,7 @@ html, body {
 .fail-text    { color: #e87878; font-weight: 700; }
 .rolling-number { display: inline-block; min-width: 26px; text-align: center; }
 
-#gameCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 5; }
+#gameCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 5; touch-action: none; }
 #gameCanvas.combat-move { cursor: crosshair; }
 #wallCanvas, #exploredCanvas { position: absolute; display: none; }
 
@@ -333,7 +398,10 @@ html, body {
 
 .section-titel { text-align:center; font-size:1.1rem; margin-bottom:4px; margin-top:8px; width:100%; max-width:500px; border-bottom:1px solid rgba(0,0,0,0.15); padding-bottom:2px; }
 
-.tooltip-trigger { position: relative; display: inline-block; cursor: pointer; border-bottom: 2px dotted #555; }
+.tooltip-trigger { position: relative; display: inline-block; cursor: pointer; }
+
+/* Stat-Trigger: hover zeigt item-info-box (ANG, AUS, BLK) */
+.cs-stat-trigger { cursor: pointer; font-weight: 700; }
 
 /* position:fixed → entkommen aus jedem overflow:hidden Container */
 .tooltip-info {
@@ -447,6 +515,9 @@ html, body {
     image-rendering: pixelated;
 }
 
+/* Schließen-Button: standard nur in page-nav, auf breiten Screens separat */
+#charsheet-close-btn { display: none; }
+
 /* ── Dual-Page: Beide Seiten nebeneinander auf breiten Screens ──────── */
 @media (min-width: 980px) {
     #char-sheet {
@@ -486,9 +557,19 @@ html, body {
     #paper-1 { transform: rotate(-1.3deg); }
     #paper-2 { transform: rotate(0.65deg); margin-top: 18px; }
 
-    /* Beide Seiten sichtbar */
+    /* Beide Seiten sichtbar, Pager ausblenden */
     .char-page { display: flex !important; overflow: hidden !important; }
     #page-nav  { display: none !important; }
+    /* Schließen-Button sichtbar positioniert (zwischen den Bögen unten) */
+    #charsheet-close-btn {
+        display: block;
+        position: absolute;
+        bottom: -44px;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        z-index: 50;
+    }
 
     /* p2-layout kein Scroll */
     .p2-layout {
@@ -1069,59 +1150,59 @@ html, body {
 
 #dpad-base {
     position: relative;
-    width: 112px;
-    height: 112px;
-    border-radius: 50%;
-    /* Papier-/Pergament-Optik passend zum Spielstil */
-    background: radial-gradient(circle at 45% 40%,
-        rgba(70, 52, 28, 0.42) 0%,
-        rgba(28, 18,  8, 0.28) 100%);
-    border: 1.5px solid rgba(210, 185, 140, 0.38);
+    width: 118px;
+    height: 118px;
+    /* Leicht unregelmäßige Kreisform – wirkt handgezeichnet */
+    border-radius: 49% 51% 50% 50% / 51% 50% 50% 49%;
+    /* Pergament-Ton wie der Spielplan */
+    background: radial-gradient(circle at 42% 38%,
+        rgba(242, 234, 210, 0.95) 0%,
+        rgba(218, 205, 172, 0.92) 100%);
+    border: 2px solid rgba(60, 42, 22, 0.55);
     box-shadow:
-        inset 0 0 18px rgba(0, 0, 0, 0.40),
-        0 4px 14px rgba(0, 0, 0, 0.55);
+        0 3px 10px rgba(0, 0, 0, 0.28),
+        inset 0 1px 4px rgba(255, 248, 228, 0.65);
     touch-action: none;
     overflow: hidden;
 }
 
-/* Kreuz-Linien via Pseudo-Elemente */
+/* Bleistift-Kreuzlinien */
 #dpad-base::before,
 #dpad-base::after {
     content: '';
     position: absolute;
-    background: rgba(210, 185, 140, 0.14);
+    background: rgba(60, 42, 22, 0.22);
     pointer-events: none;
-    border-radius: 1px;
 }
 #dpad-base::before { width: 100%; height: 1px; top: 50%; left: 0; transform: translateY(-50%); }
 #dpad-base::after  { width: 1px; height: 100%; top: 0; left: 50%; transform: translateX(-50%); }
 
-/* Kleines Dreieck-Pip pro Richtung (per JS erzeugt) */
+/* Richtungs-Pips: Bleistift-Ton statt helles Beige */
 .dpad-pip {
     position: absolute;
     width: 0; height: 0;
     border-left:   4.5px solid transparent;
     border-right:  4.5px solid transparent;
-    border-bottom: 8px solid rgba(210, 185, 140, 0.42);
+    border-bottom: 8px solid rgba(60, 42, 22, 0.52);
     pointer-events: none;
     transform-origin: center center;
 }
 
-/* Beweglicher Daumen-Kreis */
+/* Daumen: Tintenpunkt-Stil */
 #dpad-thumb {
     position: absolute;
-    width: 44px;
-    height: 44px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    background: radial-gradient(circle at 36% 34%,
-        rgba(220, 195, 150, 0.78),
-        rgba(95,  68,  30, 0.68));
-    border: 1.5px solid rgba(210, 185, 140, 0.65);
+    background: radial-gradient(circle at 38% 35%,
+        rgba(95,  72, 38, 0.75),
+        rgba(48,  32, 12, 0.88));
+    border: 1.5px solid rgba(60, 42, 22, 0.68);
     box-shadow:
-        0 3px 9px rgba(0, 0, 0, 0.60),
-        inset 0 1px 4px rgba(255, 240, 205, 0.22);
+        0 2px 7px rgba(0, 0, 0, 0.38),
+        inset 0 1px 3px rgba(175, 145, 95, 0.25);
     pointer-events: none;
 }
 
