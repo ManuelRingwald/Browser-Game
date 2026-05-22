@@ -881,6 +881,10 @@ window.combatAttack = function() {
         el('enc-desc').textContent = `Nicht genug AP. Angriff kostet ${AP_KOSTEN.angriff} AP (du hast ${GameState.combatAP}).`;
         return;
     }
+    // Bewegungsraster ausblenden falls zuvor auf Bewegen geklickt
+    GameState.combatMoving = false;
+    GameState.combatGridVisible = false;
+    document.getElementById('gameCanvas').classList.remove('combat-move');
     el('encounter-menu').style.display = 'none';
     const p = Entities.player;
     const equipped = getEquippedWeapons();
