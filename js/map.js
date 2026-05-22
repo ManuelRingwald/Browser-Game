@@ -107,8 +107,8 @@ function buildMansion() {
 
     // ── SPAWN ─────────────────────────────────────────────────────────────
     // Figur im Bild bei x≈11.8%, y≈87.3% → unterer linker Bereich
-    Entities.player.x = W * 0.118;
-    Entities.player.y = H * 0.820;
+    Entities.player.x = W * 0.253;
+    Entities.player.y = H * 0.730;
     Entities.player.angle = -Math.PI / 2;
 
     // Soldaten in den anderen Bereichen platzieren
