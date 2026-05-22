@@ -1170,9 +1170,10 @@ html, body {
 .consumable-item {
     cursor: pointer;
     width: 80%; height: 80%; object-fit: contain;
-    transition: transform 0.12s, filter 0.12s;
+    transition: filter 0.12s;  /* kein transform-transition – würde mit draggable-item kollidieren */
 }
-.consumable-item:hover { transform: scale(1.12); filter: brightness(1.15); }
+/* Hover nur per filter, kein transform – verhindert Positions-Konflikt mit translate(-50%,-50%) */
+.consumable-item:hover { filter: brightness(1.18) drop-shadow(0 0 3px rgba(200,180,80,0.6)); }
 .medikit-slot { position: relative; }
 
 /* =========================================
