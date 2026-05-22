@@ -54,6 +54,9 @@ const GameState = {
     // Fliegende Geschoss-Schnipsel
     projectiles: [],
 
+    // Visuelle Würfel-Animationen (rollen über das Spielfeld)
+    diceAnims: [],  // [{ label, shape, sides, curValue, finalValue, startTime, duration }]
+
     // Visuelle Tür-Geräusch-Texte (analog zu "tap... tap...")
     doorSounds: [],  // [{ x, y, text, startTime, duration }]
 

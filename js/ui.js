@@ -491,8 +491,26 @@ window.reactAccept = function() {
     if (cb) cb(false);
 };
 
+// Erzeugt eine visuelle Würfelanimation auf dem Spielfeld
+function spawnDiceAnim(max, finalValue) {
+    const cfg = max === 4   ? { label:'W4',   shape:'triangle' }
+              : max === 6   ? { label:'W6',   shape:'square'   }
+              : max === 8   ? { label:'W8',   shape:'diamond'  }
+              : max === 12  ? { label:'2W6',  shape:'square'   }
+              :               { label:'W100', shape:'circle'   };
+    GameState.diceAnims.push({
+        ...cfg,
+        sides:      max,
+        curValue:   Math.floor(Math.random() * max) + 1,
+        finalValue,
+        startTime:  performance.now(),
+        duration:   1650,  // deckt animateRoll-Laufzeit ab
+    });
+}
+
 // max = Würfel-Maximum (z.B. 8 für W8, 12 für 2W6). Standard: 100 für W100.
 function animateRoll(elementId, finalValue, callback, max = 100) {
+    spawnDiceAnim(max, finalValue); // visueller Würfel startet gleichzeitig
     const node = el(elementId);
     if (!node) { setTimeout(callback, 50); return; }
     let tick = 0;

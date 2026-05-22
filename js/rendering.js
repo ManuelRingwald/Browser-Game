@@ -820,6 +820,136 @@ function drawSneakEffects(player) {
     ctx.restore();
 }
 
+// ── Würfel-Animationen (Screen-Space) ─────────────────────────────────────────
+function drawDiceAnimations() {
+    const now = performance.now();
+    GameState.diceAnims = GameState.diceAnims.filter(d => now - d.startTime < d.duration);
+    if (!GameState.diceAnims.length) return;
+
+    const W = canvas.width, H = canvas.height;
+    const dieSize = Math.round(Math.min(W, H) * 0.09 + 22); // ~54px auf Desktop
+    // Landeplatz: Mitte unten, über der Battle-Box
+    const landX = W * 0.5;
+    const landY = H - dieSize * 2.4;
+
+    GameState.diceAnims.forEach(d => {
+        const t   = Math.min(1, (now - d.startTime) / d.duration);
+        const r   = dieSize * 0.5;
+
+        // Phasen: 0–0.55 rollen, 0.55–0.75 landen, 0.75–0.92 halten, 0.92–1 faden
+        const rolling = t < 0.55;
+        const landing = t >= 0.55 && t < 0.75;
+        const holding = t >= 0.75 && t < 0.92;
+        const fading  = t >= 0.92;
+
+        // Zufallswert während Rollen, Endwert beim Landen
+        if (rolling) {
+            if (Math.random() < 0.25) // nicht jeden Frame aktualisieren (unruhiger Look)
+                d.curValue = Math.floor(Math.random() * d.sides) + 1;
+        } else {
+            d.curValue = d.finalValue;
+        }
+
+        // Position
+        let x, y, rot, scl = 1;
+        if (rolling) {
+            const p = t / 0.55;
+            const ease = 1 - Math.pow(1 - p, 2.5);
+            x   = -r * 2 + ease * (landX + r * 2); // rollt von links
+            y   = landY + Math.sin(p * Math.PI * 2) * dieSize * 0.35;
+            rot = p * Math.PI * 5; // dreht sich ~2.5× beim Rollen
+        } else if (landing) {
+            const p   = (t - 0.55) / 0.20;
+            const bob = Math.sin(p * Math.PI) * dieSize * 0.28 * (1 - p);
+            x   = landX; y = landY - bob;
+            rot = (Math.PI * 5) + p * 0.4;
+            scl = 1 + Math.sin(p * Math.PI) * 0.08; // leichtes "Aufprall"-Skalieren
+        } else {
+            x = landX; y = landY;
+            rot = Math.PI * 5 + 0.4;
+        }
+
+        const alpha = fading ? 1 - (t - 0.92) / 0.08 : 1;
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, alpha);
+        ctx.translate(x, y);
+        ctx.rotate(rot);
+        ctx.scale(scl, scl);
+
+        // Schatten
+        ctx.save();
+        ctx.translate(3, 4);
+        ctx.globalAlpha = alpha * 0.28;
+        _drawDieShape(d.shape, r + 2);
+        ctx.fillStyle = 'rgba(0,0,0,1)'; ctx.fill();
+        ctx.restore();
+
+        // Würfel-Körper
+        ctx.fillStyle   = 'rgba(232,218,182,0.96)';
+        ctx.strokeStyle = 'rgba(58,40,18,0.88)';
+        ctx.lineWidth   = Math.max(1.8, r * 0.09);
+        ctx.lineJoin    = 'round';
+        _drawDieShape(d.shape, r);
+        ctx.fill(); ctx.stroke();
+
+        // Innerer Glanz
+        ctx.save();
+        ctx.clip();
+        ctx.fillStyle = 'rgba(255,245,220,0.22)';
+        ctx.beginPath();
+        ctx.ellipse(-r * 0.25, -r * 0.3, r * 0.55, r * 0.38, -0.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Würfeltyp (klein oben)
+        ctx.rotate(-rot); // Text immer aufrecht
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font         = `700 ${Math.round(r * 0.44)}px 'Kalam'`;
+        ctx.fillStyle    = 'rgba(95,68,32,0.72)';
+        ctx.fillText(d.label, 0, -r * 0.52);
+
+        // Würfelwert (groß mittig)
+        const valStr = String(d.curValue).padStart(d.sides >= 10 ? 2 : 1, ' ');
+        ctx.font      = `700 ${Math.round(r * (d.sides >= 100 ? 0.62 : 0.78))}px 'Kalam'`;
+        ctx.fillStyle = 'rgba(35,22,8,0.94)';
+        ctx.fillText(valStr.trim(), 0, r * 0.12);
+
+        ctx.restore();
+    });
+}
+
+// Zeichnet die Würfelform (ohne fill/stroke — wird vom Aufrufer gesetzt)
+function _drawDieShape(shape, r) {
+    ctx.beginPath();
+    if (shape === 'circle') {
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+    } else if (shape === 'triangle') {
+        ctx.moveTo(0, -r);
+        ctx.lineTo(r * 0.87, r * 0.5);
+        ctx.lineTo(-r * 0.87, r * 0.5);
+        ctx.closePath();
+    } else if (shape === 'diamond') {
+        ctx.moveTo(0, -r);
+        ctx.lineTo(r * 0.72, -r * 0.35);
+        ctx.lineTo(r * 0.72, r * 0.35);
+        ctx.lineTo(0, r);
+        ctx.lineTo(-r * 0.72, r * 0.35);
+        ctx.lineTo(-r * 0.72, -r * 0.35);
+        ctx.closePath();
+    } else {
+        // square mit abgerundeten Ecken
+        const cr = r * 0.22;
+        ctx.moveTo(-r + cr, -r);
+        ctx.arcTo(r, -r, r, r, cr);
+        ctx.arcTo(r, r, -r, r, cr);
+        ctx.arcTo(-r, r, -r, -r, cr);
+        ctx.arcTo(-r, -r, r, -r, cr);
+        ctx.closePath();
+    }
+}
+
 // ── Haupt-Render-Funktion ─────────────────────────────────────────────────────
 
 function drawGame() {
@@ -1022,6 +1152,9 @@ function drawGame() {
     if (GameState.combatGridVisible) {
         drawCombatGrid();
     }
+
+    // Würfelanimationen (Screen-Space, über Kampfraster)
+    drawDiceAnimations();
 
     // ── HUD oben links (Bildschirmkoordinaten, kein Zoom) ─────────────────────
     const p = Entities.player;
