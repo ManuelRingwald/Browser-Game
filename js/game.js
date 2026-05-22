@@ -367,6 +367,7 @@ function initGame() {
 
     // Prüft ob eine Tür im erkundeten Bereich liegt (exploredCanvas)
     function isDoorExplored(door) {
+        if (GameState.showFullMap) return true; // Nebel aus → alle Türen erreichbar
         if (!exploredCtx || !exploredCanvas) return true;
         const r   = getDoorInteractRect(door);
         const cx  = Math.min(Math.max(0, Math.floor(r.x + r.w / 2)), exploredCanvas.width  - 1);
