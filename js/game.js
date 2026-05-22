@@ -151,10 +151,10 @@ function initGame() {
         if (!isTouchDevice) GameState.isTouching = false;
     });
     canvas.addEventListener('mousedown', (e) => {
-        if (!GameState.paused) { GameState.isTouching = true; updateTarget(e.clientX, e.clientY); }
+        if (!GameState.paused && !GameState.coordMode) { GameState.isTouching = true; updateTarget(e.clientX, e.clientY); }
     });
     canvas.addEventListener('mousemove', (e) => {
-        if (!GameState.paused && GameState.isTouching) updateTarget(e.clientX, e.clientY);
+        if (!GameState.paused && !GameState.coordMode && GameState.isTouching) updateTarget(e.clientX, e.clientY);
     });
     canvas.addEventListener('mouseup', () => GameState.isTouching = false);
 
